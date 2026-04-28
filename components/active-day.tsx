@@ -10,14 +10,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { ACTIVE_DAY_STORAGE_KEY } from "@/lib/local-storage-keys";
 
 const MIN_DAY = 1;
 const MAX_DAY = 90;
-const STORAGE_KEY = "argos-active-day";
 
 type ActiveDayContextValue = {
   activeDay: number;
   setActiveDay: (day: number | ((currentDay: number) => number)) => void;
+  clearActiveDayStorage: () => void;
   previousDay: () => void;
   nextDay: () => void;
   canGoPrevious: boolean;
@@ -41,7 +42,7 @@ export function ActiveDayProvider({ children }: { children: ReactNode }) {
 
   const persistActiveDay = useCallback((day: number) => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, String(day));
+      window.localStorage.setItem(ACTIVE_DAY_STORAGE_KEY, String(day));
     } catch {
       // Keep navigation working even if localStorage is unavailable.
     }
@@ -74,7 +75,7 @@ export function ActiveDayProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-          const storedDay = window.localStorage.getItem(STORAGE_KEY);
+          const storedDay = window.localStorage.getItem(ACTIVE_DAY_STORAGE_KEY);
 
           if (storedDay) {
             commitActiveDay(Number(storedDay), { persist: false });
@@ -91,7 +92,7 @@ export function ActiveDayProvider({ children }: { children: ReactNode }) {
 
     function syncFromStorage(event: StorageEvent) {
       try {
-        if (event.key !== STORAGE_KEY || !event.newValue) {
+        if (event.key !== ACTIVE_DAY_STORAGE_KEY || !event.newValue) {
           return;
         }
 
@@ -130,16 +131,29 @@ export function ActiveDayProvider({ children }: { children: ReactNode }) {
     [commitActiveDay],
   );
 
+  const clearActiveDayStorage = useCallback(() => {
+    activeDayRef.current = MIN_DAY;
+    userChangedDayRef.current = true;
+    setActiveDayState(MIN_DAY);
+
+    try {
+      window.localStorage.removeItem(ACTIVE_DAY_STORAGE_KEY);
+    } catch {
+      // Keep the in-memory reset even if storage is unavailable.
+    }
+  }, []);
+
   const value = useMemo<ActiveDayContextValue>(
     () => ({
       activeDay,
       setActiveDay,
+      clearActiveDayStorage,
       previousDay: () => setActiveDay((currentDay) => currentDay - 1),
       nextDay: () => setActiveDay((currentDay) => currentDay + 1),
       canGoPrevious: activeDay > MIN_DAY,
       canGoNext: activeDay < MAX_DAY,
     }),
-    [activeDay, setActiveDay],
+    [activeDay, clearActiveDayStorage, setActiveDay],
   );
 
   return (

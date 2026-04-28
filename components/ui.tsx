@@ -55,7 +55,7 @@ export function ArrowButton({
       href={href}
       className={`inline-flex min-h-12 w-full items-center justify-center rounded-full px-5 py-4 text-sm font-bold outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 sm:w-auto ${
         variant === "light"
-          ? "bg-white text-[#17201a] shadow-sm hover:bg-[#efe5d6] focus-visible:ring-offset-moss"
+          ? "bg-white !text-[#17201a] shadow-sm hover:bg-[#efe5d6] hover:!text-[#17201a] active:bg-[#e6dac8] active:!text-[#17201a] focus-visible:ring-offset-moss [&>span]:!text-[#17201a]"
           : "bg-[#17201a] text-white shadow-soft hover:bg-[#33493a] focus-visible:ring-offset-background"
       }`}
     >
