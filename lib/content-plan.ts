@@ -1,3 +1,4 @@
+import { phaseEightDayPlans } from "./phase-eight-content";
 import { phaseSevenDayPlans } from "./phase-seven-content";
 
 export type DayPlan = {
@@ -78,6 +79,7 @@ export const learningTrackPlan: DayPlan[] = [
     speakingGoal: "Talk about progress, mistakes, and the next speaking goal.",
   },
   ...phaseSevenDayPlans,
+  ...phaseEightDayPlans,
 ];
 
 export const firstFourteenDayPlan = learningTrackPlan;

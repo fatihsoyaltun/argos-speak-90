@@ -1,3 +1,4 @@
+import { phaseEightDayWords } from "./phase-eight-content";
 import { phaseSevenDayWords } from "./phase-seven-content";
 
 export type WordItem = {
@@ -13,7 +14,187 @@ export type DayWords = {
   words: WordItem[];
 };
 
-export const dayWords: DayWords[] = [
+const TARGET_DAILY_WORD_COUNT = 8;
+
+const speakingBoosters: WordItem[] = [
+  {
+    word: "in my case",
+    pronunciation: "in my kays",
+    shortMeaningTr: "benim durumumda",
+    exampleSentence: "In my case, short practice works better.",
+  },
+  {
+    word: "for example",
+    pronunciation: "for ig-ZAM-puhl",
+    shortMeaningTr: "örneğin",
+    exampleSentence: "For example, I practice one answer every morning.",
+  },
+  {
+    word: "the main point",
+    pronunciation: "thuh mayn poynt",
+    shortMeaningTr: "ana nokta",
+    exampleSentence: "The main point is that I need more practice.",
+  },
+  {
+    word: "that is why",
+    pronunciation: "that iz why",
+    shortMeaningTr: "bu yüzden",
+    exampleSentence: "That is why I try to speak every day.",
+  },
+  {
+    word: "to be honest",
+    pronunciation: "toh bee ON-ist",
+    shortMeaningTr: "dürüst olmak gerekirse",
+    exampleSentence: "To be honest, I still feel nervous sometimes.",
+  },
+  {
+    word: "at the same time",
+    pronunciation: "at thuh saym tym",
+    shortMeaningTr: "aynı zamanda",
+    exampleSentence: "At the same time, I know I am improving.",
+  },
+  {
+    word: "a little bit",
+    pronunciation: "uh LIT-uhl bit",
+    shortMeaningTr: "biraz",
+    exampleSentence: "I feel a little bit more confident now.",
+  },
+  {
+    word: "right now",
+    pronunciation: "ryt now",
+    shortMeaningTr: "şu anda",
+    exampleSentence: "Right now, I am focusing on simple sentences.",
+  },
+  {
+    word: "the best part",
+    pronunciation: "thuh best part",
+    shortMeaningTr: "en iyi kısmı",
+    exampleSentence: "The best part is that I can keep going.",
+  },
+  {
+    word: "one more thing",
+    pronunciation: "wun mor thing",
+    shortMeaningTr: "bir şey daha",
+    exampleSentence: "One more thing: I need to check the details.",
+  },
+  {
+    word: "as soon as possible",
+    pronunciation: "az soon az POS-uh-buhl",
+    shortMeaningTr: "mümkün olan en kısa sürede",
+    exampleSentence: "I will send the update as soon as possible.",
+  },
+  {
+    word: "if possible",
+    pronunciation: "if POS-uh-buhl",
+    shortMeaningTr: "mümkünse",
+    exampleSentence: "If possible, I want to meet tomorrow.",
+  },
+  {
+    word: "I am not sure",
+    pronunciation: "eye am not shur",
+    shortMeaningTr: "emin değilim",
+    exampleSentence: "I am not sure, but I can check.",
+  },
+  {
+    word: "let me check",
+    pronunciation: "let mee chek",
+    shortMeaningTr: "kontrol edeyim",
+    exampleSentence: "Let me check the time and get back to you.",
+  },
+  {
+    word: "that works for me",
+    pronunciation: "that wurks for mee",
+    shortMeaningTr: "bu bana uyar",
+    exampleSentence: "Friday morning works for me.",
+  },
+  {
+    word: "I agree",
+    pronunciation: "eye uh-GREE",
+    shortMeaningTr: "katılıyorum",
+    exampleSentence: "I agree with the plan.",
+  },
+  {
+    word: "I see your point",
+    pronunciation: "eye see yor poynt",
+    shortMeaningTr: "ne demek istediğini anlıyorum",
+    exampleSentence: "I see your point, but I have one concern.",
+  },
+  {
+    word: "one concern",
+    pronunciation: "wun kuhn-SURN",
+    shortMeaningTr: "bir endişe",
+    exampleSentence: "I have one concern about the timing.",
+  },
+  {
+    word: "in other words",
+    pronunciation: "in UTH-er wurdz",
+    shortMeaningTr: "başka bir deyişle",
+    exampleSentence: "In other words, we need a simpler plan.",
+  },
+  {
+    word: "from my side",
+    pronunciation: "frum my syd",
+    shortMeaningTr: "benim tarafımdan",
+    exampleSentence: "From my side, everything is ready.",
+  },
+  {
+    word: "so far",
+    pronunciation: "soh far",
+    shortMeaningTr: "şimdiye kadar",
+    exampleSentence: "So far, the practice is going well.",
+  },
+  {
+    word: "next time",
+    pronunciation: "nekst tym",
+    shortMeaningTr: "bir dahaki sefere",
+    exampleSentence: "Next time, I will speak more slowly.",
+  },
+  {
+    word: "in a simple way",
+    pronunciation: "in uh SIM-puhl way",
+    shortMeaningTr: "basit şekilde",
+    exampleSentence: "I want to explain it in a simple way.",
+  },
+  {
+    word: "keep it short",
+    pronunciation: "keep it short",
+    shortMeaningTr: "kısa tutmak",
+    exampleSentence: "I will keep it short and clear.",
+  },
+];
+
+function expandDailyWords(dayContent: DayWords): DayWords {
+  if (dayContent.words.length >= TARGET_DAILY_WORD_COUNT) {
+    return dayContent;
+  }
+
+  const selectedBoosters: WordItem[] = [];
+  const existingWords = new Set(
+    dayContent.words.map((item) => item.word.toLowerCase()),
+  );
+  let index = (dayContent.day - 1) * 4;
+
+  while (
+    dayContent.words.length + selectedBoosters.length < TARGET_DAILY_WORD_COUNT
+  ) {
+    const booster = speakingBoosters[index % speakingBoosters.length];
+    index += 1;
+
+    if (existingWords.has(booster.word.toLowerCase())) {
+      continue;
+    }
+
+    selectedBoosters.push(booster);
+    existingWords.add(booster.word.toLowerCase());
+  }
+
+  return {
+    ...dayContent,
+    words: [...dayContent.words, ...selectedBoosters],
+  };
+}
+
+const baseDayWords: DayWords[] = [
   {
     day: 1,
     title: "Morning and Routine",
@@ -435,6 +616,9 @@ export const dayWords: DayWords[] = [
     ],
   },
   ...phaseSevenDayWords,
+  ...phaseEightDayWords,
 ];
+
+export const dayWords = baseDayWords.map(expandDailyWords);
 
 export const dayOneWords = dayWords[0].words;

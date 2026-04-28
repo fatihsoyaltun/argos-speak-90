@@ -1,3 +1,4 @@
+import { phaseEightListeningDrills } from "./phase-eight-content";
 import { phaseSevenListeningDrills } from "./phase-seven-content";
 
 export type ListeningDrill = {
@@ -250,6 +251,7 @@ export const listeningDrills: ListeningDrill[] = [
       "Write 2 sentences about your English progress and your next goal.",
   },
   ...phaseSevenListeningDrills,
+  ...phaseEightListeningDrills,
 ];
 
 export const dayOneListening = listeningDrills[0];

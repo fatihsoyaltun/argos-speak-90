@@ -1,3 +1,4 @@
+import { phaseEightReviewDrills } from "./phase-eight-content";
 import { phaseSevenReviewDrills } from "./phase-seven-content";
 
 export type ReviewItemType = "recall" | "fillBlank" | "shortAnswer";
@@ -344,6 +345,7 @@ export const reviewDrills: ReviewDrill[] = [
     ],
   },
   ...phaseSevenReviewDrills,
+  ...phaseEightReviewDrills,
 ];
 
 export const dayOneReview = reviewDrills[0];

@@ -1,3 +1,4 @@
+import { phaseEightSpeakingPractices } from "./phase-eight-content";
 import { phaseSevenSpeakingPractices } from "./phase-seven-content";
 
 export type SpeakingPractice = {
@@ -298,6 +299,7 @@ export const speakingPractices: SpeakingPractice[] = [
       "Mini hedef: İki haftalık gelişimini 4 kısa cümleyle anlat.",
   },
   ...phaseSevenSpeakingPractices,
+  ...phaseEightSpeakingPractices,
 ];
 
 export const dayOneSpeaking = speakingPractices[0];

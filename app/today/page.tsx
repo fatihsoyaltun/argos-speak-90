@@ -41,12 +41,11 @@ export default function TodayPage() {
         </p>
         <Link
           href="/listen"
-          className="inline-flex min-h-12 w-full items-center justify-center rounded-full !bg-white px-5 py-4 text-sm font-black !text-[#17201a] shadow-sm outline-none transition hover:!bg-[#efe5d6] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-moss sm:w-auto"
+          aria-label="Start listening"
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-full px-5 py-4 text-center text-sm font-black shadow-sm outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-moss sm:w-auto"
+          style={{ backgroundColor: "#ffffff", color: "#17201a" }}
         >
-          <span className="!text-[#17201a]">Start listening</span>
-          <span aria-hidden="true" className="ml-2 !text-[#17201a]">
-            -&gt;
-          </span>
+          Start listening
         </Link>
       </Card>
 
