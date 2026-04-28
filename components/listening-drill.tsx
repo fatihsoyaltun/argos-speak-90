@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ListeningDrill } from "@/lib/listening-content";
-import { getTtsServiceStatus, requestTtsAudio } from "@/lib/tts/client";
+import { getTtsServiceStatus } from "@/lib/tts/client";
+import {
+  createTtsCacheKey,
+  getOrRequestTtsAudio,
+  type CachedTtsAudio,
+} from "@/lib/tts/audio-cache";
 import type { TtsWordTiming } from "@/lib/tts/types";
 
 type AudioState = "idle" | "loading" | "playing" | "paused" | "ended" | "error";
@@ -48,6 +53,7 @@ const transcriptTokenClass =
   "rounded-md px-1 py-0.5 font-normal leading-[inherit] transition-colors duration-150";
 const activeTranscriptTokenClass = "bg-[#f29f05] text-[#201609]";
 const inactiveTranscriptTokenClass = "bg-transparent text-foreground";
+const PRELOAD_DELAY_MS = 1_200;
 
 export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   const [response, setResponse] = useState("");
@@ -60,12 +66,25 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   const [wordTimings, setWordTimings] = useState<TtsWordTiming[]>([]);
   const [hasLoadedAudio, setHasLoadedAudio] = useState(false);
   const [audioDay, setAudioDay] = useState<number | null>(null);
+  const [ttsModelId, setTtsModelId] = useState("");
+  const [ttsVoiceId, setTtsVoiceId] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const activeCacheKeyRef = useRef("");
   const playbackRunRef = useRef(0);
   const intentionalStopRef = useRef(false);
   const canShowAudioControls = ttsConfigState === "configured";
+  const ttsCacheKey = useMemo(
+    () =>
+      createTtsCacheKey({
+        day: drill.day,
+        modelId: ttsModelId,
+        text: drill.transcriptExcerpt,
+        voiceId: ttsVoiceId,
+      }),
+    [drill.day, drill.transcriptExcerpt, ttsModelId, ttsVoiceId],
+  );
   const transcriptSegments = useMemo(
     () => createTranscriptSegments(drill.transcriptExcerpt),
     [drill.transcriptExcerpt],
@@ -126,11 +145,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
       audio.load();
       audioRef.current = null;
     }
-
-    if (audioUrlRef.current) {
-      window.URL.revokeObjectURL(audioUrlRef.current);
-      audioUrlRef.current = null;
-    }
+    audioUrlRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -159,6 +174,8 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
       const status = await getTtsServiceStatus().catch(() => ({
         configured: false,
         reason: "request_failed" as const,
+        modelId: "",
+        voiceId: "",
       }));
 
       if (!isActive) {
@@ -173,6 +190,9 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         status.configured,
         status.reason ?? "server_route_error",
       );
+
+      setTtsModelId(status.modelId ?? "");
+      setTtsVoiceId(status.voiceId ?? "");
 
       if (!status.configured) {
         setAudioError(
@@ -196,6 +216,26 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!canShowAudioControls) {
+      return;
+    }
+
+    const abortController = new AbortController();
+    const preloadTimer = window.setTimeout(() => {
+      void getOrRequestTtsAudio({
+        cacheKey: ttsCacheKey,
+        signal: abortController.signal,
+        text: drill.transcriptExcerpt,
+      });
+    }, PRELOAD_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(preloadTimer);
+      abortController.abort();
+    };
+  }, [canShowAudioControls, drill.transcriptExcerpt, ttsCacheKey]);
 
   useEffect(() => {
     intentionalStopRef.current = true;
@@ -240,10 +280,11 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
-    const result = await requestTtsAudio(
-      drill.transcriptExcerpt,
-      abortController.signal,
-    );
+    const result = await getOrRequestTtsAudio({
+      cacheKey: ttsCacheKey,
+      signal: abortController.signal,
+      text: drill.transcriptExcerpt,
+    });
 
     if (
       abortController.signal.aborted ||
@@ -255,7 +296,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
 
     abortControllerRef.current = null;
 
-    if (!result.ok) {
+    if ("ok" in result && !result.ok) {
       if (result.code === "aborted") {
         setAudioState("idle");
         setAudioError("");
@@ -273,14 +314,15 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
     }
 
     try {
-      const audioUrl = window.URL.createObjectURL(result.audio);
-      const audio = new Audio(audioUrl);
+      const cachedResult = result as CachedTtsAudio;
+      const audio = new Audio(cachedResult.objectUrl);
 
-      audioUrlRef.current = audioUrl;
+      activeCacheKeyRef.current = cachedResult.cacheKey;
+      audioUrlRef.current = cachedResult.objectUrl;
       audioRef.current = audio;
       setHasLoadedAudio(true);
       setAudioDay(drill.day);
-      setWordTimings(result.alignment ?? []);
+      setWordTimings(cachedResult.alignment ?? []);
       audio.onended = () => {
         if (playbackRunRef.current === runId && !intentionalStopRef.current) {
           setCurrentTime(0);

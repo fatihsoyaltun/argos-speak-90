@@ -144,6 +144,18 @@ export class ElevenLabsTtsProvider implements TtsProvider {
     return "configured";
   }
 
+  private createMetadata(hasAlignment: boolean) {
+    return {
+      modelId: this.modelId,
+      voiceId: this.voiceId ?? "",
+      hasAlignment,
+    };
+  }
+
+  getMetadata() {
+    return this.createMetadata(false);
+  }
+
   async generateAudio({
     text,
   }: TtsAudioRequest): Promise<TtsAudioResponse> {
@@ -195,10 +207,13 @@ export class ElevenLabsTtsProvider implements TtsProvider {
 
     const audioBuffer = Buffer.from(data.audio_base64, "base64");
 
+    const alignment = characterAlignmentToWords(data.alignment);
+
     return {
       audio: bufferToArrayBuffer(audioBuffer),
       contentType: "audio/mpeg",
-      alignment: characterAlignmentToWords(data.alignment),
+      alignment,
+      metadata: this.createMetadata(Boolean(alignment?.length)),
     };
   }
 
@@ -236,6 +251,7 @@ export class ElevenLabsTtsProvider implements TtsProvider {
     return {
       audio: await response.arrayBuffer(),
       contentType: "audio/mpeg",
+      metadata: this.createMetadata(false),
     };
   }
 }

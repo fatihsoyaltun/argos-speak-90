@@ -9,11 +9,14 @@ export async function GET() {
   try {
     const provider = getElevenLabsTtsProvider();
     const reason = provider.getConfigStatus();
+    const metadata = provider.getMetadata();
 
     return NextResponse.json(
       {
         configured: reason === "configured",
+        modelId: metadata.modelId,
         reason,
+        voiceId: metadata.voiceId,
       },
       {
         headers: {
@@ -96,6 +99,7 @@ export async function POST(request: Request) {
         audioBase64: Buffer.from(audio.audio).toString("base64"),
         contentType: audio.contentType,
         alignment: audio.alignment ?? [],
+        metadata: audio.metadata,
       },
       {
         headers: {

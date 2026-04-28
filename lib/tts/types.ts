@@ -15,6 +15,13 @@ export type TtsAudioResponse = {
   audio: ArrayBuffer;
   contentType: TtsAudioFormat;
   alignment?: TtsWordTiming[];
+  metadata: TtsAudioMetadata;
+};
+
+export type TtsAudioMetadata = {
+  modelId: string;
+  voiceId: string;
+  hasAlignment: boolean;
 };
 
 export type TtsProvider = {
@@ -27,6 +34,7 @@ export type TtsClientResult =
       ok: true;
       audio: Blob;
       alignment?: TtsWordTiming[];
+      metadata?: TtsAudioMetadata;
     }
   | {
       ok: false;
@@ -42,6 +50,7 @@ export type TtsClientResult =
 
 export type TtsServiceStatus = {
   configured: boolean;
+  modelId?: string;
   reason?:
     | "configured"
     | "missing_api_key"
@@ -49,4 +58,5 @@ export type TtsServiceStatus = {
     | "server_route_error"
     | "loading_timeout"
     | "request_failed";
+  voiceId?: string;
 };

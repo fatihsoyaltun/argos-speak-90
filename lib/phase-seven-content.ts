@@ -2,7 +2,7 @@ const reviewIntroTr =
   "Cevabı önce hatırlamaya çalış. Sonra kısa yaz ve kontrol et. Amaç hızlı ezber değil; konuşurken kullanacağın cümleyi geri çağırmak.";
 
 const selfCheckItems = [
-  "En az 2 cümle kurdum mu?",
+  "En az 3 cümle kurdum mu?",
   "Hedef cümlelerden veya kelimelerden birini kullandım mı?",
   "İkinci denemede daha net konuştum mu?",
 ];
@@ -795,10 +795,17 @@ export const phaseSevenDayWords = phaseSevenDays.map((day) => ({
   })),
 }));
 
+function buildPhaseSevenPrompt(day: (typeof phaseSevenDays)[number]) {
+  const sentenceTarget = day.day < 29 ? "3-4" : "4-5";
+  const closingMove = day.day < 29 ? "one reason or next step" : "one reason, contrast, or next step";
+
+  return `${day.speakingGoal} Speak in ${sentenceTarget} sentences: state the situation, add one useful detail, and finish with ${closingMove}. Use your own life if possible.`;
+}
+
 export const phaseSevenSpeakingPractices = phaseSevenDays.map((day) => ({
   day: day.day,
   title: `Day ${day.day} Speaking: ${day.theme}`,
-  prompt: `${day.speakingGoal} Use your own life if possible.`,
+  prompt: buildPhaseSevenPrompt(day),
   speakingTipsTr:
     "Önce kısa ve anlaşılır konuş. İkinci denemede aynı fikri daha düzenli, daha net ve daha doğal söyle.",
   targetLines: day.keyLines,
@@ -806,7 +813,7 @@ export const phaseSevenSpeakingPractices = phaseSevenDays.map((day) => ({
     "Konuyu kendi hayatıma bağladım mı?",
     ...selfCheckItems,
   ],
-  miniGoalTr: "Mini hedef: 30-45 saniye konuş ve ikinci denemede bir cümleyi iyileştir.",
+  miniGoalTr: "Mini hedef: 35-50 saniye konuş ve ikinci denemede bir cümleyi daha net hale getir.",
 }));
 
 export const phaseSevenReviewDrills = phaseSevenDays.map((day) => ({

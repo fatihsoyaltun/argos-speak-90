@@ -2,7 +2,7 @@ const reviewIntroTr =
   "Cevabı önce hatırlamaya çalış. Sonra kısa yaz ve kontrol et. Amaç konuşurken kullanabileceğin cümleyi geri çağırmak.";
 
 const selfCheckItems = [
-  "En az 3 cümle kurdum mu?",
+  "En az 4 cümle kurdum mu?",
   "Bir sebep, detay veya örnek ekledim mi?",
   "İkinci denemede daha akıcı konuştum mu?",
 ];
@@ -1335,10 +1335,26 @@ export const phaseEightDayWords = phaseEightDays.map((day) => ({
   })),
 }));
 
+function buildPhaseEightPrompt(day: (typeof phaseEightDays)[number]) {
+  if (day.day >= 71) {
+    return `${day.speakingGoal} Speak in 4-6 sentences: give the context, make your point, add a reason or example, and finish with a realistic next step. Use your own life, work, or study context if possible.`;
+  }
+
+  return `${day.speakingGoal} Speak in 4-5 sentences: give the context, add one specific detail, and include one reason, example, or next step. Use your own life, work, or study context if possible.`;
+}
+
+function buildPhaseEightMiniGoal(day: (typeof phaseEightDays)[number]) {
+  if (day.day >= 71) {
+    return "Mini hedef: 60-75 saniye konuş ve ikinci denemede cevabına daha net bir sonuç cümlesi ekle.";
+  }
+
+  return "Mini hedef: 45-60 saniye konuş ve ikinci denemede bir sebep, örnek veya bağlaç ekle.";
+}
+
 export const phaseEightSpeakingPractices = phaseEightDays.map((day) => ({
   day: day.day,
   title: `Day ${day.day} Speaking: ${day.theme}`,
-  prompt: `${day.speakingGoal} Use your own life, work, or study context if possible.`,
+  prompt: buildPhaseEightPrompt(day),
   speakingTipsTr:
     "İlk denemede fikri tamamla. İkinci denemede bir sebep, örnek veya daha doğal bir bağlaç ekle.",
   targetLines: day.keyLines,
@@ -1346,8 +1362,7 @@ export const phaseEightSpeakingPractices = phaseEightDays.map((day) => ({
     "Konuşmamın ana fikri net miydi?",
     ...selfCheckItems,
   ],
-  miniGoalTr:
-    "Mini hedef: 45-60 saniye konuş ve ikinci denemede bir cümleyi daha doğal hale getir.",
+  miniGoalTr: buildPhaseEightMiniGoal(day),
 }));
 
 export const phaseEightReviewDrills = phaseEightDays.map((day) => ({

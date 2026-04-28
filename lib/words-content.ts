@@ -16,152 +16,681 @@ export type DayWords = {
 
 const TARGET_DAILY_WORD_COUNT = 8;
 
-const speakingBoosters: WordItem[] = [
+const foundationBoosters: WordItem[] = [
   {
-    word: "in my case",
-    pronunciation: "in my kays",
-    shortMeaningTr: "benim durumumda",
-    exampleSentence: "In my case, short practice works better.",
+    word: "first of all",
+    pronunciation: "furst uv awl",
+    shortMeaningTr: "öncelikle",
+    exampleSentence: "First of all, I check my plan.",
   },
   {
-    word: "for example",
-    pronunciation: "for ig-ZAM-puhl",
-    shortMeaningTr: "örneğin",
-    exampleSentence: "For example, I practice one answer every morning.",
+    word: "after that",
+    pronunciation: "AF-ter that",
+    shortMeaningTr: "ondan sonra",
+    exampleSentence: "After that, I leave for work.",
   },
   {
-    word: "the main point",
-    pronunciation: "thuh mayn poynt",
-    shortMeaningTr: "ana nokta",
-    exampleSentence: "The main point is that I need more practice.",
+    word: "most days",
+    pronunciation: "mohst dayz",
+    shortMeaningTr: "çoğu gün",
+    exampleSentence: "Most days, I practice for ten minutes.",
   },
   {
-    word: "that is why",
-    pronunciation: "that iz why",
-    shortMeaningTr: "bu yüzden",
-    exampleSentence: "That is why I try to speak every day.",
+    word: "a few minutes",
+    pronunciation: "uh fyoo MIN-its",
+    shortMeaningTr: "birkaç dakika",
+    exampleSentence: "I have a few minutes before my meeting.",
   },
   {
-    word: "to be honest",
-    pronunciation: "toh bee ON-ist",
-    shortMeaningTr: "dürüst olmak gerekirse",
-    exampleSentence: "To be honest, I still feel nervous sometimes.",
+    word: "at work",
+    pronunciation: "at wurk",
+    shortMeaningTr: "işte",
+    exampleSentence: "At work, I try to speak clearly.",
   },
   {
-    word: "at the same time",
-    pronunciation: "at thuh saym tym",
-    shortMeaningTr: "aynı zamanda",
-    exampleSentence: "At the same time, I know I am improving.",
+    word: "at home",
+    pronunciation: "at hohm",
+    shortMeaningTr: "evde",
+    exampleSentence: "At home, I listen again.",
   },
   {
-    word: "a little bit",
-    pronunciation: "uh LIT-uhl bit",
+    word: "in the morning",
+    pronunciation: "in thuh MOR-ning",
+    shortMeaningTr: "sabah",
+    exampleSentence: "In the morning, I feel more focused.",
+  },
+  {
+    word: "in the evening",
+    pronunciation: "in thuh EEV-ning",
+    shortMeaningTr: "akşam",
+    exampleSentence: "In the evening, I review one answer.",
+  },
+  {
+    word: "on the weekend",
+    pronunciation: "on thuh WEEK-end",
+    shortMeaningTr: "hafta sonunda",
+    exampleSentence: "On the weekend, I have more time.",
+  },
+  {
+    word: "I need to",
+    pronunciation: "eye need to",
+    shortMeaningTr: "yapmam gerekiyor",
+    exampleSentence: "I need to answer one message.",
+  },
+  {
+    word: "I want to",
+    pronunciation: "eye want to",
+    shortMeaningTr: "yapmak istiyorum",
+    exampleSentence: "I want to speak more naturally.",
+  },
+  {
+    word: "I usually",
+    pronunciation: "eye YOO-zhoo-uh-lee",
+    shortMeaningTr: "genellikle",
+    exampleSentence: "I usually start with a short coffee.",
+  },
+  {
+    word: "not very",
+    pronunciation: "not VER-ee",
+    shortMeaningTr: "çok değil",
+    exampleSentence: "I am not very tired today.",
+  },
+  {
+    word: "a bit",
+    pronunciation: "uh bit",
     shortMeaningTr: "biraz",
-    exampleSentence: "I feel a little bit more confident now.",
+    exampleSentence: "I feel a bit nervous, but I can try.",
+  },
+  {
+    word: "this week",
+    pronunciation: "this week",
+    shortMeaningTr: "bu hafta",
+    exampleSentence: "This week, I want to speak every day.",
+  },
+  {
+    word: "tomorrow morning",
+    pronunciation: "tuh-MOR-oh MOR-ning",
+    shortMeaningTr: "yarın sabah",
+    exampleSentence: "Tomorrow morning, I have a meeting.",
+  },
+  {
+    word: "because",
+    pronunciation: "bi-KAWZ",
+    shortMeaningTr: "çünkü",
+    exampleSentence: "I practice because I want to feel ready.",
+  },
+  {
+    word: "with my team",
+    pronunciation: "with my teem",
+    shortMeaningTr: "ekibimle",
+    exampleSentence: "I share updates with my team.",
+  },
+  {
+    word: "near my home",
+    pronunciation: "neer my hohm",
+    shortMeaningTr: "evime yakın",
+    exampleSentence: "There is a small shop near my home.",
+  },
+  {
+    word: "one thing",
+    pronunciation: "wun thing",
+    shortMeaningTr: "bir şey",
+    exampleSentence: "One thing helps me stay calm.",
   },
   {
     word: "right now",
     pronunciation: "ryt now",
     shortMeaningTr: "şu anda",
-    exampleSentence: "Right now, I am focusing on simple sentences.",
+    exampleSentence: "Right now, I am focusing on short answers.",
   },
   {
-    word: "the best part",
-    pronunciation: "thuh best part",
-    shortMeaningTr: "en iyi kısmı",
-    exampleSentence: "The best part is that I can keep going.",
+    word: "little by little",
+    pronunciation: "LIT-uhl by LIT-uhl",
+    shortMeaningTr: "yavaş yavaş",
+    exampleSentence: "Little by little, I feel more comfortable.",
   },
   {
-    word: "one more thing",
-    pronunciation: "wun mor thing",
-    shortMeaningTr: "bir şey daha",
-    exampleSentence: "One more thing: I need to check the details.",
+    word: "easy to say",
+    pronunciation: "EE-zee to say",
+    shortMeaningTr: "söylemesi kolay",
+    exampleSentence: "This sentence is easy to say.",
   },
   {
-    word: "as soon as possible",
-    pronunciation: "az soon az POS-uh-buhl",
-    shortMeaningTr: "mümkün olan en kısa sürede",
-    exampleSentence: "I will send the update as soon as possible.",
-  },
-  {
-    word: "if possible",
-    pronunciation: "if POS-uh-buhl",
-    shortMeaningTr: "mümkünse",
-    exampleSentence: "If possible, I want to meet tomorrow.",
-  },
-  {
-    word: "I am not sure",
-    pronunciation: "eye am not shur",
-    shortMeaningTr: "emin değilim",
-    exampleSentence: "I am not sure, but I can check.",
-  },
-  {
-    word: "let me check",
-    pronunciation: "let mee chek",
-    shortMeaningTr: "kontrol edeyim",
-    exampleSentence: "Let me check the time and get back to you.",
-  },
-  {
-    word: "that works for me",
-    pronunciation: "that wurks for mee",
-    shortMeaningTr: "bu bana uyar",
-    exampleSentence: "Friday morning works for me.",
-  },
-  {
-    word: "I agree",
-    pronunciation: "eye uh-GREE",
-    shortMeaningTr: "katılıyorum",
-    exampleSentence: "I agree with the plan.",
-  },
-  {
-    word: "I see your point",
-    pronunciation: "eye see yor poynt",
-    shortMeaningTr: "ne demek istediğini anlıyorum",
-    exampleSentence: "I see your point, but I have one concern.",
-  },
-  {
-    word: "one concern",
-    pronunciation: "wun kuhn-SURN",
-    shortMeaningTr: "bir endişe",
-    exampleSentence: "I have one concern about the timing.",
-  },
-  {
-    word: "in other words",
-    pronunciation: "in UTH-er wurdz",
-    shortMeaningTr: "başka bir deyişle",
-    exampleSentence: "In other words, we need a simpler plan.",
-  },
-  {
-    word: "from my side",
-    pronunciation: "frum my syd",
-    shortMeaningTr: "benim tarafımdan",
-    exampleSentence: "From my side, everything is ready.",
-  },
-  {
-    word: "so far",
-    pronunciation: "soh far",
-    shortMeaningTr: "şimdiye kadar",
-    exampleSentence: "So far, the practice is going well.",
-  },
-  {
-    word: "next time",
-    pronunciation: "nekst tym",
-    shortMeaningTr: "bir dahaki sefere",
-    exampleSentence: "Next time, I will speak more slowly.",
-  },
-  {
-    word: "in a simple way",
-    pronunciation: "in uh SIM-puhl way",
-    shortMeaningTr: "basit şekilde",
-    exampleSentence: "I want to explain it in a simple way.",
-  },
-  {
-    word: "keep it short",
-    pronunciation: "keep it short",
-    shortMeaningTr: "kısa tutmak",
-    exampleSentence: "I will keep it short and clear.",
+    word: "one more time",
+    pronunciation: "wun mor tym",
+    shortMeaningTr: "bir kez daha",
+    exampleSentence: "I want to repeat it one more time.",
   },
 ];
+
+const a2Boosters: WordItem[] = [
+  {
+    word: "make a plan",
+    pronunciation: "mayk uh plan",
+    shortMeaningTr: "plan yapmak",
+    exampleSentence: "I need to make a plan before I start.",
+  },
+  {
+    word: "set a time",
+    pronunciation: "set uh tym",
+    shortMeaningTr: "zaman belirlemek",
+    exampleSentence: "Let's set a time for the call.",
+  },
+  {
+    word: "get ready",
+    pronunciation: "get RED-ee",
+    shortMeaningTr: "hazırlanmak",
+    exampleSentence: "I get ready before the meeting.",
+  },
+  {
+    word: "check the details",
+    pronunciation: "chek thuh DEE-taylz",
+    shortMeaningTr: "detayları kontrol etmek",
+    exampleSentence: "I need to check the details first.",
+  },
+  {
+    word: "make a choice",
+    pronunciation: "mayk uh choys",
+    shortMeaningTr: "seçim yapmak",
+    exampleSentence: "I have to make a choice today.",
+  },
+  {
+    word: "one reason is",
+    pronunciation: "wun REE-zuhn iz",
+    shortMeaningTr: "bir sebep şu",
+    exampleSentence: "One reason is that it saves time.",
+  },
+  {
+    word: "compared with",
+    pronunciation: "kuhm-PAIRD with",
+    shortMeaningTr: "ile karşılaştırıldığında",
+    exampleSentence: "Compared with yesterday, today feels easier.",
+  },
+  {
+    word: "ask for help",
+    pronunciation: "ask for help",
+    shortMeaningTr: "yardım istemek",
+    exampleSentence: "I can ask for help if I need it.",
+  },
+  {
+    word: "deal with",
+    pronunciation: "deel with",
+    shortMeaningTr: "başa çıkmak",
+    exampleSentence: "I can deal with a small problem.",
+  },
+  {
+    word: "fix the issue",
+    pronunciation: "fiks thee ISH-oo",
+    shortMeaningTr: "sorunu çözmek",
+    exampleSentence: "We can fix the issue today.",
+  },
+  {
+    word: "send an update",
+    pronunciation: "send an UP-dayt",
+    shortMeaningTr: "güncelleme göndermek",
+    exampleSentence: "I will send an update after lunch.",
+  },
+  {
+    word: "make sure",
+    pronunciation: "mayk shur",
+    shortMeaningTr: "emin olmak",
+    exampleSentence: "I want to make sure I understand.",
+  },
+  {
+    word: "a better option",
+    pronunciation: "uh BET-er OP-shuhn",
+    shortMeaningTr: "daha iyi seçenek",
+    exampleSentence: "This is a better option for me.",
+  },
+  {
+    word: "small mistake",
+    pronunciation: "smawl mis-TAYK",
+    shortMeaningTr: "küçük hata",
+    exampleSentence: "I made a small mistake, but I fixed it.",
+  },
+  {
+    word: "next step",
+    pronunciation: "nekst step",
+    shortMeaningTr: "sonraki adım",
+    exampleSentence: "The next step is to call the client.",
+  },
+  {
+    word: "short break",
+    pronunciation: "short brayk",
+    shortMeaningTr: "kısa mola",
+    exampleSentence: "I need a short break before I continue.",
+  },
+  {
+    word: "be careful with",
+    pronunciation: "bee KAIR-fuhl with",
+    shortMeaningTr: "dikkatli olmak",
+    exampleSentence: "Be careful with the time.",
+  },
+  {
+    word: "on time",
+    pronunciation: "on tym",
+    shortMeaningTr: "zamanında",
+    exampleSentence: "I want to arrive on time.",
+  },
+  {
+    word: "a clear answer",
+    pronunciation: "uh kleer AN-ser",
+    shortMeaningTr: "net cevap",
+    exampleSentence: "I need a clear answer before Friday.",
+  },
+  {
+    word: "in the right order",
+    pronunciation: "in thuh ryt OR-der",
+    shortMeaningTr: "doğru sırayla",
+    exampleSentence: "I explain the steps in the right order.",
+  },
+  {
+    word: "talk it through",
+    pronunciation: "tawk it throo",
+    shortMeaningTr: "konuşarak netleştirmek",
+    exampleSentence: "Let's talk it through before we decide.",
+  },
+  {
+    word: "work better",
+    pronunciation: "wurk BET-er",
+    shortMeaningTr: "daha iyi çalışmak",
+    exampleSentence: "This plan works better for my schedule.",
+  },
+  {
+    word: "take notes",
+    pronunciation: "tayk nohts",
+    shortMeaningTr: "not almak",
+    exampleSentence: "I take notes during important calls.",
+  },
+  {
+    word: "keep it simple",
+    pronunciation: "keep it SIM-puhl",
+    shortMeaningTr: "basit tutmak",
+    exampleSentence: "I try to keep it simple when I speak.",
+  },
+  {
+    word: "follow the plan",
+    pronunciation: "FOL-oh thuh plan",
+    shortMeaningTr: "planı takip etmek",
+    exampleSentence: "If I follow the plan, I finish faster.",
+  },
+  {
+    word: "clear enough",
+    pronunciation: "kleer i-NUF",
+    shortMeaningTr: "yeterince net",
+    exampleSentence: "My answer is clear enough for now.",
+  },
+  {
+    word: "a quick note",
+    pronunciation: "uh kwik noht",
+    shortMeaningTr: "kısa not",
+    exampleSentence: "I sent a quick note to my manager.",
+  },
+  {
+    word: "by the end",
+    pronunciation: "by thee end",
+    shortMeaningTr: "sonuna kadar",
+    exampleSentence: "By the end of the day, I felt ready.",
+  },
+];
+
+const earlyB1Boosters: WordItem[] = [
+  {
+    word: "from my point of view",
+    pronunciation: "frum my poynt uv vyoo",
+    shortMeaningTr: "benim bakış açıma göre",
+    exampleSentence: "From my point of view, the plan is realistic.",
+  },
+  {
+    word: "the reason is",
+    pronunciation: "thuh REE-zuhn iz",
+    shortMeaningTr: "sebebi şu",
+    exampleSentence: "The reason is that we need more time.",
+  },
+  {
+    word: "what I noticed",
+    pronunciation: "wut eye NOH-tist",
+    shortMeaningTr: "fark ettiğim şey",
+    exampleSentence: "What I noticed was the timing problem.",
+  },
+  {
+    word: "it depends on",
+    pronunciation: "it di-PENDZ on",
+    shortMeaningTr: "bağlıdır",
+    exampleSentence: "It depends on how busy the week is.",
+  },
+  {
+    word: "in this situation",
+    pronunciation: "in this sit-yoo-AY-shuhn",
+    shortMeaningTr: "bu durumda",
+    exampleSentence: "In this situation, I would ask for help.",
+  },
+  {
+    word: "a practical way",
+    pronunciation: "uh PRAK-ti-kuhl way",
+    shortMeaningTr: "pratik bir yol",
+    exampleSentence: "A practical way is to start with one task.",
+  },
+  {
+    word: "follow up",
+    pronunciation: "FOL-oh up",
+    shortMeaningTr: "takip etmek",
+    exampleSentence: "I will follow up after the meeting.",
+  },
+  {
+    word: "make progress",
+    pronunciation: "mayk PROG-res",
+    shortMeaningTr: "ilerleme kaydetmek",
+    exampleSentence: "I make progress when I practice often.",
+  },
+  {
+    word: "give context",
+    pronunciation: "giv KON-tekst",
+    shortMeaningTr: "bağlam vermek",
+    exampleSentence: "I need to give context before I explain.",
+  },
+  {
+    word: "be specific",
+    pronunciation: "bee spi-SIF-ik",
+    shortMeaningTr: "spesifik olmak",
+    exampleSentence: "Be specific when you describe the problem.",
+  },
+  {
+    word: "a useful example",
+    pronunciation: "uh YOOS-fuhl ig-ZAM-puhl",
+    shortMeaningTr: "faydalı örnek",
+    exampleSentence: "A useful example makes the idea clearer.",
+  },
+  {
+    word: "based on",
+    pronunciation: "bayst on",
+    shortMeaningTr: "dayanarak",
+    exampleSentence: "Based on the feedback, I changed the plan.",
+  },
+  {
+    word: "handle the problem",
+    pronunciation: "HAN-duhl thuh PROB-luhm",
+    shortMeaningTr: "sorunu halletmek",
+    exampleSentence: "We can handle the problem today.",
+  },
+  {
+    word: "avoid confusion",
+    pronunciation: "uh-VOYD kuhn-FYOO-zhuhn",
+    shortMeaningTr: "karışıklığı önlemek",
+    exampleSentence: "I repeat the time to avoid confusion.",
+  },
+  {
+    word: "agree on",
+    pronunciation: "uh-GREE on",
+    shortMeaningTr: "üzerinde anlaşmak",
+    exampleSentence: "We need to agree on the next step.",
+  },
+  {
+    word: "make a decision",
+    pronunciation: "mayk uh di-SIZH-uhn",
+    shortMeaningTr: "karar vermek",
+    exampleSentence: "We should make a decision today.",
+  },
+  {
+    word: "what matters most",
+    pronunciation: "wut MAT-erz mohst",
+    shortMeaningTr: "en önemli olan şey",
+    exampleSentence: "What matters most is clear communication.",
+  },
+  {
+    word: "a realistic plan",
+    pronunciation: "uh ree-uh-LIS-tik plan",
+    shortMeaningTr: "gerçekçi plan",
+    exampleSentence: "We need a realistic plan for this week.",
+  },
+  {
+    word: "it helped me",
+    pronunciation: "it helpt mee",
+    shortMeaningTr: "bana yardımcı oldu",
+    exampleSentence: "It helped me speak with less pressure.",
+  },
+  {
+    word: "I learned that",
+    pronunciation: "eye lurnd that",
+    shortMeaningTr: "şunu öğrendim",
+    exampleSentence: "I learned that preparation matters.",
+  },
+  {
+    word: "the main challenge",
+    pronunciation: "thuh mayn CHAL-inj",
+    shortMeaningTr: "ana zorluk",
+    exampleSentence: "The main challenge is the short deadline.",
+  },
+  {
+    word: "keep people updated",
+    pronunciation: "keep PEE-puhl UP-day-tid",
+    shortMeaningTr: "insanları bilgilendirmek",
+    exampleSentence: "I try to keep people updated.",
+  },
+  {
+    word: "a quick summary",
+    pronunciation: "uh kwik SUM-uh-ree",
+    shortMeaningTr: "kısa özet",
+    exampleSentence: "Here is a quick summary of the issue.",
+  },
+  {
+    word: "short notice",
+    pronunciation: "short NOH-tis",
+    shortMeaningTr: "kısa süre önce haber",
+    exampleSentence: "Sorry for the short notice.",
+  },
+  {
+    word: "worth it",
+    pronunciation: "wurth it",
+    shortMeaningTr: "değer",
+    exampleSentence: "The extra practice is worth it.",
+  },
+  {
+    word: "make it easier",
+    pronunciation: "mayk it EE-zee-er",
+    shortMeaningTr: "kolaylaştırmak",
+    exampleSentence: "A short list makes it easier to start.",
+  },
+  {
+    word: "a small improvement",
+    pronunciation: "uh smawl im-PROOV-muhnt",
+    shortMeaningTr: "küçük gelişme",
+    exampleSentence: "A small improvement can change the whole day.",
+  },
+  {
+    word: "clear from the start",
+    pronunciation: "kleer frum thuh start",
+    shortMeaningTr: "baştan net",
+    exampleSentence: "The goal should be clear from the start.",
+  },
+];
+
+const confidentSpeakingBoosters: WordItem[] = [
+  {
+    word: "looking back",
+    pronunciation: "LOOK-ing bak",
+    shortMeaningTr: "geriye bakınca",
+    exampleSentence: "Looking back, I can see real progress.",
+  },
+  {
+    word: "what changed",
+    pronunciation: "wut chaynjd",
+    shortMeaningTr: "ne değişti",
+    exampleSentence: "What changed is my confidence.",
+  },
+  {
+    word: "I realized that",
+    pronunciation: "eye REE-uh-lyzd that",
+    shortMeaningTr: "fark ettim ki",
+    exampleSentence: "I realized that short practice works.",
+  },
+  {
+    word: "one lesson is",
+    pronunciation: "wun LES-uhn iz",
+    shortMeaningTr: "bir ders şu",
+    exampleSentence: "One lesson is that I need to start simple.",
+  },
+  {
+    word: "I would say",
+    pronunciation: "eye wood say",
+    shortMeaningTr: "şunu söylerdim",
+    exampleSentence: "I would say the second option is better.",
+  },
+  {
+    word: "from experience",
+    pronunciation: "frum ik-SPEER-ee-uhns",
+    shortMeaningTr: "deneyime göre",
+    exampleSentence: "From experience, preparation helps a lot.",
+  },
+  {
+    word: "a stronger answer",
+    pronunciation: "uh STRONG-er AN-ser",
+    shortMeaningTr: "daha güçlü cevap",
+    exampleSentence: "A stronger answer includes one example.",
+  },
+  {
+    word: "to be clear",
+    pronunciation: "to bee kleer",
+    shortMeaningTr: "net olmak gerekirse",
+    exampleSentence: "To be clear, I can finish this today.",
+  },
+  {
+    word: "let me explain",
+    pronunciation: "let mee ik-SPLAYN",
+    shortMeaningTr: "açıklayayım",
+    exampleSentence: "Let me explain why I chose this option.",
+  },
+  {
+    word: "the trade-off",
+    pronunciation: "thuh TRAYD-awf",
+    shortMeaningTr: "ödünleşme",
+    exampleSentence: "The trade-off is time versus quality.",
+  },
+  {
+    word: "my recommendation",
+    pronunciation: "my rek-uh-men-DAY-shuhn",
+    shortMeaningTr: "benim önerim",
+    exampleSentence: "My recommendation is to start with the simple version.",
+  },
+  {
+    word: "in the long run",
+    pronunciation: "in thuh long run",
+    shortMeaningTr: "uzun vadede",
+    exampleSentence: "In the long run, consistency matters more.",
+  },
+  {
+    word: "a good balance",
+    pronunciation: "uh good BAL-uhns",
+    shortMeaningTr: "iyi denge",
+    exampleSentence: "We need a good balance between speed and detail.",
+  },
+  {
+    word: "the safest option",
+    pronunciation: "thuh SAY-fist OP-shuhn",
+    shortMeaningTr: "en güvenli seçenek",
+    exampleSentence: "The safest option is to confirm the time.",
+  },
+  {
+    word: "the main risk",
+    pronunciation: "thuh mayn risk",
+    shortMeaningTr: "ana risk",
+    exampleSentence: "The main risk is starting too late.",
+  },
+  {
+    word: "a clear priority",
+    pronunciation: "uh kleer pry-OR-uh-tee",
+    shortMeaningTr: "net öncelik",
+    exampleSentence: "This task is a clear priority today.",
+  },
+  {
+    word: "what I would do",
+    pronunciation: "wut eye wood doo",
+    shortMeaningTr: "benim yapacağım şey",
+    exampleSentence: "What I would do is call first.",
+  },
+  {
+    word: "a realistic goal",
+    pronunciation: "uh ree-uh-LIS-tik gohl",
+    shortMeaningTr: "gerçekçi hedef",
+    exampleSentence: "A realistic goal keeps me moving.",
+  },
+  {
+    word: "keep improving",
+    pronunciation: "keep im-PROOV-ing",
+    shortMeaningTr: "gelişmeye devam etmek",
+    exampleSentence: "I want to keep improving after this program.",
+  },
+  {
+    word: "speak more naturally",
+    pronunciation: "speek mor NACH-er-uh-lee",
+    shortMeaningTr: "daha doğal konuşmak",
+    exampleSentence: "I can speak more naturally when I slow down.",
+  },
+  {
+    word: "handle real conversations",
+    pronunciation: "HAN-duhl reel kon-ver-SAY-shuhnz",
+    shortMeaningTr: "gerçek konuşmaları halletmek",
+    exampleSentence: "I want to handle real conversations with confidence.",
+  },
+  {
+    word: "build confidence",
+    pronunciation: "bild KON-fi-duhns",
+    shortMeaningTr: "özgüven geliştirmek",
+    exampleSentence: "Daily practice helps me build confidence.",
+  },
+  {
+    word: "summarize the point",
+    pronunciation: "SUM-uh-ryz thuh poynt",
+    shortMeaningTr: "ana fikri özetlemek",
+    exampleSentence: "I can summarize the point in one sentence.",
+  },
+  {
+    word: "make a commitment",
+    pronunciation: "mayk uh kuh-MIT-muhnt",
+    shortMeaningTr: "taahhüt vermek",
+    exampleSentence: "I want to make a commitment to practice weekly.",
+  },
+  {
+    word: "ask a follow-up",
+    pronunciation: "ask uh FOL-oh up",
+    shortMeaningTr: "takip sorusu sormak",
+    exampleSentence: "I can ask a follow-up if I need more detail.",
+  },
+  {
+    word: "stay consistent",
+    pronunciation: "stay kuhn-SIS-tuhnt",
+    shortMeaningTr: "istikrarlı kalmak",
+    exampleSentence: "I stay consistent by practicing a little every day.",
+  },
+  {
+    word: "one practical step",
+    pronunciation: "wun PRAK-ti-kuhl step",
+    shortMeaningTr: "pratik bir adım",
+    exampleSentence: "One practical step is to repeat the key line.",
+  },
+  {
+    word: "move forward",
+    pronunciation: "moov FOR-werd",
+    shortMeaningTr: "ilerlemek",
+    exampleSentence: "I can move forward with a clear plan.",
+  },
+];
+
+function getSpeakingBoosters(day: number): WordItem[] {
+  if (day >= 71) {
+    return confidentSpeakingBoosters;
+  }
+
+  if (day >= 43) {
+    return earlyB1Boosters;
+  }
+
+  if (day >= 15) {
+    return a2Boosters;
+  }
+
+  return foundationBoosters;
+}
 
 function expandDailyWords(dayContent: DayWords): DayWords {
   if (dayContent.words.length >= TARGET_DAILY_WORD_COUNT) {
@@ -172,7 +701,8 @@ function expandDailyWords(dayContent: DayWords): DayWords {
   const existingWords = new Set(
     dayContent.words.map((item) => item.word.toLowerCase()),
   );
-  let index = (dayContent.day - 1) * 4;
+  const speakingBoosters = getSpeakingBoosters(dayContent.day);
+  let index = (dayContent.day - 1) * 5;
 
   while (
     dayContent.words.length + selectedBoosters.length < TARGET_DAILY_WORD_COUNT

@@ -1,5 +1,6 @@
 import type {
   TtsAudioFormat,
+  TtsAudioMetadata,
   TtsClientResult,
   TtsServiceStatus,
   TtsWordTiming,
@@ -20,6 +21,7 @@ type TtsApiSuccessResponse = {
   audioBase64?: unknown;
   contentType?: unknown;
   alignment?: unknown;
+  metadata?: unknown;
 };
 
 const STATUS_TIMEOUT_MS = 6_000;
@@ -65,6 +67,20 @@ function normalizeWordTimings(alignment: unknown): TtsWordTiming[] | undefined {
     .filter((item): item is TtsWordTiming => Boolean(item));
 
   return timings.length > 0 ? timings : undefined;
+}
+
+function normalizeMetadata(metadata: unknown): TtsAudioMetadata | undefined {
+  if (!metadata || typeof metadata !== "object") {
+    return undefined;
+  }
+
+  const item = metadata as Partial<TtsAudioMetadata>;
+
+  return {
+    modelId: typeof item.modelId === "string" ? item.modelId : "",
+    voiceId: typeof item.voiceId === "string" ? item.voiceId : "",
+    hasAlignment: Boolean(item.hasAlignment),
+  };
 }
 
 export async function requestTtsAudio(
@@ -113,6 +129,7 @@ export async function requestTtsAudio(
       ok: true,
       audio: base64ToBlob(data.audioBase64, data.contentType),
       alignment: normalizeWordTimings(data.alignment),
+      metadata: normalizeMetadata(data.metadata),
     };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -151,7 +168,14 @@ export async function getTtsServiceStatus(): Promise<TtsServiceStatus> {
       return { configured: false, reason: "server_route_error" };
     }
 
-    return (await response.json()) as TtsServiceStatus;
+    const status = (await response.json()) as TtsServiceStatus;
+
+    return {
+      configured: Boolean(status.configured),
+      modelId: typeof status.modelId === "string" ? status.modelId : undefined,
+      reason: status.reason,
+      voiceId: typeof status.voiceId === "string" ? status.voiceId : undefined,
+    };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       return { configured: false, reason: "loading_timeout" };
