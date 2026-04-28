@@ -44,6 +44,11 @@ function createTranscriptSegments(text: string): TranscriptSegment[] {
   });
 }
 
+const transcriptTokenClass =
+  "rounded-md px-1 py-0.5 font-normal leading-[inherit] transition-colors duration-150";
+const activeTranscriptTokenClass = "bg-[#f29f05] text-[#201609]";
+const inactiveTranscriptTokenClass = "bg-transparent text-foreground";
+
 export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   const [response, setResponse] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
@@ -536,8 +541,12 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
               <span
                 key={segment.id}
                 className={
-                  isCurrentWord
-                    ? "rounded-md bg-[#f29f05] px-1 py-0.5 font-bold text-[#201609]"
+                  typeof segment.wordIndex === "number"
+                    ? `${transcriptTokenClass} ${
+                        isCurrentWord
+                          ? activeTranscriptTokenClass
+                          : inactiveTranscriptTokenClass
+                      }`
                     : undefined
                 }
               >
