@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { SpeakingPractice } from "@/lib/speaking-content";
+import {
+  getDayProgress,
+  markDayTaskCompleted,
+  saveDayProgress,
+} from "@/lib/practice-storage";
 
 export function SpeakingPracticeView({
   practice,
@@ -13,6 +18,19 @@ export function SpeakingPracticeView({
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
 
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => {
+      const progress = getDayProgress(practice.day);
+      setFirstTry(progress.speakFirstTry);
+      setSecondTry(progress.speakSecondTry);
+      setSaveState("idle");
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadTimer);
+    };
+  }, [practice.day]);
+
   function toggleCheck(item: string) {
     setCheckedItems((current) =>
       current.includes(item)
@@ -21,7 +39,24 @@ export function SpeakingPracticeView({
     );
   }
 
+  function updateFirstTry(value: string) {
+    setFirstTry(value);
+    setSaveState("idle");
+    saveDayProgress(practice.day, { speakFirstTry: value });
+  }
+
+  function updateSecondTry(value: string) {
+    setSecondTry(value);
+    setSaveState("idle");
+    saveDayProgress(practice.day, { speakSecondTry: value });
+  }
+
   function saveSecondTry() {
+    saveDayProgress(practice.day, {
+      speakFirstTry: firstTry,
+      speakSecondTry: secondTry,
+    });
+    markDayTaskCompleted(practice.day, "speak");
     setSaveState("saved");
   }
 
@@ -83,7 +118,7 @@ export function SpeakingPracticeView({
         <textarea
           id="first-try"
           value={firstTry}
-          onChange={(event) => setFirstTry(event.target.value)}
+          onChange={(event) => updateFirstTry(event.target.value)}
           rows={5}
           placeholder="Example: I have a busy day. First, I need coffee."
           className="mt-4 w-full resize-none rounded-[1.4rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
@@ -104,10 +139,7 @@ export function SpeakingPracticeView({
         <textarea
           id="second-try"
           value={secondTry}
-          onChange={(event) => {
-            setSecondTry(event.target.value);
-            setSaveState("idle");
-          }}
+          onChange={(event) => updateSecondTry(event.target.value)}
           rows={5}
           placeholder="Example: I have a busy day, but I want to start slowly."
           className="mt-4 w-full resize-none rounded-[1.4rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
@@ -122,7 +154,7 @@ export function SpeakingPracticeView({
         </button>
         {saveState === "saved" ? (
           <p className="mt-4 rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
-            İkinci denemen bu ekranda tutuldu. Şimdilik kalıcı kayıt yok.
+            Denemelerin bu cihazda kaydedildi.
           </p>
         ) : null}
       </section>

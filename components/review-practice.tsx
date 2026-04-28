@@ -1,7 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReviewDrill } from "@/lib/review-content";
+import {
+  getDayProgress,
+  saveDayProgress,
+  type CompletedTask,
+  type ReviewAnswerProgress,
+} from "@/lib/practice-storage";
 
 type CheckResult = "correct" | "needsReview";
 
@@ -29,9 +35,47 @@ function isCorrect(userAnswer: string, expectedAnswer: string) {
   );
 }
 
+function withCompletedTask(
+  completedTasks: CompletedTask[],
+  task: CompletedTask,
+) {
+  return completedTasks.includes(task)
+    ? completedTasks
+    : [...completedTasks, task];
+}
+
 export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [results, setResults] = useState<Record<number, CheckResult>>({});
+
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => {
+      const progress = getDayProgress(drill.day);
+      const nextAnswers: Record<number, string> = {};
+      const nextResults: Record<number, CheckResult> = {};
+
+      Object.entries(progress.reviewAnswers).forEach(([key, value]) => {
+        const index = Number(key);
+
+        if (!Number.isFinite(index)) {
+          return;
+        }
+
+        nextAnswers[index] = value.answer;
+
+        if (value.checked && value.result) {
+          nextResults[index] = value.result;
+        }
+      });
+
+      setAnswers(nextAnswers);
+      setResults(nextResults);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadTimer);
+    };
+  }, [drill.day]);
 
   const checkedCount = Object.keys(results).length;
   const correctCount = useMemo(
@@ -46,15 +90,58 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
       delete next[index];
       return next;
     });
+
+    const progress = getDayProgress(drill.day);
+    const nextReviewAnswers: Record<string, ReviewAnswerProgress> = {
+      ...progress.reviewAnswers,
+      [String(index)]: {
+        answer: value,
+        checked: false,
+        expectedAnswer: progress.reviewAnswers[String(index)]?.expectedAnswer,
+      },
+    };
+
+    saveDayProgress(drill.day, {
+      reviewAnswers: nextReviewAnswers,
+      completedTasks: progress.completedTasks.filter(
+        (task) => task !== "review",
+      ),
+    });
   }
 
   function checkAnswer(index: number, expectedAnswer: string) {
     const answer = answers[index] ?? "";
+    const result = isCorrect(answer, expectedAnswer)
+      ? "correct"
+      : "needsReview";
 
     setResults((current) => ({
       ...current,
-      [index]: isCorrect(answer, expectedAnswer) ? "correct" : "needsReview",
+      [index]: result,
     }));
+
+    const progress = getDayProgress(drill.day);
+    const nextReviewAnswers: Record<string, ReviewAnswerProgress> = {
+      ...progress.reviewAnswers,
+      [String(index)]: {
+        answer,
+        checked: true,
+        result,
+        expectedAnswer,
+      },
+    };
+    const checkedReviewCount = drill.reviewItems.filter((_, itemIndex) => {
+      return nextReviewAnswers[String(itemIndex)]?.checked;
+    }).length;
+    const completedTasks =
+      checkedReviewCount === drill.reviewItems.length
+        ? withCompletedTask(progress.completedTasks, "review")
+        : progress.completedTasks;
+
+    saveDayProgress(drill.day, {
+      reviewAnswers: nextReviewAnswers,
+      completedTasks,
+    });
   }
 
   return (

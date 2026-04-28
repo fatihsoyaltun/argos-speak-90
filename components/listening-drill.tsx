@@ -9,6 +9,11 @@ import {
   type CachedTtsAudio,
 } from "@/lib/tts/audio-cache";
 import type { TtsWordTiming } from "@/lib/tts/types";
+import {
+  getDayProgress,
+  markDayTaskCompleted,
+  saveDayProgress,
+} from "@/lib/practice-storage";
 
 type AudioState = "idle" | "loading" | "playing" | "paused" | "ended" | "error";
 type TtsConfigState = "checking" | "configured" | "notConfigured";
@@ -121,6 +126,18 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         ? "Devam et"
         : "Metni dinle";
   const compactAudioDisabled = !canShowAudioControls;
+
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => {
+      const progress = getDayProgress(drill.day);
+      setResponse(progress.listenOutput);
+      setSaveState("idle");
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadTimer);
+    };
+  }, [drill.day]);
 
   function resolveTtsStatus(
     configured: boolean,
@@ -451,6 +468,8 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   }
 
   function saveResponse() {
+    saveDayProgress(drill.day, { listenOutput: response });
+    markDayTaskCompleted(drill.day, "listen");
     setSaveState("saved");
   }
 
@@ -663,7 +682,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         </button>
         {saveState === "saved" ? (
           <p className="mt-4 rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
-            Cevabın bu ekranda tutuldu. Şimdilik kalıcı kayıt yok.
+            Cevabın bu cihazda kaydedildi.
           </p>
         ) : null}
       </section>

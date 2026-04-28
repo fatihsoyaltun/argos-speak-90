@@ -1,13 +1,36 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useActiveDay } from "@/components/active-day";
 import { Card, PageHeader } from "@/components/ui";
+import {
+  getDayProgress,
+  PRACTICE_PROGRESS_UPDATED_EVENT,
+} from "@/lib/practice-storage";
 
 export default function StatsPage() {
   const { activeDay } = useActiveDay();
+  const [completedCount, setCompletedCount] = useState(0);
+
+  useEffect(() => {
+    function refreshProgress() {
+      setCompletedCount(getDayProgress(activeDay).completedTasks.length);
+    }
+
+    refreshProgress();
+    window.addEventListener(PRACTICE_PROGRESS_UPDATED_EVENT, refreshProgress);
+
+    return () => {
+      window.removeEventListener(
+        PRACTICE_PROGRESS_UPDATED_EVENT,
+        refreshProgress,
+      );
+    };
+  }, [activeDay]);
+
   const stats = [
     ["Current day", String(activeDay)],
-    ["Completed steps", "0/5"],
+    ["Completed modules", `${completedCount}/4`],
     ["Practice mode", "Local"],
   ];
 
@@ -16,7 +39,7 @@ export default function StatsPage() {
       <PageHeader
         eyebrow="Stats"
         title="Progress will stay visible."
-        description="This placeholder sets up the future progress view without adding streaks, storage, or database logic yet."
+        description="Bu ekranda aynı cihazdaki yerel günlük ilerleme özetini görebilirsin."
       />
 
       <div className="grid gap-3">

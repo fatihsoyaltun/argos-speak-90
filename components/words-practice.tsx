@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { WordItem } from "@/lib/words-content";
+import {
+  getDayProgress,
+  markDayTaskCompleted,
+  saveDayProgress,
+} from "@/lib/practice-storage";
 
 export function WordsPractice({
   day,
@@ -13,7 +18,21 @@ export function WordsPractice({
   const [sentence, setSentence] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
 
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => {
+      const progress = getDayProgress(day);
+      setSentence(progress.wordsOutput);
+      setSaveState("idle");
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadTimer);
+    };
+  }, [day]);
+
   function saveSentence() {
+    saveDayProgress(day, { wordsOutput: sentence });
+    markDayTaskCompleted(day, "words");
     setSaveState("saved");
   }
 
@@ -116,7 +135,7 @@ export function WordsPractice({
         </button>
         {saveState === "saved" ? (
           <p className="mt-4 rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
-            Cümlen bu ekranda tutuldu. Şimdilik kalıcı kayıt yok.
+            Cümlen bu cihazda kaydedildi.
           </p>
         ) : null}
       </section>
