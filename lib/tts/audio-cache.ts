@@ -34,11 +34,13 @@ function hashText(text: string) {
 export function createTtsCacheKey({
   day,
   modelId = "unknown-model",
+  scope = "transcript",
   text,
   voiceId = "unknown-voice",
 }: {
   day: number;
   modelId?: string;
+  scope?: string;
   text: string;
   voiceId?: string;
 }) {
@@ -46,6 +48,7 @@ export function createTtsCacheKey({
 
   return [
     `day:${day}`,
+    `scope:${scope}`,
     `voice:${voiceId || "unknown-voice"}`,
     `model:${modelId || "unknown-model"}`,
     `text:${hashText(normalizedText)}`,

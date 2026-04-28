@@ -1,12 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { WordItem } from "@/lib/words-content";
 import {
   getDayProgress,
   markDayTaskCompleted,
   saveDayProgress,
 } from "@/lib/practice-storage";
+import {
+  createTtsCacheKey,
+  getOrRequestTtsAudio,
+  type CachedTtsAudio,
+} from "@/lib/tts/audio-cache";
+import { getTtsServiceStatus } from "@/lib/tts/client";
+
+type WordAudioKind = "word" | "example";
+type WordAudioState = "idle" | "loading" | "playing" | "error";
+type TtsConfigState = "checking" | "configured" | "notConfigured";
+
+function getAudioId(kind: WordAudioKind, index: number) {
+  return `${kind}-${index}`;
+}
 
 export function WordsPractice({
   day,
@@ -17,6 +31,38 @@ export function WordsPractice({
 }) {
   const [sentence, setSentence] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
+  const [ttsConfigState, setTtsConfigState] =
+    useState<TtsConfigState>("checking");
+  const [ttsModelId, setTtsModelId] = useState("");
+  const [ttsVoiceId, setTtsVoiceId] = useState("");
+  const [audioState, setAudioState] = useState<WordAudioState>("idle");
+  const [activeAudioId, setActiveAudioId] = useState("");
+  const [audioErrors, setAudioErrors] = useState<Record<string, string>>({});
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const playbackRunRef = useRef(0);
+  const canShowAudioControls = ttsConfigState === "configured";
+
+  const stopCurrentAudio = useCallback((updateState = true) => {
+    playbackRunRef.current += 1;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+
+    if (audioRef.current) {
+      const audio = audioRef.current;
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      audioRef.current = null;
+    }
+
+    if (updateState) {
+      setAudioState("idle");
+      setActiveAudioId("");
+    }
+  }, []);
 
   useEffect(() => {
     const loadTimer = window.setTimeout(() => {
@@ -30,10 +76,190 @@ export function WordsPractice({
     };
   }, [day]);
 
+  useEffect(() => {
+    let isActive = true;
+
+    async function checkTtsStatus() {
+      const status = await getTtsServiceStatus().catch(() => ({
+        configured: false,
+        modelId: "",
+        voiceId: "",
+      }));
+
+      if (!isActive) {
+        return;
+      }
+
+      setTtsConfigState(status.configured ? "configured" : "notConfigured");
+      setTtsModelId(status.modelId ?? "");
+      setTtsVoiceId(status.voiceId ?? "");
+    }
+
+    checkTtsStatus();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopCurrentAudio(false);
+    };
+  }, [day, stopCurrentAudio]);
+
   function saveSentence() {
     saveDayProgress(day, { wordsOutput: sentence });
     markDayTaskCompleted(day, "words");
     setSaveState("saved");
+  }
+
+  async function playWordAudio({
+    id,
+    kind,
+    text,
+  }: {
+    id: string;
+    kind: WordAudioKind;
+    text: string;
+  }) {
+    if (!canShowAudioControls) {
+      return;
+    }
+
+    if (
+      activeAudioId === id &&
+      (audioState === "loading" || audioState === "playing")
+    ) {
+      stopCurrentAudio();
+      return;
+    }
+
+    stopCurrentAudio(false);
+    playbackRunRef.current += 1;
+    const runId = playbackRunRef.current;
+    const abortController = new AbortController();
+    const cacheKey = createTtsCacheKey({
+      day,
+      modelId: ttsModelId,
+      scope: `words:${kind}`,
+      text,
+      voiceId: ttsVoiceId,
+    });
+
+    abortControllerRef.current = abortController;
+    setActiveAudioId(id);
+    setAudioState("loading");
+    setAudioErrors((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+
+    const result = await getOrRequestTtsAudio({
+      cacheKey,
+      signal: abortController.signal,
+      text,
+    });
+
+    if (abortController.signal.aborted || playbackRunRef.current !== runId) {
+      return;
+    }
+
+    abortControllerRef.current = null;
+
+    if ("ok" in result && !result.ok) {
+      if (result.code === "aborted") {
+        setAudioState("idle");
+        setActiveAudioId("");
+        return;
+      }
+
+      if (result.code === "not_configured") {
+        setTtsConfigState("notConfigured");
+      }
+
+      setAudioState("error");
+      setAudioErrors((current) => ({
+        ...current,
+        [id]: result.message || "Ses oluşturulamadı. Lütfen tekrar dene.",
+      }));
+      return;
+    }
+
+    try {
+      const cachedResult = result as CachedTtsAudio;
+      const audio = new Audio(cachedResult.objectUrl);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        if (playbackRunRef.current === runId) {
+          setAudioState("idle");
+          setActiveAudioId("");
+        }
+      };
+      audio.onerror = () => {
+        if (playbackRunRef.current === runId) {
+          setAudioState("error");
+          setAudioErrors((current) => ({
+            ...current,
+            [id]: "Ses oynatılamadı. Lütfen tekrar dene.",
+          }));
+        }
+      };
+
+      await audio.play();
+
+      if (playbackRunRef.current !== runId) {
+        return;
+      }
+
+      setAudioState("playing");
+    } catch (error) {
+      const wasStopped =
+        playbackRunRef.current !== runId ||
+        abortController.signal.aborted ||
+        (error instanceof DOMException && error.name === "AbortError");
+
+      if (wasStopped) {
+        setAudioState("idle");
+        setActiveAudioId("");
+        return;
+      }
+
+      setAudioState("error");
+      setAudioErrors((current) => ({
+        ...current,
+        [id]: "Ses oynatılamadı. Lütfen tekrar dene.",
+      }));
+    }
+  }
+
+  function getAudioButtonLabel(id: string) {
+    if (activeAudioId !== id) {
+      return "Dinle";
+    }
+
+    if (audioState === "loading") {
+      return "Yükleniyor";
+    }
+
+    if (audioState === "playing") {
+      return "Durdur";
+    }
+
+    return "Dinle";
+  }
+
+  function getAudioButtonAriaLabel(kind: WordAudioKind, id: string) {
+    if (
+      activeAudioId === id &&
+      (audioState === "loading" || audioState === "playing")
+    ) {
+      return "Seslendirmeyi durdur";
+    }
+
+    return kind === "word" ? "Kelimeyi dinle" : "Örnek cümleyi dinle";
   }
 
   return (
@@ -58,48 +284,120 @@ export function WordsPractice({
             Bugün kullanacağın kelimeler
           </h2>
         </div>
+        {ttsConfigState === "notConfigured" ? (
+          <p className="rounded-[1.25rem] border border-foreground/10 bg-linen/70 p-4 text-sm font-semibold leading-6 text-foreground">
+            Kelime seslendirme henüz yapılandırılmadı.
+          </p>
+        ) : null}
 
         <div className="grid gap-3">
-          {words.map((item, index) => (
-            <article
-              key={item.word}
-              className="rounded-[1.6rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-                    Word {index + 1}
-                  </p>
-                  <h3 className="mt-2 text-3xl font-semibold leading-none tracking-tight">
-                    {item.word}
-                  </h3>
-                </div>
-                <span className="shrink-0 rounded-full bg-sage px-3 py-1.5 text-xs font-black text-moss">
-                  {item.pronunciation}
-                </span>
-              </div>
+          {words.map((item, index) => {
+            const wordAudioId = getAudioId("word", index);
+            const exampleAudioId = getAudioId("example", index);
+            const wordIsActive = activeAudioId === wordAudioId;
+            const exampleIsActive = activeAudioId === exampleAudioId;
 
-              <div className="mt-5 grid gap-3">
-                <div className="rounded-[1.25rem] bg-background/85 p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
-                    Kısa anlam
-                  </p>
-                  <p className="mt-1 text-base font-semibold text-foreground">
-                    {item.shortMeaningTr}
-                  </p>
+            return (
+              <article
+                key={item.word}
+                className="rounded-[1.6rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
+                      Word {index + 1}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <h3 className="min-w-0 text-3xl font-semibold leading-none tracking-tight">
+                        {item.word}
+                      </h3>
+                      {canShowAudioControls ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void playWordAudio({
+                              id: wordAudioId,
+                              kind: "word",
+                              text: item.word,
+                            });
+                          }}
+                          aria-label={getAudioButtonAriaLabel(
+                            "word",
+                            wordAudioId,
+                          )}
+                          className={`min-h-10 min-w-[5.75rem] rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+                            wordIsActive && audioState === "playing"
+                              ? "bg-moss text-white"
+                              : "bg-[#17201a] text-white hover:bg-[#33493a]"
+                          }`}
+                        >
+                          {getAudioButtonLabel(wordAudioId)}
+                        </button>
+                      ) : null}
+                    </div>
+                    {audioErrors[wordAudioId] ? (
+                      <p className="mt-3 rounded-[1rem] border border-clay/20 bg-linen/70 p-3 text-sm font-semibold leading-5 text-foreground">
+                        {audioErrors[wordAudioId]}
+                      </p>
+                    ) : null}
+                  </div>
+                  <span className="shrink-0 rounded-full bg-sage px-3 py-1.5 text-xs font-black text-moss">
+                    {item.pronunciation}
+                  </span>
                 </div>
 
-                <div className="rounded-[1.25rem] border border-foreground/10 bg-linen/60 p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
-                    Example
-                  </p>
-                  <p className="mt-2 text-base font-semibold leading-7 text-foreground">
-                    {item.exampleSentence}
-                  </p>
+                <div className="mt-5 grid gap-3">
+                  <div className="rounded-[1.25rem] bg-background/85 p-4">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
+                      Kısa anlam
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-foreground">
+                      {item.shortMeaningTr}
+                    </p>
+                  </div>
+
+                  <div className="rounded-[1.25rem] border border-foreground/10 bg-linen/60 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
+                        Example
+                      </p>
+                      {canShowAudioControls ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void playWordAudio({
+                              id: exampleAudioId,
+                              kind: "example",
+                              text: item.exampleSentence,
+                            });
+                          }}
+                          aria-label={getAudioButtonAriaLabel(
+                            "example",
+                            exampleAudioId,
+                          )}
+                          className={`min-h-10 min-w-[5.75rem] rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-linen ${
+                            exampleIsActive && audioState === "playing"
+                              ? "bg-moss text-white"
+                              : "bg-[#17201a] text-white hover:bg-[#33493a]"
+                          }`}
+                        >
+                          {getAudioButtonLabel(exampleAudioId)}
+                        </button>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-base font-semibold leading-7 text-foreground">
+                      {item.exampleSentence}
+                    </p>
+                    {audioErrors[exampleAudioId] ? (
+                      <p className="mt-3 rounded-[1rem] border border-clay/20 bg-surface/70 p-3 text-sm font-semibold leading-5 text-foreground">
+                        {audioErrors[exampleAudioId]}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </section>
 
