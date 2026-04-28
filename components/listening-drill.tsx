@@ -82,6 +82,21 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
       return currentTime >= word.start && currentTime < wordEnd;
     });
   }, [audioDay, audioState, currentTime, drill.day, wordTimings]);
+  const compactAudioLabel =
+    audioState === "loading"
+      ? "Yükleniyor"
+      : audioState === "playing"
+        ? "Durdur"
+        : audioState === "paused"
+          ? "Devam et"
+          : "Dinle";
+  const compactAudioAriaLabel =
+    audioState === "playing"
+      ? "Duraklat"
+      : audioState === "paused"
+        ? "Devam et"
+        : "Metni dinle";
+  const compactAudioDisabled = !canShowAudioControls;
 
   function resolveTtsStatus(
     configured: boolean,
@@ -352,6 +367,15 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
     await startGeneratedAudio();
   }
 
+  async function handleCompactAudioAction() {
+    if (audioState === "playing" || audioState === "loading") {
+      pauseOrCancelPlayback();
+      return;
+    }
+
+    await handlePrimaryAudioAction();
+  }
+
   function pauseOrCancelPlayback() {
     setAudioError("");
 
@@ -476,7 +500,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
       </section>
 
       <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
               Transcript
@@ -485,9 +509,22 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
               Listen, then read
             </h3>
           </div>
-          <span className="shrink-0 rounded-full bg-linen px-3 py-1.5 text-xs font-bold text-moss">
-            Day {drill.day}
-          </span>
+          <div className="flex shrink-0 flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                void handleCompactAudioAction();
+              }}
+              disabled={compactAudioDisabled}
+              aria-label={compactAudioAriaLabel}
+              className="min-h-10 rounded-full bg-[#17201a] px-3.5 py-2 text-xs font-black text-white shadow-sm outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            >
+              {compactAudioLabel}
+            </button>
+            <span className="rounded-full bg-linen px-3 py-2 text-xs font-bold text-moss">
+              Day {drill.day}
+            </span>
+          </div>
         </div>
         <p className="mt-4 rounded-[1.4rem] bg-background/85 p-4 text-[1.03rem] leading-8 text-foreground">
           {transcriptSegments.map((segment) => {
