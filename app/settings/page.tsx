@@ -10,11 +10,13 @@ import {
   exportPracticeProgressAsJson,
   importPracticeProgressFromJson,
 } from "@/lib/practice-storage";
+import { getSupabaseConfigStatus } from "@/lib/supabase/env";
 
 type AudioStatus = "checking" | "configured" | "notConfigured";
 
 export default function SettingsPage() {
   const { activeDay, setActiveDay, clearActiveDayStorage } = useActiveDay();
+  const supabaseStatus = getSupabaseConfigStatus();
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("checking");
   const [message, setMessage] = useState("");
   const [exportText, setExportText] = useState("");
@@ -179,6 +181,14 @@ export default function SettingsPage() {
               Practice mode
             </p>
             <p className="mt-2 text-lg font-semibold">Local-first</p>
+          </div>
+          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
+              Cloud sync
+            </p>
+            <p className="mt-2 text-lg font-semibold">
+              {supabaseStatus.configured ? "Supabase ready" : "Not connected"}
+            </p>
           </div>
           <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">

@@ -31,6 +31,21 @@ ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 If the API key or voice ID is missing, the app shows a safe Turkish fallback
 instead of broken playback controls.
 
+## Supabase Foundation
+
+The app has a Supabase client foundation for future team login, cloud progress
+sync, and admin tracking. It does not enable login or database writes yet.
+
+Add these public environment variables when Supabase is ready:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+Do not add a service role key to the browser app. The Settings page only shows
+whether the public Supabase client configuration is present.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
