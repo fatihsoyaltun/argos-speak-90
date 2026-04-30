@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useActiveDay } from "@/components/active-day";
 import { Card, PageHeader } from "@/components/ui";
+import { getClientAuthState } from "@/lib/auth/client";
 import { getTtsServiceStatus } from "@/lib/tts/client";
 import {
   clearAllArgosProgress,
@@ -13,11 +14,21 @@ import {
 import { getSupabaseConfigStatus } from "@/lib/supabase/env";
 
 type AudioStatus = "checking" | "configured" | "notConfigured";
+type CloudAccountStatus =
+  | "checking"
+  | "notConfigured"
+  | "signedIn"
+  | "signedOut";
 
 export default function SettingsPage() {
   const { activeDay, setActiveDay, clearActiveDayStorage } = useActiveDay();
   const supabaseStatus = getSupabaseConfigStatus();
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("checking");
+  const [cloudAccountStatus, setCloudAccountStatus] =
+    useState<CloudAccountStatus>(
+      supabaseStatus.configured ? "checking" : "notConfigured",
+    );
+  const [cloudAccountEmail, setCloudAccountEmail] = useState("");
   const [message, setMessage] = useState("");
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
@@ -44,6 +55,37 @@ export default function SettingsPage() {
       isActive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!supabaseStatus.configured) {
+      return;
+    }
+
+    let isActive = true;
+
+    async function checkCloudAccount() {
+      const authState = await getClientAuthState();
+
+      if (!isActive) {
+        return;
+      }
+
+      if (authState.user) {
+        setCloudAccountStatus("signedIn");
+        setCloudAccountEmail(authState.user.email ?? "");
+        return;
+      }
+
+      setCloudAccountStatus("signedOut");
+      setCloudAccountEmail("");
+    }
+
+    checkCloudAccount();
+
+    return () => {
+      isActive = false;
+    };
+  }, [supabaseStatus.configured]);
 
   function resetActiveDay() {
     setActiveDay(1);
@@ -189,6 +231,28 @@ export default function SettingsPage() {
             <p className="mt-2 text-lg font-semibold">
               {supabaseStatus.configured ? "Supabase ready" : "Not connected"}
             </p>
+            {supabaseStatus.invalidMessage ? (
+              <p className="mt-1 text-sm font-semibold leading-5 text-muted">
+                {supabaseStatus.invalidMessage}
+              </p>
+            ) : null}
+          </div>
+          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
+              Cloud account
+            </p>
+            <p className="mt-2 text-lg font-semibold">
+              {cloudAccountStatus === "checking"
+                ? "Kontrol ediliyor"
+                : cloudAccountStatus === "signedIn"
+                  ? "Signed in"
+                  : "Not signed in"}
+            </p>
+            {cloudAccountEmail ? (
+              <p className="mt-1 break-words text-sm font-semibold leading-5 text-muted">
+                {cloudAccountEmail}
+              </p>
+            ) : null}
           </div>
           <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
@@ -203,9 +267,18 @@ export default function SettingsPage() {
           veya tarayıcı verisi silinirse ilerleme kaybolabilir.
         </p>
         <p className="text-sm font-medium leading-6 text-muted">
-          Şu anda login, hesap senkronizasyonu veya bulut hafızası yok. Bulut
-          senkronizasyonu daha sonra ayrı bir faz olarak eklenebilir.
+          Giriş altyapısı hazır, ancak cloud progress sync bir sonraki fazda
+          eklenecek. Yerel pratik kayıtları bu fazda cihazındaki tarayıcıda
+          kalır.
         </p>
+        <Link
+          href={cloudAccountStatus === "signedIn" ? "/account" : "/login"}
+          className="flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+        >
+          {cloudAccountStatus === "signedIn"
+            ? "Cloud account aç"
+            : "Login sayfasına git"}
+        </Link>
       </Card>
 
       <Card className="space-y-4">
