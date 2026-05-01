@@ -236,6 +236,33 @@ export function getAllDayProgress() {
   return readStore().days;
 }
 
+export function mergeDayProgressToLocal(
+  days: Record<string, DayProgress>,
+) {
+  const store = readStore();
+  const sanitizedDays = Object.entries(days).reduce<
+    Record<string, DayProgress>
+  >((currentDays, [key, value]) => {
+    const dayNumber = Number(key);
+
+    if (!isValidDayNumber(dayNumber)) {
+      return currentDays;
+    }
+
+    const day = Math.round(dayNumber);
+    currentDays[String(day)] = sanitizeDayProgress(value, day);
+    return currentDays;
+  }, {});
+
+  writeStore({
+    version: 1,
+    days: {
+      ...store.days,
+      ...sanitizedDays,
+    },
+  });
+}
+
 export function saveDayProgress(
   dayNumber: number,
   patch: Partial<Omit<DayProgress, "dayNumber" | "updatedAt">>,

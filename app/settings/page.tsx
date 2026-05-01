@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useActiveDay } from "@/components/active-day";
+import { CloudSyncPanel } from "@/components/cloud-sync-panel";
 import { Card, PageHeader } from "@/components/ui";
 import { getClientAuthState } from "@/lib/auth/client";
 import { getTtsServiceStatus } from "@/lib/tts/client";
@@ -203,6 +204,8 @@ export default function SettingsPage() {
           </p>
         ) : null}
       </Card>
+
+      <CloudSyncPanel />
 
       <Card className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
