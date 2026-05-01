@@ -160,6 +160,15 @@ export default function AccountPage() {
               </p>
             ) : null}
 
+            {profile?.role === "admin" ? (
+              <Link
+                href="/admin"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto"
+              >
+                Admin panelini aç
+              </Link>
+            ) : null}
+
             <button
               type="button"
               onClick={() => {
@@ -168,7 +177,7 @@ export default function AccountPage() {
               disabled={isSigningOut}
               className="min-h-12 w-full rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto"
             >
-              {isSigningOut ? "Çıkış yapılıyor" : "Sign out"}
+              {isSigningOut ? "Çıkış yapılıyor" : "Çıkış yap"}
             </button>
 
             {actionMessage ? (

@@ -19,6 +19,7 @@ export type Database = {
           full_name?: string | null;
           id: string;
           role?: string | null;
+          team_id?: string | null;
           team_status?: string | null;
           updated_at?: string | null;
         };
@@ -29,6 +30,7 @@ export type Database = {
           full_name: string | null;
           id: string;
           role: string | null;
+          team_id: string | null;
           team_status: string | null;
           updated_at: string | null;
         };
@@ -38,7 +40,29 @@ export type Database = {
           full_name?: string | null;
           id?: string;
           role?: string | null;
+          team_id?: string | null;
           team_status?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      teams: {
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          name: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+        Row: {
+          created_at: string | null;
+          id: string;
+          name: string;
+          updated_at: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          name?: string;
           updated_at?: string | null;
         };
       };

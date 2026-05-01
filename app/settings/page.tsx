@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useActiveDay } from "@/components/active-day";
 import { CloudSyncPanel } from "@/components/cloud-sync-panel";
 import { Card, PageHeader } from "@/components/ui";
-import { getClientAuthState } from "@/lib/auth/client";
+import { getClientAuthState, signOutClientUser } from "@/lib/auth/client";
 import { getTtsServiceStatus } from "@/lib/tts/client";
 import {
   clearAllArgosProgress,
@@ -30,6 +30,9 @@ export default function SettingsPage() {
       supabaseStatus.configured ? "checking" : "notConfigured",
     );
   const [cloudAccountEmail, setCloudAccountEmail] = useState("");
+  const [cloudAccountRole, setCloudAccountRole] = useState("");
+  const [cloudAccountMessage, setCloudAccountMessage] = useState("");
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [message, setMessage] = useState("");
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
@@ -74,11 +77,13 @@ export default function SettingsPage() {
       if (authState.user) {
         setCloudAccountStatus("signedIn");
         setCloudAccountEmail(authState.user.email ?? "");
+        setCloudAccountRole(authState.profile?.role ?? "member");
         return;
       }
 
       setCloudAccountStatus("signedOut");
       setCloudAccountEmail("");
+      setCloudAccountRole("");
     }
 
     checkCloudAccount();
@@ -154,6 +159,25 @@ export default function SettingsPage() {
     } catch {
       setImportMessage("Dosya okunamadı. JSON metnini yapıştırmayı deneyebilirsin.");
     }
+  }
+
+  async function signOutFromSettings() {
+    setIsSigningOut(true);
+    setCloudAccountMessage("");
+
+    const errorMessage = await signOutClientUser();
+
+    setIsSigningOut(false);
+
+    if (errorMessage) {
+      setCloudAccountMessage(errorMessage);
+      return;
+    }
+
+    setCloudAccountStatus("signedOut");
+    setCloudAccountEmail("");
+    setCloudAccountRole("");
+    setCloudAccountMessage("Çıkış yapıldı. Yerel ilerleme korunuyor.");
   }
 
   return (
@@ -254,6 +278,33 @@ export default function SettingsPage() {
             {cloudAccountEmail ? (
               <p className="mt-1 break-words text-sm font-semibold leading-5 text-muted">
                 {cloudAccountEmail}
+              </p>
+            ) : null}
+            {cloudAccountStatus === "signedIn" ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {cloudAccountRole === "admin" ? (
+                  <Link
+                    href="/admin"
+                    className="inline-flex min-h-10 items-center justify-center rounded-full bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+                  >
+                    Admin paneli
+                  </Link>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    void signOutFromSettings();
+                  }}
+                  disabled={isSigningOut}
+                  className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-surface px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+                >
+                  {isSigningOut ? "Çıkış yapılıyor" : "Çıkış yap"}
+                </button>
+              </div>
+            ) : null}
+            {cloudAccountMessage ? (
+              <p className="mt-3 text-sm font-semibold leading-5 text-muted">
+                {cloudAccountMessage}
               </p>
             ) : null}
           </div>

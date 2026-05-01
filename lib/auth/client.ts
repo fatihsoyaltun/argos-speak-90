@@ -12,6 +12,7 @@ export type AuthProfile = {
   fullName: string;
   id: string;
   role: string;
+  teamId: string;
   teamStatus: string;
 };
 
@@ -112,6 +113,7 @@ function normalizeProfile(profile: ProfileRow | null): AuthProfile | null {
     fullName: profile.full_name ?? "",
     id: profile.id,
     role: profile.role ?? "member",
+    teamId: profile.team_id ?? "",
     teamStatus: profile.team_status ?? "",
   };
 }
