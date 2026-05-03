@@ -752,8 +752,9 @@ const phaseSevenDays = [
       "I want to talk about a familiar topic.",
     ],
     miniTaskTr:
-      "Altı haftalık gelişimi dinle. Can speak, still pause, next goal ve familiar topic ifadelerini yakala.",
-    outputPrompt: "Write 2 sentences about your progress and next speaking target.",
+      "Altı haftalık gelişimi dinle. Ana fikri, zayıf noktayı ve next goal cümlesini ayır.",
+    outputPrompt:
+      "Write 3 sentences: summarize your progress, name one weak point, and set your next speaking target.",
     words: [
       ["clearly", "KLEER-lee", "net şekilde", "I can speak more clearly."],
       ["pause", "pawz", "duraklamak", "I still pause sometimes."],
@@ -796,10 +797,23 @@ export const phaseSevenDayWords = phaseSevenDays.map((day) => ({
 }));
 
 function buildPhaseSevenPrompt(day: (typeof phaseSevenDays)[number]) {
-  const sentenceTarget = day.day < 29 ? "3-4" : "4-5";
-  const closingMove = day.day < 29 ? "one reason or next step" : "one reason, contrast, or next step";
+  if (day.day === 42) {
+    return "Milestone check: speak in 3-5 sentences about your six-week progress. Use one clarification, help, or request pattern, add one reason or next step, and make your second try clearly better.";
+  }
 
-  return `${day.speakingGoal} Speak in ${sentenceTarget} sentences: state the situation, add one useful detail, and finish with ${closingMove}. Use your own life if possible.`;
+  const sentenceTarget = day.day < 29 ? "3-4" : "4-5";
+  const promptModes = [
+    `Mini role-play: a coworker asks about "${day.theme.toLowerCase()}". Answer in ${sentenceTarget} sentences and ask one follow-up question.`,
+    `Short message reply: write and say a natural ${sentenceTarget}-sentence reply about "${day.theme.toLowerCase()}". Include one clear next step.`,
+    `${day.speakingGoal} Use ${sentenceTarget} sentences: explain the situation, then add one reason from your own life.`,
+    `Clarify your idea: speak in ${sentenceTarget} sentences about "${day.theme.toLowerCase()}". If needed, use "I mean..." or "Let me say that again."`,
+    `Compare or choose: give your answer in ${sentenceTarget} sentences and explain why one option works better.`,
+    `Polite conversation task: say what you need, add one useful detail, and finish with "Can I ask one more question?"`,
+    `Small issue task: explain what happened, what you need, and what you will do next in ${sentenceTarget} sentences.`,
+    `Summary task: summarize the main point in your own words, then add one short reason or next step.`,
+  ];
+
+  return promptModes[(day.day - 15) % promptModes.length];
 }
 
 export const phaseSevenSpeakingPractices = phaseSevenDays.map((day) => ({
@@ -807,13 +821,23 @@ export const phaseSevenSpeakingPractices = phaseSevenDays.map((day) => ({
   title: `Day ${day.day} Speaking: ${day.theme}`,
   prompt: buildPhaseSevenPrompt(day),
   speakingTipsTr:
-    "Önce kısa ve anlaşılır konuş. İkinci denemede aynı fikri daha düzenli, daha net ve daha doğal söyle.",
+    "Önce kısa ve anlaşılır konuş. İkinci denemede aynı fikri daha düzenli söyle; gerekirse I mean, Let me say that again veya In other words ile kendini düzelt.",
   targetLines: day.keyLines,
   selfCheckItems: [
-    "Konuyu kendi hayatıma bağladım mı?",
+    ...(day.day === 42
+      ? [
+          "3-5 cümle kurdum mu?",
+          "Bir clarification, help veya request kalıbı kullandım mı?",
+          "Bir reason veya next step ekledim mi?",
+          "İkinci denemem ilkinden daha net mi?",
+        ]
+      : ["Konuyu kendi hayatıma bağladım mı?"]),
     ...selfCheckItems,
   ],
-  miniGoalTr: "Mini hedef: 35-50 saniye konuş ve ikinci denemede bir cümleyi daha net hale getir.",
+  miniGoalTr:
+    day.day === 42
+      ? "Mini hedef: 3-5 cümle konuş; bir request veya clarification kalıbı, bir reason/next step ve daha iyi ikinci deneme göster."
+      : "Mini hedef: 35-50 saniye konuş ve ikinci denemede bir cümleyi daha net hale getir.",
 }));
 
 export const phaseSevenReviewDrills = phaseSevenDays.map((day) => ({

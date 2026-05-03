@@ -18,6 +18,14 @@ const memberChecklist = [
   "Admin panelde güncel görünmek için çalışma sonrası cloud sync yap.",
 ];
 
+const pilotIntegrityRules = [
+  "Hedef çizgileri tam cevabın olarak kopyalama; kendi cümleni kur.",
+  "Her cevapta en az bir kişisel detay ekle.",
+  "Second try, first try’dan belirgin şekilde daha net olmalı.",
+  "Journal’da günün en zayıf noktasını kısa not olarak yaz.",
+  "Admin, sync edilen cevapları öğrenme ilerlemesi için inceler; amaç ceza değil gelişimi görmektir.",
+];
+
 const adminVisibility = [
   "aktif gün",
   "tamamlanan modüller",
@@ -87,6 +95,27 @@ export default function PilotPage() {
         </div>
         <div className="grid gap-3">
           {memberChecklist.map((item) => (
+            <p
+              key={item}
+              className="rounded-[1.25rem] bg-linen p-4 text-sm font-semibold leading-6 text-[#2d261d]"
+            >
+              {item}
+            </p>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="space-y-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
+            Pilot bütünlüğü
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold leading-tight">
+            Gerçek üretim kuralları
+          </h2>
+        </div>
+        <div className="grid gap-3">
+          {pilotIntegrityRules.map((item) => (
             <p
               key={item}
               className="rounded-[1.25rem] bg-linen p-4 text-sm font-semibold leading-6 text-[#2d261d]"

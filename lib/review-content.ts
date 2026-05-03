@@ -16,7 +16,120 @@ export type ReviewDrill = {
   reviewItems: ReviewItem[];
 };
 
-export const reviewDrills: ReviewDrill[] = [
+function buildProductionReviewItem(day: number, title: string): ReviewItem {
+  const lowerTitle = title.toLowerCase();
+
+  if ([14, 42, 70, 90].includes(day)) {
+    return {
+      type: "shortAnswer",
+      prompt:
+        "Write 1 personal milestone sentence: mention one weak point and one next speaking goal.",
+      expectedAnswer:
+        "I still pause sometimes, but my next goal is to speak more clearly.",
+    };
+  }
+
+  if (lowerTitle.includes("clarification")) {
+    return {
+      type: "shortAnswer",
+      prompt: "Ask one natural clarification question in your own words.",
+      expectedAnswer: "Could you clarify that?",
+    };
+  }
+
+  if (lowerTitle.includes("misunderstanding")) {
+    return {
+      type: "shortAnswer",
+      prompt: "Correct a misunderstanding with: What I meant was...",
+      expectedAnswer: "What I meant was that I need one more detail.",
+    };
+  }
+
+  if (
+    lowerTitle.includes("problem") ||
+    lowerTitle.includes("complaint") ||
+    lowerTitle.includes("mistake") ||
+    lowerTitle.includes("issue")
+  ) {
+    return {
+      type: "shortAnswer",
+      prompt: "Write one sentence explaining the main issue in your own words.",
+      expectedAnswer: "The main issue is that I need more time.",
+    };
+  }
+
+  if (
+    lowerTitle.includes("opinion") ||
+    lowerTitle.includes("recommend") ||
+    lowerTitle.includes("feedback")
+  ) {
+    return {
+      type: "shortAnswer",
+      prompt: "Give one soft opinion and add a short reason.",
+      expectedAnswer: "I may be wrong, but I think this is a good option.",
+    };
+  }
+
+  if (
+    lowerTitle.includes("plan") ||
+    lowerTitle.includes("schedule") ||
+    lowerTitle.includes("appointment") ||
+    lowerTitle.includes("meeting")
+  ) {
+    return {
+      type: "shortAnswer",
+      prompt: "Write one sentence suggesting a clear next step.",
+      expectedAnswer: "The next step is to set a time for the meeting.",
+    };
+  }
+
+  if (day >= 71) {
+    return {
+      type: "shortAnswer",
+      prompt:
+        "Summarize the idea in your own words and add one realistic next step.",
+      expectedAnswer:
+        "In other words, I need a clear plan and one practical next step.",
+    };
+  }
+
+  if (day >= 43) {
+    return {
+      type: "shortAnswer",
+      prompt: "Rewrite the idea in your own words and add one reason.",
+      expectedAnswer: "To be more specific, this helps me stay focused.",
+    };
+  }
+
+  if (day >= 15) {
+    return {
+      type: "shortAnswer",
+      prompt: "Write one personal sentence using a phrase from today's lesson.",
+      expectedAnswer: "I need to make a plan before I start.",
+    };
+  }
+
+  return {
+    type: "shortAnswer",
+    prompt: "Write one personal sentence with today's target language.",
+    expectedAnswer: "I want to practice a little every day.",
+  };
+}
+
+function withProductionReviewItem(drill: ReviewDrill): ReviewDrill {
+  const productionItem = buildProductionReviewItem(drill.day, drill.title);
+  const reviewItems =
+    drill.reviewItems.length >= 4
+      ? [...drill.reviewItems.slice(0, 3), productionItem]
+      : [...drill.reviewItems, productionItem];
+
+  return {
+    ...drill,
+    reviewItems,
+  };
+}
+
+const baseReviewDrills: ReviewDrill[] = [
   {
     day: 1,
     title: "Day 1 Review: Morning and Routine",
@@ -347,5 +460,8 @@ export const reviewDrills: ReviewDrill[] = [
   ...phaseSevenReviewDrills,
   ...phaseEightReviewDrills,
 ];
+
+export const reviewDrills: ReviewDrill[] =
+  baseReviewDrills.map(withProductionReviewItem);
 
 export const dayOneReview = reviewDrills[0];

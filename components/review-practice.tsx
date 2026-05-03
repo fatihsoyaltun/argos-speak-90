@@ -17,6 +17,13 @@ const reviewTypeLabels = {
   shortAnswer: "Short answer",
 };
 
+const productionSelfCheckItems = [
+  "Kendi detayımı ekledim mi?",
+  "Bir sebep, örnek veya next step verdim mi?",
+  "Hedef çizgiyi aynen kopyalamaktan kaçındım mı?",
+  "Fikri tamamladım mı?",
+];
+
 function normalizeAnswer(value: string) {
   return value
     .trim()
@@ -153,6 +160,25 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
         <p className="mt-3 text-base leading-7 text-muted">
           {drill.shortIntroTr}
         </p>
+        <div className="mt-4 rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
+            Production self-check
+          </p>
+          <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+            Açık üretim soruları otomatik AI puanı almaz. Model cevabı sadece
+            yardım içindir; kendi cevabını bu kısa listeyle kontrol et.
+          </p>
+          <div className="mt-3 grid gap-2">
+            {productionSelfCheckItems.map((item) => (
+              <p
+                key={item}
+                className="rounded-[1rem] bg-linen px-3 py-2 text-sm font-semibold leading-5 text-[#2d261d]"
+              >
+                {item}
+              </p>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="space-y-3">

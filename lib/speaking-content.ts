@@ -282,9 +282,9 @@ export const speakingPractices: SpeakingPractice[] = [
     day: 14,
     title: "Day 14 Speaking: Confidence Check",
     prompt:
-      "Talk about your English progress. Say what felt difficult before, what you can do now, and what you want to do next.",
+      "Milestone check: speak in 2-4 short sentences. Add one personal detail, one simple reason or preference, and one next speaking goal.",
     speakingTipsTr:
-      "Geçmiş, şimdi ve gelecek hedefini bağla. Hata yapsan bile devam etmeyi vurgula.",
+      "Geçmiş, şimdi, zayıf nokta ve gelecek hedefini bağla. İkinci denemede bir cümleyi daha net söyle ve gerekirse I mean ile düzelt.",
     targetLines: [
       "Speaking English felt difficult for me.",
       "Now I can introduce myself.",
@@ -292,11 +292,13 @@ export const speakingPractices: SpeakingPractice[] = [
       "Next week, I want to speak a little longer.",
     ],
     selfCheckItems: [
-      "Gelişimimden ve yeni hedefimden bahsettim mi?",
+      "2-4 kısa cümle kurdum mu?",
+      "Kendi hayatımdan bir detay ekledim mi?",
+      "Bir basit sebep veya tercih söyledim mi?",
       ...defaultSelfCheckItems,
     ],
     miniGoalTr:
-      "Mini hedef: İki haftalık gelişimini 4 kısa cümleyle anlat.",
+      "Mini hedef: 2-4 kısa cümleyle gelişimini anlat; ikinci denemede bir cümleyi daha kişisel veya daha net yap.",
   },
   ...phaseSevenSpeakingPractices,
   ...phaseEightSpeakingPractices,

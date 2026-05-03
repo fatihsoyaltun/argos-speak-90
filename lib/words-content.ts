@@ -676,6 +676,483 @@ const confidentSpeakingBoosters: WordItem[] = [
   },
 ];
 
+const themeBoosterGroups: Array<{
+  keywords: string[];
+  items: WordItem[];
+}> = [
+  {
+    keywords: ["clarification", "understanding", "conversation"],
+    items: [
+      {
+        word: "Could you clarify that?",
+        pronunciation: "kood yoo KLAIR-uh-fy that",
+        shortMeaningTr: "Bunu netleştirebilir misin?",
+        exampleSentence: "Could you clarify that before I answer?",
+      },
+      {
+        word: "I am not sure I understood",
+        pronunciation: "eye am not shur eye un-der-STOOD",
+        shortMeaningTr: "Anladığımdan emin değilim",
+        exampleSentence: "I am not sure I understood the last point.",
+      },
+      {
+        word: "Let me check one detail",
+        pronunciation: "let mee chek wun DEE-tayl",
+        shortMeaningTr: "Bir detayı kontrol edeyim",
+        exampleSentence: "Let me check one detail before we decide.",
+      },
+      {
+        word: "Can I ask one more question?",
+        pronunciation: "kan eye ask wun mor KWES-chuhn",
+        shortMeaningTr: "Bir soru daha sorabilir miyim?",
+        exampleSentence: "Can I ask one more question about the time?",
+      },
+    ],
+  },
+  {
+    keywords: ["misunderstanding", "correcting"],
+    items: [
+      {
+        word: "What I meant was",
+        pronunciation: "wut eye ment wuz",
+        shortMeaningTr: "Demek istediğim şuydu",
+        exampleSentence: "What I meant was that I need more time.",
+      },
+      {
+        word: "I mean",
+        pronunciation: "eye meen",
+        shortMeaningTr: "yani, demek istediğim",
+        exampleSentence: "I mean, the first option is easier.",
+      },
+      {
+        word: "Let me say that again",
+        pronunciation: "let mee say that uh-GEN",
+        shortMeaningTr: "Bunu tekrar söyleyeyim",
+        exampleSentence: "Let me say that again more clearly.",
+      },
+      {
+        word: "In other words",
+        pronunciation: "in UTH-er wurdz",
+        shortMeaningTr: "başka bir deyişle",
+        exampleSentence: "In other words, we need a simpler plan.",
+      },
+    ],
+  },
+  {
+    keywords: ["problem", "issue", "complaint", "mistake", "difficult"],
+    items: [
+      {
+        word: "the main issue is",
+        pronunciation: "thuh mayn ISH-oo iz",
+        shortMeaningTr: "ana sorun şu",
+        exampleSentence: "The main issue is that the file does not open.",
+      },
+      {
+        word: "what happened was",
+        pronunciation: "wut HAP-uhnd wuz",
+        shortMeaningTr: "olan şey şuydu",
+        exampleSentence: "What happened was that I sent the old version.",
+      },
+      {
+        word: "to fix this",
+        pronunciation: "to fiks this",
+        shortMeaningTr: "bunu düzeltmek için",
+        exampleSentence: "To fix this, I will send a new file.",
+      },
+      {
+        word: "next time",
+        pronunciation: "nekst tym",
+        shortMeaningTr: "bir dahaki sefere",
+        exampleSentence: "Next time, I will check the details first.",
+      },
+    ],
+  },
+  {
+    keywords: [
+      "choice",
+      "decision",
+      "option",
+      "comparing",
+      "comparison",
+      "preference",
+      "money",
+    ],
+    items: [
+      {
+        word: "the better option is",
+        pronunciation: "thuh BET-er OP-shuhn iz",
+        shortMeaningTr: "daha iyi seçenek şu",
+        exampleSentence: "The better option is to wait until Friday.",
+      },
+      {
+        word: "the reason I chose it",
+        pronunciation: "thuh REE-zuhn eye chohz it",
+        shortMeaningTr: "bunu seçme sebebim",
+        exampleSentence: "The reason I chose it is that it saves time.",
+      },
+      {
+        word: "on the other hand",
+        pronunciation: "on thee UTH-er hand",
+        shortMeaningTr: "diğer yandan",
+        exampleSentence: "On the other hand, the office is better for questions.",
+      },
+      {
+        word: "it depends on the situation",
+        pronunciation: "it di-PENDZ on thuh sit-yoo-AY-shuhn",
+        shortMeaningTr: "duruma bağlı",
+        exampleSentence: "It depends on the situation and the deadline.",
+      },
+    ],
+  },
+  {
+    keywords: ["message", "reply", "late", "delay"],
+    items: [
+      {
+        word: "sorry for the delay",
+        pronunciation: "SOR-ee for thuh di-LAY",
+        shortMeaningTr: "gecikme için üzgünüm",
+        exampleSentence: "Sorry for the delay; I was in a meeting.",
+      },
+      {
+        word: "thanks for waiting",
+        pronunciation: "thanks for WAY-ting",
+        shortMeaningTr: "beklediğin için teşekkürler",
+        exampleSentence: "Thanks for waiting, I can answer now.",
+      },
+      {
+        word: "I will get back to you",
+        pronunciation: "eye wil get bak to yoo",
+        shortMeaningTr: "sana geri döneceğim",
+        exampleSentence: "I will get back to you after I check.",
+      },
+      {
+        word: "as soon as possible",
+        pronunciation: "az soon az POS-uh-buhl",
+        shortMeaningTr: "mümkün olan en kısa sürede",
+        exampleSentence: "I will send it as soon as possible.",
+      },
+    ],
+  },
+  {
+    keywords: [
+      "summary",
+      "summarizing",
+      "discussion",
+      "update",
+      "recap",
+      "story",
+      "presentation",
+      "check-in",
+    ],
+    items: [
+      {
+        word: "to summarize",
+        pronunciation: "toh SUM-uh-ryz",
+        shortMeaningTr: "özetlemek gerekirse",
+        exampleSentence: "To summarize, we agreed on the next step.",
+      },
+      {
+        word: "the main point is",
+        pronunciation: "thuh mayn poynt iz",
+        shortMeaningTr: "ana nokta şu",
+        exampleSentence: "The main point is that we need more time.",
+      },
+      {
+        word: "what happens next",
+        pronunciation: "wut HAP-uhnz nekst",
+        shortMeaningTr: "sonra ne olacak",
+        exampleSentence: "What happens next is simple: we test it again.",
+      },
+      {
+        word: "here is the update",
+        pronunciation: "heer iz thee UP-dayt",
+        shortMeaningTr: "güncelleme şu",
+        exampleSentence: "Here is the update: the first part is finished.",
+      },
+    ],
+  },
+  {
+    keywords: [
+      "plan",
+      "schedule",
+      "appointment",
+      "meeting",
+      "travel",
+      "trip",
+      "preparing",
+    ],
+    items: [
+      {
+        word: "what time works for you?",
+        pronunciation: "wut tym wurks for yoo",
+        shortMeaningTr: "sana hangi saat uyar?",
+        exampleSentence: "What time works for you tomorrow?",
+      },
+      {
+        word: "if that works",
+        pronunciation: "if that wurks",
+        shortMeaningTr: "eğer uygunsa",
+        exampleSentence: "We can meet at three if that works.",
+      },
+      {
+        word: "my schedule changed",
+        pronunciation: "my SKEJ-ool chaynjd",
+        shortMeaningTr: "programım değişti",
+        exampleSentence: "My schedule changed, so I need a new time.",
+      },
+      {
+        word: "let's confirm the time",
+        pronunciation: "lets kuhn-FURM thuh tym",
+        shortMeaningTr: "saati netleştirelim",
+        exampleSentence: "Let's confirm the time before lunch.",
+      },
+    ],
+  },
+  {
+    keywords: ["opinion", "recommend", "feedback", "reason", "tool"],
+    items: [
+      {
+        word: "I may be wrong, but",
+        pronunciation: "eye may bee rawng but",
+        shortMeaningTr: "yanılıyor olabilirim ama",
+        exampleSentence: "I may be wrong, but this feels too long.",
+      },
+      {
+        word: "from my point of view",
+        pronunciation: "frum my poynt uv vyoo",
+        shortMeaningTr: "benim bakış açıma göre",
+        exampleSentence: "From my point of view, the plan is realistic.",
+      },
+      {
+        word: "I would suggest",
+        pronunciation: "eye wood suh-JEST",
+        shortMeaningTr: "öneririm",
+        exampleSentence: "I would suggest a shorter meeting.",
+      },
+      {
+        word: "one reason is",
+        pronunciation: "wun REE-zuhn iz",
+        shortMeaningTr: "bir sebep şu",
+        exampleSentence: "One reason is that people stay focused.",
+      },
+    ],
+  },
+  {
+    keywords: [
+      "progress",
+      "confidence",
+      "goal",
+      "habit",
+      "learning",
+      "energy",
+      "change",
+      "changed",
+      "learned",
+      "experience",
+      "success",
+      "speaking check",
+    ],
+    items: [
+      {
+        word: "what improved",
+        pronunciation: "wut im-PROOVD",
+        shortMeaningTr: "ne gelişti",
+        exampleSentence: "What improved is my confidence.",
+      },
+      {
+        word: "I still need to",
+        pronunciation: "eye stil need to",
+        shortMeaningTr: "hala yapmam gerekiyor",
+        exampleSentence: "I still need to practice longer answers.",
+      },
+      {
+        word: "my next step is",
+        pronunciation: "my nekst step iz",
+        shortMeaningTr: "sonraki adımım şu",
+        exampleSentence: "My next step is to speak for one full minute.",
+      },
+      {
+        word: "little by little",
+        pronunciation: "LIT-uhl by LIT-uhl",
+        shortMeaningTr: "yavaş yavaş",
+        exampleSentence: "Little by little, I can speak more clearly.",
+      },
+    ],
+  },
+  {
+    keywords: ["instructions", "process", "routine"],
+    items: [
+      {
+        word: "the first step is",
+        pronunciation: "thuh furst step iz",
+        shortMeaningTr: "ilk adım şu",
+        exampleSentence: "The first step is to open the file.",
+      },
+      {
+        word: "make sure you",
+        pronunciation: "mayk shur yoo",
+        shortMeaningTr: "emin ol ki",
+        exampleSentence: "Make sure you save a copy.",
+      },
+      {
+        word: "when you have time",
+        pronunciation: "wen yoo hav tym",
+        shortMeaningTr: "vaktin olduğunda",
+        exampleSentence: "When you have time, please check the page.",
+      },
+      {
+        word: "in the right order",
+        pronunciation: "in thuh ryt OR-der",
+        shortMeaningTr: "doğru sırayla",
+        exampleSentence: "Explain the steps in the right order.",
+      },
+    ],
+  },
+  {
+    keywords: ["place", "person", "coworker", "friend", "restaurant", "trust"],
+    items: [
+      {
+        word: "what I like about it",
+        pronunciation: "wut eye lyk uh-BOWT it",
+        shortMeaningTr: "onun sevdiğim yanı",
+        exampleSentence: "What I like about it is the quiet atmosphere.",
+      },
+      {
+        word: "it feels",
+        pronunciation: "it feelz",
+        shortMeaningTr: "hissettiriyor",
+        exampleSentence: "It feels calm in the early evening.",
+      },
+      {
+        word: "one thing I notice",
+        pronunciation: "wun thing eye NOH-tis",
+        shortMeaningTr: "fark ettiğim bir şey",
+        exampleSentence: "One thing I notice is how clearly she explains.",
+      },
+      {
+        word: "easy to reach",
+        pronunciation: "EE-zee to reech",
+        shortMeaningTr: "ulaşması kolay",
+        exampleSentence: "The place is easy to reach after work.",
+      },
+    ],
+  },
+  {
+    keywords: ["request", "need"],
+    items: [
+      {
+        word: "Would it be possible to",
+        pronunciation: "wood it bee POS-uh-buhl to",
+        shortMeaningTr: "mümkün olur mu",
+        exampleSentence: "Would it be possible to send it today?",
+      },
+      {
+        word: "could you send me",
+        pronunciation: "kood yoo send mee",
+        shortMeaningTr: "bana gönderebilir misin",
+        exampleSentence: "Could you send me the details?",
+      },
+      {
+        word: "I need it because",
+        pronunciation: "eye need it bi-KAWZ",
+        shortMeaningTr: "buna ihtiyacım var çünkü",
+        exampleSentence: "I need it because the meeting starts soon.",
+      },
+      {
+        word: "thanks for your help",
+        pronunciation: "thanks for yor help",
+        shortMeaningTr: "yardımın için teşekkürler",
+        exampleSentence: "Thanks for your help with this.",
+      },
+    ],
+  },
+  {
+    keywords: ["priorities", "priority"],
+    items: [
+      {
+        word: "the top priority",
+        pronunciation: "thuh top pry-OR-uh-tee",
+        shortMeaningTr: "en önemli öncelik",
+        exampleSentence: "The top priority is the customer reply.",
+      },
+      {
+        word: "can wait",
+        pronunciation: "kan wayt",
+        shortMeaningTr: "bekleyebilir",
+        exampleSentence: "The notes can wait until tomorrow.",
+      },
+      {
+        word: "needs attention",
+        pronunciation: "needz uh-TEN-shuhn",
+        shortMeaningTr: "dikkat gerektiriyor",
+        exampleSentence: "This message needs attention today.",
+      },
+      {
+        word: "what matters first",
+        pronunciation: "wut MAT-erz furst",
+        shortMeaningTr: "ilk önemli olan şey",
+        exampleSentence: "What matters first is the urgent reply.",
+      },
+    ],
+  },
+  {
+    keywords: ["good news"],
+    items: [
+      {
+        word: "that is great news",
+        pronunciation: "that iz grayt nooz",
+        shortMeaningTr: "bu harika haber",
+        exampleSentence: "That is great news; congratulations.",
+      },
+      {
+        word: "I am happy to hear that",
+        pronunciation: "eye am HAP-ee to heer that",
+        shortMeaningTr: "bunu duyduğuma sevindim",
+        exampleSentence: "I am happy to hear that it went well.",
+      },
+      {
+        word: "what happens next?",
+        pronunciation: "wut HAP-uhnz nekst",
+        shortMeaningTr: "sonra ne olacak?",
+        exampleSentence: "What happens next after the approval?",
+      },
+      {
+        word: "you must feel proud",
+        pronunciation: "yoo must feel proud",
+        shortMeaningTr: "gururlu hissediyor olmalısın",
+        exampleSentence: "You must feel proud of the result.",
+      },
+    ],
+  },
+];
+
+function getRotatedItems<T>(items: T[], day: number, limit: number) {
+  if (items.length === 0 || limit <= 0) {
+    return [];
+  }
+
+  const startIndex = Math.abs(day * 3) % items.length;
+
+  return Array.from({ length: Math.min(limit, items.length) }, (_, offset) => {
+    return items[(startIndex + offset) % items.length];
+  });
+}
+
+function getThemeBoosters(dayContent: DayWords) {
+  if (dayContent.day < 15) {
+    return [];
+  }
+
+  const normalizedTitle = dayContent.title.toLowerCase();
+  const matchedItems = themeBoosterGroups.flatMap((group) =>
+    group.keywords.some((keyword) => normalizedTitle.includes(keyword))
+      ? group.items
+      : [],
+  );
+
+  return getRotatedItems(matchedItems, dayContent.day, 3);
+}
+
 function getSpeakingBoosters(day: number): WordItem[] {
   if (day >= 71) {
     return confidentSpeakingBoosters;
@@ -701,13 +1178,21 @@ function expandDailyWords(dayContent: DayWords): DayWords {
   const existingWords = new Set(
     dayContent.words.map((item) => item.word.toLowerCase()),
   );
-  const speakingBoosters = getSpeakingBoosters(dayContent.day);
-  let index = (dayContent.day - 1) * 5;
+  const speakingBoosters = getRotatedItems(
+    getSpeakingBoosters(dayContent.day),
+    dayContent.day * 5,
+    getSpeakingBoosters(dayContent.day).length,
+  );
+  const prioritizedBoosters = [
+    ...getThemeBoosters(dayContent),
+    ...speakingBoosters,
+  ];
+  let index = 0;
 
   while (
     dayContent.words.length + selectedBoosters.length < TARGET_DAILY_WORD_COUNT
   ) {
-    const booster = speakingBoosters[index % speakingBoosters.length];
+    const booster = prioritizedBoosters[index % prioritizedBoosters.length];
     index += 1;
 
     if (existingWords.has(booster.word.toLowerCase())) {

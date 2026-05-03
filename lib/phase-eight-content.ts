@@ -1321,7 +1321,7 @@ export const phaseEightListeningDrills = phaseEightDays.map((day) => ({
   transcriptExcerpt: day.transcript,
   keyLines: day.keyLines,
   miniTaskTr: day.miniTaskTr,
-  outputPrompt: day.outputPrompt,
+  outputPrompt: buildPhaseEightListeningOutput(day),
 }));
 
 export const phaseEightDayWords = phaseEightDays.map((day) => ({
@@ -1336,14 +1336,65 @@ export const phaseEightDayWords = phaseEightDays.map((day) => ({
 }));
 
 function buildPhaseEightPrompt(day: (typeof phaseEightDays)[number]) {
-  if (day.day >= 71) {
-    return `${day.speakingGoal} Speak in 4-6 sentences: give the context, make your point, add a reason or example, and finish with a realistic next step. Use your own life, work, or study context if possible.`;
+  if (day.day === 70) {
+    return "Milestone check: speak in 4-5 sentences. Explain a small problem or decision, include one reason or example, then improve one sentence in your second try.";
   }
 
-  return `${day.speakingGoal} Speak in 4-5 sentences: give the context, add one specific detail, and include one reason, example, or next step. Use your own life, work, or study context if possible.`;
+  if (day.day === 90) {
+    return "Final speaking check: speak in 4-6 sentences or 60-75 seconds. Summarize a familiar daily/work situation, give an opinion with a reason, add a next step, and mention one weak point to keep improving.";
+  }
+
+  if (day.day >= 71) {
+    const promptModes = [
+      `Mini role-play: someone asks about "${day.theme.toLowerCase()}". Answer in 4-6 sentences, then ask one follow-up question.`,
+      `Short message reply: respond in 4-6 sentences. Be clear, polite, and finish with a realistic next step.`,
+      `Soft opinion task: give your point, add one reason, and use a phrase like "I may be wrong, but..." or "from my point of view."`,
+      `Problem-solving task: explain the issue, give two options, and recommend one practical next step.`,
+      `Summary task: summarize the decision or story in 4-6 sentences. Use "to summarize" or "in other words" naturally.`,
+      `Clarification task: explain what you understood, then ask one question with "Could you clarify that?" or "Let me check one detail."`,
+      `Real-life answer: connect "${day.theme.toLowerCase()}" to your own work, study, or daily life with one example.`,
+    ];
+
+    return promptModes[(day.day - 71) % promptModes.length];
+  }
+
+  const promptModes = [
+    `${day.speakingGoal} Speak in 4-5 sentences and include one reason from your own life.`,
+    `Clarify the situation in 4-5 sentences. Use "To be more specific..." if your first answer is too general.`,
+    `Short work/life reply: answer naturally in 4-5 sentences and finish with one next step.`,
+    `Compare or explain: give the context, add one useful detail, and say why it matters.`,
+    `Repair practice: explain the idea once, then improve one sentence with "What I meant was..." in your second try.`,
+    `Follow-up practice: answer the prompt and add one natural follow-up question at the end.`,
+  ];
+
+  return promptModes[(day.day - 43) % promptModes.length];
+}
+
+function buildPhaseEightListeningOutput(day: (typeof phaseEightDays)[number]) {
+  if (day.day === 70) {
+    return "Write 3 short notes: the main instruction, one polite phrase, and one step you should check again.";
+  }
+
+  if (day.day === 90) {
+    return "Write 3 short notes: the main progress point, one weak point, and one real-world speaking goal.";
+  }
+
+  if (day.day >= 71) {
+    return "Write 2 sentences: summarize the main point, then add one short reaction or next step for your own life/work.";
+  }
+
+  return "Write 2 sentences: identify the main point, then apply one useful phrase to your own life/work.";
 }
 
 function buildPhaseEightMiniGoal(day: (typeof phaseEightDays)[number]) {
+  if (day.day === 70) {
+    return "Mini hedef: 4-5 cümleyle küçük bir problem veya kararı açıkla, reason/example ekle ve ikinci denemeyi belirgin şekilde iyileştir.";
+  }
+
+  if (day.day === 90) {
+    return "Mini hedef: 4-6 cümle veya 60-75 saniye konuş; summary, opinion/reason, next step ve bir weak point ekle.";
+  }
+
   if (day.day >= 71) {
     return "Mini hedef: 60-75 saniye konuş ve ikinci denemede cevabına daha net bir sonuç cümlesi ekle.";
   }
@@ -1356,10 +1407,24 @@ export const phaseEightSpeakingPractices = phaseEightDays.map((day) => ({
   title: `Day ${day.day} Speaking: ${day.theme}`,
   prompt: buildPhaseEightPrompt(day),
   speakingTipsTr:
-    "İlk denemede fikri tamamla. İkinci denemede bir sebep, örnek veya daha doğal bir bağlaç ekle.",
+    "İlk denemede fikri tamamla. İkinci denemede bir sebep, örnek veya doğal repair language ekle: What I meant was, To be more specific veya Let me check one detail.",
   targetLines: day.keyLines,
   selfCheckItems: [
-    "Konuşmamın ana fikri net miydi?",
+    ...(day.day === 70
+      ? [
+          "4-5 cümle kurdum mu?",
+          "Küçük bir problem veya kararı açıkladım mı?",
+          "Bir reason veya example ekledim mi?",
+          "İkinci denemem belirgin şekilde daha iyi mi?",
+        ]
+      : day.day === 90
+        ? [
+            "4-6 cümle veya 60-75 saniye konuştum mu?",
+            "Bir situation summary yaptım mı?",
+            "Opinion ve reason ekledim mi?",
+            "Next step ve bir weak point söyledim mi?",
+          ]
+        : ["Konuşmamın ana fikri net miydi?"]),
     ...selfCheckItems,
   ],
   miniGoalTr: buildPhaseEightMiniGoal(day),

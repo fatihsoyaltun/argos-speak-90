@@ -8,6 +8,13 @@ import {
   saveDayProgress,
 } from "@/lib/practice-storage";
 
+const pilotRubricItems = [
+  "Kopyalamadım: hedef çizgiyi aynen cevap yapmadım.",
+  "Kişiselleştirdim: kendi hayatımdan en az bir detay ekledim.",
+  "Geliştirdim: ikinci denemem ilkinden daha net.",
+  "Tamamladım: fikrim yarım kalmadı.",
+];
+
 export function SpeakingPracticeView({
   practice,
 }: {
@@ -157,6 +164,29 @@ export function SpeakingPracticeView({
             Denemelerin bu cihazda kaydedildi.
           </p>
         ) : null}
+      </section>
+
+      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
+          Pilot rubric
+        </p>
+        <h3 className="mt-1 text-2xl font-semibold leading-tight">
+          1-3 self-rating
+        </h3>
+        <p className="mt-2 text-base leading-7 text-muted">
+          1 = tekrar dene, 2 = bugün için yeterli, 3 = güçlü cevap. Puan yerine
+          dürüst kontrol yap; amaç ikinci denemeyi gerçekten iyileştirmek.
+        </p>
+        <div className="mt-4 grid gap-3">
+          {pilotRubricItems.map((item) => (
+            <div
+              key={item}
+              className="rounded-[1.25rem] border border-foreground/10 bg-background/85 p-4 text-sm font-semibold leading-6 text-muted"
+            >
+              {item}
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="space-y-3">

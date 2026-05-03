@@ -246,9 +246,9 @@ export const listeningDrills: ListeningDrill[] = [
       "Next week, I want to speak a little longer.",
     ],
     miniTaskTr:
-      "Gelişim cümlelerini dinle. Geçmiş, şimdi ve gelecek hedefini ayır.",
+      "Gelişim cümlelerini dinle. Geçmiş, şimdi, zayıf nokta ve gelecek hedefini ayır.",
     outputPrompt:
-      "Write 2 sentences about your English progress and your next goal.",
+      "Write 3 short sentences: what improved, what is still difficult, and your next speaking goal.",
   },
   ...phaseSevenListeningDrills,
   ...phaseEightListeningDrills,

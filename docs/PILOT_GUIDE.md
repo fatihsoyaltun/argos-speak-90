@@ -35,6 +35,24 @@ Her gün kısa ve net ilerle:
 6. Journal'da zorlandığın şeyi ve yarın tekrar edeceğin şeyi not et.
 7. Gün sonunda Settings içinden Cloud'a yedekle veya Senkronize et kullan.
 
+## Pilot bütünlüğü kuralları
+
+Pilotun amacı gerçek üretimi görmek. Bu yüzden:
+
+- Hedef çizgileri tam cevap olarak kopyalama.
+- Her cevapta en az bir kişisel detay ekle.
+- Second try, first try'dan belirgin şekilde daha net olmalı.
+- Journal'da günün en zayıf noktasını yaz.
+- Admin, cloud'a sync edilen yazılı cevapları öğrenme ilerlemesi için inceler; amaç ceza değil gelişimi takip etmektir.
+
+## Basit self-rating
+
+Speak ve production-style Review cevaplarından sonra kendini 1-3 arası değerlendir:
+
+- 1: Cevap çoğunlukla kopya, kişisel detay yok veya fikir yarım kaldı.
+- 2: Cevap bugün için yeterli; en az bir kişisel detay ve bir hedef chunk var.
+- 3: Cevap gerçek konuşmada kullanılabilir; reason/example/next step var ve second try açıkça daha iyi.
+
 ## Listen nasıl kullanılacak
 
 Listen ekranında önce metni dinle, sonra transkripti takip et. Yakalaman gereken cümlelere dikkat et. Mini task cevabını kısa ama gerçek bir cümleyle yaz. Amaç yalnızca anlamak değil, duyduğun kalıpları konuşmada kullanmaya hazırlanmaktır.
