@@ -8,8 +8,7 @@ export function TeamPrivacyNotice() {
       </p>
       <div className="space-y-3 text-sm font-semibold leading-6 text-muted">
         <p>
-          Argos Speak 90 İngilizce pratiklerini ve günlük ilerlemeyi takip etmek
-          için kullanılır.
+          Bu uygulama İngilizce pratik ilerlemesini takip etmek için kullanılır.
         </p>
         <p>
           Giriş yapıp cloud sync kullandığında aktif günün, tamamladığın
@@ -17,13 +16,13 @@ export function TeamPrivacyNotice() {
           ekip yöneticisi tarafından görülebilir.
         </p>
         <p>
-          Ses dosyaları kullanıcı ilerlemesine kaydedilmez. ElevenLabs API
-          anahtarları kullanıcı ilerlemesi içinde saklanmaz.
+          Ses kayıtları tutulmaz. ElevenLabs API anahtarı kullanıcı ilerlemesine
+          kaydedilmez.
         </p>
         <p>
           Yerel ilerleme, cloud’a yedeklemediğin sürece bu cihazdaki tarayıcıda
           kalır. Cloud sync isteğe bağlıdır; ancak farklı cihazdan geri yükleme
-          ve admin takibi için cloud’a yedekleme gerekir.
+          ve admin panelde görünmek için cloud’a yedekleme gerekir.
         </p>
       </div>
     </Card>

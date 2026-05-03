@@ -189,8 +189,8 @@ export function CloudSyncPanel() {
         </p>
 
         <p className="rounded-[1.25rem] border border-foreground/10 bg-background/85 p-4 text-sm font-semibold leading-6 text-muted">
-          Admin panelde görünmesi için Cloud’a yedekle veya Senkronize et
-          kullan.
+          Admin panelde güncel görünmek için çalışma sonrası Cloud’a yedekle
+          veya Senkronize et kullan.
         </p>
 
         <div className="grid gap-3 sm:grid-cols-3">

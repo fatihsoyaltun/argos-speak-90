@@ -345,9 +345,9 @@ export default function SettingsPage() {
           veya tarayıcı verisi silinirse ilerleme kaybolabilir.
         </p>
         <p className="text-sm font-medium leading-6 text-muted">
-          Giriş yaptıysan cloud progress sync kullanabilirsin. Admin panelinde
-          görünmesi için ilerlemeyi Cloud’a yedekle veya Senkronize et ile
-          göndermen gerekir.
+          Giriş yaptıysan cloud progress sync kullanabilirsin. Admin panelde
+          güncel görünmek için çalışma sonrası Cloud’a yedekle veya Senkronize
+          et kullan.
         </p>
         <Link
           href={cloudAccountStatus === "signedIn" ? "/account" : "/login"}
