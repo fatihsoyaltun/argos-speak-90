@@ -213,6 +213,27 @@ export default function SettingsPage() {
       <TeamPrivacyNotice />
 
       <Card className="space-y-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
+            Pilot
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold leading-tight">
+            Pilot kullanım rehberi
+          </h2>
+          <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+            Kayıt, günlük çalışma, cloud sync ve admin görünürlüğü için kısa
+            ekip rehberi.
+          </p>
+        </div>
+        <Link
+          href="/pilot"
+          className="flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
+        >
+          Pilot kullanım rehberi
+        </Link>
+      </Card>
+
+      <Card className="space-y-4">
         <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
             Active day
