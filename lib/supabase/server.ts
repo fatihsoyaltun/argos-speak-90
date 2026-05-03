@@ -3,7 +3,10 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
-import { getSupabasePublicConfig } from "@/lib/supabase/env";
+import {
+  getSupabaseAuthStorageKey,
+  getSupabasePublicConfig,
+} from "@/lib/supabase/env";
 import type { Database } from "@/lib/supabase/types";
 
 export async function createSupabaseServerClient(): Promise<SupabaseClient<Database> | null> {
@@ -14,8 +17,12 @@ export async function createSupabaseServerClient(): Promise<SupabaseClient<Datab
   }
 
   const cookieStore = await cookies();
+  const authStorageKey = getSupabaseAuthStorageKey();
 
   return createServerClient<Database>(config.url, config.anonKey, {
+    ...(authStorageKey
+      ? { cookieOptions: { name: authStorageKey } }
+      : null),
     cookies: {
       getAll() {
         return cookieStore.getAll();

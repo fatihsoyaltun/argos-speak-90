@@ -3,6 +3,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  getSupabaseAuthStorageKey,
   getSupabasePublicConfig,
   logSupabaseConfigDiagnostics,
 } from "@/lib/supabase/env";
@@ -20,7 +21,13 @@ export function createSupabaseBrowserClient() {
   }
 
   if (!browserClient) {
-    browserClient = createBrowserClient<Database>(config.url, config.anonKey);
+    const authStorageKey = getSupabaseAuthStorageKey();
+
+    browserClient = createBrowserClient<Database>(config.url, config.anonKey, {
+      ...(authStorageKey
+        ? { cookieOptions: { name: authStorageKey } }
+        : null),
+    });
   }
 
   return browserClient;

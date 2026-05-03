@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { TeamPrivacyNotice } from "@/components/team-privacy-notice";
 import { Card, PageHeader } from "@/components/ui";
 import {
   getClientAuthState,
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<LoginMode>("signIn");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [hasTeamConsent, setHasTeamConsent] = useState(false);
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -45,7 +47,13 @@ export default function LoginPage() {
     let isActive = true;
 
     async function checkExistingSession() {
-      const authState = await getClientAuthState();
+      const authState = await getClientAuthState().catch(() => ({
+        profile: null,
+        profileMessage:
+          "Oturum kontrolü geçici olarak başarısız oldu. Lütfen tekrar deneyin.",
+        session: null,
+        user: null,
+      }));
 
       if (!isActive) {
         return;
@@ -79,6 +87,14 @@ export default function LoginPage() {
     setErrorMessage("");
     setProfileMessage("");
     setTechnicalMessage("");
+
+    if (mode === "signUp" && !hasTeamConsent) {
+      setIsSubmitting(false);
+      setErrorMessage(
+        "Hesap oluşturmak için ekip kullanımında ilerleme bilgilerinin yönetici tarafından görülebileceğini onaylamalısın.",
+      );
+      return;
+    }
 
     const result =
       mode === "signIn"
@@ -120,8 +136,10 @@ export default function LoginPage() {
       <PageHeader
         eyebrow="Cloud account"
         title="Team login"
-        description="Ekip hesabıyla giriş yap. Bu faz yalnızca giriş altyapısını ekler; ilerleme senkronizasyonu henüz aktif değildir."
+        description="Ekip hesabıyla giriş yap. Yerel ilerleme cihazında kalır; cloud sync kullandığında ekip takibi mümkün olur."
       />
+
+      <TeamPrivacyNotice />
 
       <Card className="space-y-5">
         {authStatus === "notConfigured" ? (
@@ -220,6 +238,21 @@ export default function LoginPage() {
             />
           </label>
 
+          {mode === "signUp" ? (
+            <label className="flex gap-3 rounded-[1.25rem] border border-foreground/10 bg-background/85 p-4 text-sm font-semibold leading-6 text-[#2d261d]">
+              <input
+                type="checkbox"
+                checked={hasTeamConsent}
+                onChange={(event) => setHasTeamConsent(event.target.checked)}
+                className="mt-1 h-5 w-5 shrink-0 accent-[#17201a]"
+              />
+              <span>
+                Ekip kullanımında ilerleme bilgilerimin eğitim takibi amacıyla
+                yönetici tarafından görülebileceğini anladım.
+              </span>
+            </label>
+          ) : null}
+
           <button
             type="submit"
             disabled={!canSubmit}
@@ -263,9 +296,9 @@ export default function LoginPage() {
           Gizlilik notu
         </p>
         <p className="text-sm font-semibold leading-6 text-muted">
-          Ekip kullanımında ilerleme verileri ileride yönetici tarafından eğitim
-          takibi amacıyla görülebilir. Bu fazda yalnızca giriş altyapısı
-          eklenmiştir.
+          Cloud sync kullanmadığın sürece yerel pratik kayıtların bu cihazdaki
+          tarayıcıda kalır. Cloud’a yedeklenen ilerleme ekip yöneticisi
+          tarafından eğitim takibi amacıyla görülebilir.
         </p>
         <Link
           href="/settings"

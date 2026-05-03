@@ -129,3 +129,19 @@ export function getSupabasePublicConfig(): SupabasePublicConfig | null {
     url: normalizeSupabaseUrl(),
   };
 }
+
+export function getSupabaseProjectRef() {
+  const parsedUrl = getParsedSupabaseUrl();
+
+  if (!parsedUrl?.hostname.endsWith(".supabase.co")) {
+    return "";
+  }
+
+  return parsedUrl.hostname.split(".")[0] ?? "";
+}
+
+export function getSupabaseAuthStorageKey() {
+  const projectRef = getSupabaseProjectRef();
+
+  return projectRef ? `sb-${projectRef}-auth-token` : "";
+}

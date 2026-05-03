@@ -27,7 +27,7 @@ function AccessMessage({ access }: { access: AdminAccessState }) {
         </p>
         <Link
           href="/login"
-          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#17201a] px-4 py-3 text-sm font-black text-white outline-none transition hover:bg-[#33493a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#17201a] px-4 py-3 text-sm font-black !text-white outline-none transition visited:!text-white hover:bg-[#33493a] hover:!text-white active:!text-white focus-visible:!text-white focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-white"
         >
           Login sayfasına git
         </Link>
@@ -106,7 +106,7 @@ export default async function AdminUserPage({
       <div className="space-y-4">
         <Link
           href="/admin"
-          className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-surface px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+          className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-surface px-4 py-2 text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-linen hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
         >
           Admin paneline dön
         </Link>

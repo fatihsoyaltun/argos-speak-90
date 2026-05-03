@@ -2,6 +2,12 @@
 
 import type { User } from "@supabase/supabase-js";
 import {
+  getCurrentUserSafe,
+  isAuthFetchError,
+  isAuthLockError,
+  isStaleRefreshTokenError,
+} from "@/lib/auth/session";
+import {
   ACTIVE_DAY_STORAGE_KEY,
   CLOUD_SYNC_LAST_SYNC_STORAGE_KEY,
 } from "@/lib/local-storage-keys";
@@ -29,6 +35,8 @@ export type CloudSyncStatus =
   | "syncing"
   | "synced"
   | "needsAttention"
+  | "authExpired"
+  | "connectionError"
   | "error";
 
 export type CloudProgress = {
@@ -54,6 +62,27 @@ const COMPLETED_TASKS: CompletedTask[] = [
   "speak",
   "review",
 ];
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return "";
+}
 
 function getLocalStorage() {
   if (typeof window === "undefined") {
@@ -133,6 +162,25 @@ function formatSyncError(message: string) {
   const lowerMessage = message.toLowerCase();
 
   if (
+    lowerMessage.includes("oturum süresi") ||
+    lowerMessage.includes("oturum yenilenemedi")
+  ) {
+    return "Oturum yenilenemedi, lütfen tekrar giriş yap.";
+  }
+
+  if (lowerMessage.includes("oturum kontrolü geçici")) {
+    return "Oturum kontrolü geçici olarak başarısız oldu. Lütfen tekrar deneyin.";
+  }
+
+  if (isStaleRefreshTokenError(message) || isAuthLockError(message)) {
+    return "Oturum yenilenemedi, lütfen tekrar giriş yap.";
+  }
+
+  if (isAuthFetchError(message)) {
+    return "Geçici bağlantı hatası. Local ilerleme korunuyor; lütfen tekrar deneyin.";
+  }
+
+  if (
     lowerMessage.includes("row-level security") ||
     lowerMessage.includes("permission denied") ||
     lowerMessage.includes("violates row-level security")
@@ -145,6 +193,31 @@ function formatSyncError(message: string) {
   }
 
   return "Cloud sync tamamlanamadı. Supabase bağlantısını ve RLS izinlerini kontrol et.";
+}
+
+function getSyncErrorStatus(message: string): CloudSyncStatus {
+  const lowerMessage = message.toLowerCase();
+
+  if (
+    lowerMessage.includes("oturum süresi") ||
+    lowerMessage.includes("oturum yenilenemedi")
+  ) {
+    return "authExpired";
+  }
+
+  if (lowerMessage.includes("oturum kontrolü geçici")) {
+    return "connectionError";
+  }
+
+  if (isStaleRefreshTokenError(message) || isAuthLockError(message)) {
+    return "authExpired";
+  }
+
+  if (isAuthFetchError(message)) {
+    return "connectionError";
+  }
+
+  return "error";
 }
 
 function technicalDetail(message: string) {
@@ -161,7 +234,7 @@ function createErrorResult(message: string): CloudSyncResult {
     ok: false,
     pulledDays: 0,
     pushedDays: 0,
-    status: "error",
+    status: getSyncErrorStatus(message),
     technicalMessage: technicalDetail(message),
   };
 }
@@ -173,6 +246,7 @@ async function getSignedInContext() {
     return {
       errorMessage:
         status.invalidMessage || "Supabase bağlantısı yapılandırılmadı.",
+      status: "error" as CloudSyncStatus,
       supabase: null,
       user: null,
     };
@@ -183,24 +257,34 @@ async function getSignedInContext() {
   if (!supabase) {
     return {
       errorMessage: "Supabase bağlantısı yapılandırılmadı.",
+      status: "error" as CloudSyncStatus,
       supabase: null,
       user: null,
     };
   }
 
-  const userResult = await supabase.auth.getUser();
+  const authState = await getCurrentUserSafe();
 
-  if (userResult.error) {
-    return {
-      errorMessage: userResult.error.message,
-      supabase: null,
-      user: null,
-    };
-  }
-
-  if (!userResult.data.user) {
+  if (authState.status === "notSignedIn") {
     return {
       errorMessage: "not-signed-in",
+      status: "notSignedIn" as CloudSyncStatus,
+      supabase: null,
+      user: null,
+    };
+  }
+
+  if (authState.status !== "ready" || !authState.user) {
+    return {
+      errorMessage:
+        authState.errorMessage ||
+        "Oturum kontrolü geçici olarak başarısız oldu. Lütfen tekrar deneyin.",
+      status:
+        authState.status === "authExpired"
+          ? ("authExpired" as CloudSyncStatus)
+          : authState.status === "connectionError"
+            ? ("connectionError" as CloudSyncStatus)
+            : ("error" as CloudSyncStatus),
       supabase: null,
       user: null,
     };
@@ -208,8 +292,9 @@ async function getSignedInContext() {
 
   return {
     errorMessage: "",
+    status: "ready" as CloudSyncStatus,
     supabase,
-    user: userResult.data.user,
+    user: authState.user,
   };
 }
 
@@ -379,18 +464,23 @@ async function upsertUserStatus({
   }
 
   const now = new Date().toISOString();
-  const result = await supabase.from("user_status").upsert(
-    {
-      active_day: activeDay,
-      last_seen_at: now,
-      total_completed_days: countCompletedDays(days),
-      updated_at: now,
-      user_id: user.id,
-    },
-    { onConflict: "user_id" },
-  );
 
-  return result.error?.message ?? "";
+  try {
+    const result = await supabase.from("user_status").upsert(
+      {
+        active_day: activeDay,
+        last_seen_at: now,
+        total_completed_days: countCompletedDays(days),
+        updated_at: now,
+        user_id: user.id,
+      },
+      { onConflict: "user_id" },
+    );
+
+    return result.error?.message ?? "";
+  } catch (error) {
+    return getErrorMessage(error);
+  }
 }
 
 async function pushDaysToCloud({
@@ -415,36 +505,40 @@ async function pushDaysToCloud({
   const practiceRows = dayList.map((day) => toPracticeEntryRow(user.id, day));
   const reviewRows = dayList.flatMap((day) => toReviewAnswerRows(user.id, day));
 
-  if (dayProgressRows.length > 0) {
-    const result = await supabase
-      .from("day_progress")
-      .upsert(dayProgressRows, { onConflict: "user_id,day_number" });
+  try {
+    if (dayProgressRows.length > 0) {
+      const result = await supabase
+        .from("day_progress")
+        .upsert(dayProgressRows, { onConflict: "user_id,day_number" });
 
-    if (result.error) {
-      return result.error.message;
+      if (result.error) {
+        return result.error.message;
+      }
     }
-  }
 
-  if (practiceRows.length > 0) {
-    const result = await supabase
-      .from("practice_entries")
-      .upsert(practiceRows, { onConflict: "user_id,day_number" });
+    if (practiceRows.length > 0) {
+      const result = await supabase
+        .from("practice_entries")
+        .upsert(practiceRows, { onConflict: "user_id,day_number" });
 
-    if (result.error) {
-      return result.error.message;
+      if (result.error) {
+        return result.error.message;
+      }
     }
-  }
 
-  if (reviewRows.length > 0) {
-    const result = await supabase
-      .from("review_answers")
-      .upsert(reviewRows, {
-        onConflict: "user_id,day_number,item_index",
-      });
+    if (reviewRows.length > 0) {
+      const result = await supabase
+        .from("review_answers")
+        .upsert(reviewRows, {
+          onConflict: "user_id,day_number,item_index",
+        });
 
-    if (result.error) {
-      return result.error.message;
+      if (result.error) {
+        return result.error.message;
+      }
     }
+  } catch (error) {
+    return getErrorMessage(error);
   }
 
   return upsertUserStatus({ activeDay, days: getAllDayProgress(), user });
@@ -456,7 +550,7 @@ export async function getCloudProgress(): Promise<
 > {
   const context = await getSignedInContext();
 
-  if (context.errorMessage === "not-signed-in") {
+  if (context.status === "notSignedIn") {
     return { errorMessage: "Giriş yapılmadı.", ok: false, status: "notSignedIn" };
   }
 
@@ -464,70 +558,80 @@ export async function getCloudProgress(): Promise<
     return {
       errorMessage: formatSyncError(context.errorMessage),
       ok: false,
-      status: "error",
+      status: context.status,
     };
   }
 
-  const [statusResult, dayResult, entryResult, reviewResult] =
-    await Promise.all([
-      context.supabase
-        .from("user_status")
-        .select("*")
-        .eq("user_id", context.user.id)
-        .maybeSingle(),
-      context.supabase
-        .from("day_progress")
-        .select("*")
-        .eq("user_id", context.user.id),
-      context.supabase
-        .from("practice_entries")
-        .select("*")
-        .eq("user_id", context.user.id),
-      context.supabase
-        .from("review_answers")
-        .select("*")
-        .eq("user_id", context.user.id),
-    ]);
+  try {
+    const [statusResult, dayResult, entryResult, reviewResult] =
+      await Promise.all([
+        context.supabase
+          .from("user_status")
+          .select("*")
+          .eq("user_id", context.user.id)
+          .maybeSingle(),
+        context.supabase
+          .from("day_progress")
+          .select("*")
+          .eq("user_id", context.user.id),
+        context.supabase
+          .from("practice_entries")
+          .select("*")
+          .eq("user_id", context.user.id),
+        context.supabase
+          .from("review_answers")
+          .select("*")
+          .eq("user_id", context.user.id),
+      ]);
 
-  const errors = [
-    statusResult.error && statusResult.error.code !== "PGRST116"
-      ? statusResult.error.message
-      : "",
-    dayResult.error?.message ?? "",
-    entryResult.error?.message ?? "",
-    reviewResult.error?.message ?? "",
-  ].filter(Boolean);
+    const errors = [
+      statusResult.error && statusResult.error.code !== "PGRST116"
+        ? statusResult.error.message
+        : "",
+      dayResult.error?.message ?? "",
+      entryResult.error?.message ?? "",
+      reviewResult.error?.message ?? "",
+    ].filter(Boolean);
 
-  if (errors.length > 0) {
+    if (errors.length > 0) {
+      return {
+        errorMessage: formatSyncError(errors[0]),
+        ok: false,
+        status: getSyncErrorStatus(errors[0]),
+      };
+    }
+
+    const days: Record<string, DayProgress> = {};
+
+    (dayResult.data ?? []).forEach((row) => {
+      mergeDayProgressRow(days, row);
+    });
+    (entryResult.data ?? []).forEach((row) => {
+      mergePracticeEntryRow(days, row);
+    });
+    (reviewResult.data ?? []).forEach((row) => {
+      mergeReviewAnswerRow(days, row);
+    });
+
+    const userStatus = statusResult.data as UserStatusRow | null;
+
     return {
-      errorMessage: formatSyncError(errors[0]),
+      ok: true,
+      progress: {
+        activeDay: userStatus?.active_day ?? null,
+        days,
+        statusUpdatedAt: userStatus?.updated_at ?? "",
+      },
+    };
+  } catch (error) {
+    const message = getErrorMessage(error);
+
+    return {
+      errorMessage: formatSyncError(message),
       ok: false,
-      status: "error",
+      status: getSyncErrorStatus(message),
     };
   }
-
-  const days: Record<string, DayProgress> = {};
-
-  (dayResult.data ?? []).forEach((row) => {
-    mergeDayProgressRow(days, row);
-  });
-  (entryResult.data ?? []).forEach((row) => {
-    mergePracticeEntryRow(days, row);
-  });
-  (reviewResult.data ?? []).forEach((row) => {
-    mergeReviewAnswerRow(days, row);
-  });
-
-  const userStatus = statusResult.data as UserStatusRow | null;
-
-  return {
-    ok: true,
-    progress: {
-      activeDay: userStatus?.active_day ?? null,
-      days,
-      statusUpdatedAt: userStatus?.updated_at ?? "",
-    },
-  };
 }
 
 export async function pushLocalProgressToCloud(
@@ -535,7 +639,7 @@ export async function pushLocalProgressToCloud(
 ): Promise<CloudSyncResult> {
   const context = await getSignedInContext();
 
-  if (context.errorMessage === "not-signed-in") {
+  if (context.status === "notSignedIn") {
     return {
       errorMessage: "Cloud sync için giriş yapmalısın.",
       ok: false,
@@ -606,7 +710,7 @@ export async function syncCurrentUserProgress(
 ): Promise<CloudSyncResult> {
   const context = await getSignedInContext();
 
-  if (context.errorMessage === "not-signed-in") {
+  if (context.status === "notSignedIn") {
     return {
       errorMessage: "Cloud sync için giriş yapmalısın.",
       ok: false,
@@ -725,7 +829,7 @@ export async function syncCurrentUserProgress(
 export async function getCloudSyncStatus() {
   const context = await getSignedInContext();
 
-  if (context.errorMessage === "not-signed-in") {
+  if (context.status === "notSignedIn") {
     return {
       lastSyncAt: getLastSyncAt(),
       status: "notSignedIn" as CloudSyncStatus,
@@ -736,7 +840,7 @@ export async function getCloudSyncStatus() {
     return {
       errorMessage: formatSyncError(context.errorMessage),
       lastSyncAt: getLastSyncAt(),
-      status: "error" as CloudSyncStatus,
+      status: context.status,
     };
   }
 

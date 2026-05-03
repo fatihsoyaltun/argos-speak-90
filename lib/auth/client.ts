@@ -1,6 +1,14 @@
 "use client";
 
 import type { Session, User } from "@supabase/supabase-js";
+import {
+  clearStaleSupabaseSession,
+  getCurrentSessionSafe,
+  isAuthFetchError,
+  isAuthLockError,
+  isStaleRefreshTokenError,
+  resetSafeAuthRequest,
+} from "@/lib/auth/session";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getSupabaseConfigStatus } from "@/lib/supabase/env";
 import type { Database } from "@/lib/supabase/types";
@@ -36,6 +44,27 @@ type AuthResult = {
 const SUPABASE_NOT_CONFIGURED_MESSAGE = "Supabase bağlantısı yapılandırılmadı.";
 const PROFILE_RLS_MESSAGE =
   "Profil oluşturulamadı. Supabase RLS, giriş yapan kullanıcının kendi profiles satırını oluşturmasına izin vermiyor olabilir.";
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return "";
+}
 
 function getConfigErrorMessage() {
   const status = getSupabaseConfigStatus();
@@ -82,6 +111,14 @@ function formatAuthErrorMessage(message: string) {
     return "Şifre kabul edilmedi. En az 6 karakterli daha güçlü bir şifre dene.";
   }
 
+  if (isStaleRefreshTokenError(message) || isAuthLockError(message)) {
+    return "Oturum süresi dolmuş veya bozulmuş. Lütfen tekrar giriş yap.";
+  }
+
+  if (isAuthFetchError(message)) {
+    return "Oturum kontrolü geçici olarak başarısız oldu. Lütfen tekrar deneyin.";
+  }
+
   return "Giriş işlemi tamamlanamadı. Bilgileri kontrol edip tekrar dene.";
 }
 
@@ -98,6 +135,10 @@ function formatProfileErrorMessage(message: string) {
 
   if (lowerMessage.includes("invalid path specified")) {
     return "Profil isteği Supabase URL hatası nedeniyle çalışmadı. Project URL https://...supabase.co formatında olmalı.";
+  }
+
+  if (isAuthFetchError(message)) {
+    return "Profil isteği geçici bağlantı hatası nedeniyle tamamlanamadı.";
   }
 
   return "Profil kaydı hazırlanamadı. Giriş başarılı olabilir, fakat profil satırı kontrol edilmeli.";
@@ -136,76 +177,73 @@ export async function ensureClientUserProfile(user: User) {
     };
   }
 
-  const existingProfile = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
+  try {
+    const existingProfile = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
 
-  if (existingProfile.data) {
+    if (existingProfile.data) {
+      return {
+        errorMessage: "",
+        profile: normalizeProfile(existingProfile.data),
+        technicalMessage: "",
+      };
+    }
+
+    if (existingProfile.error && existingProfile.error.code !== "PGRST116") {
+      return {
+        errorMessage: formatProfileErrorMessage(existingProfile.error.message),
+        profile: null,
+        technicalMessage: withTechnicalDetail(existingProfile.error.message),
+      };
+    }
+
+    const createdProfile = await supabase
+      .from("profiles")
+      .insert({
+        email: user.email ?? "",
+        full_name: getFullNameFromUser(user),
+        id: user.id,
+        role: "member",
+      })
+      .select("*")
+      .single();
+
+    if (createdProfile.error) {
+      return {
+        errorMessage: formatProfileErrorMessage(createdProfile.error.message),
+        profile: null,
+        technicalMessage: withTechnicalDetail(createdProfile.error.message),
+      };
+    }
+
     return {
       errorMessage: "",
-      profile: normalizeProfile(existingProfile.data),
+      profile: normalizeProfile(createdProfile.data),
       technicalMessage: "",
     };
-  }
+  } catch (error) {
+    const message = getErrorMessage(error);
 
-  if (existingProfile.error && existingProfile.error.code !== "PGRST116") {
     return {
-      errorMessage: formatProfileErrorMessage(existingProfile.error.message),
+      errorMessage: formatProfileErrorMessage(message),
       profile: null,
-      technicalMessage: withTechnicalDetail(existingProfile.error.message),
+      technicalMessage: withTechnicalDetail(message),
     };
   }
-
-  const createdProfile = await supabase
-    .from("profiles")
-    .insert({
-      email: user.email ?? "",
-      full_name: getFullNameFromUser(user),
-      id: user.id,
-      role: "member",
-    })
-    .select("*")
-    .single();
-
-  if (createdProfile.error) {
-    return {
-      errorMessage: formatProfileErrorMessage(createdProfile.error.message),
-      profile: null,
-      technicalMessage: withTechnicalDetail(createdProfile.error.message),
-    };
-  }
-
-  return {
-    errorMessage: "",
-    profile: normalizeProfile(createdProfile.data),
-    technicalMessage: "",
-  };
 }
 
 export async function getClientAuthState(): Promise<ClientAuthState> {
-  const supabase = createSupabaseBrowserClient();
-
-  if (!supabase) {
-    const configMessage = getConfigErrorMessage();
-
-    return {
-      profile: null,
-      profileMessage: configMessage,
-      session: null,
-      user: null,
-    };
-  }
-
-  const sessionResult = await supabase.auth.getSession();
-  const session = sessionResult.data.session;
-  const user = session?.user ?? null;
+  const authState = await getCurrentSessionSafe();
+  const session = authState.session;
+  const user = authState.user;
 
   if (!user) {
     return {
       profile: null,
-      profileMessage: "",
+      profileMessage: authState.errorMessage,
       session,
       user,
     };
@@ -248,12 +286,41 @@ export async function signInWithEmailPassword({
     };
   }
 
-  const result = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  let result: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>;
+
+  try {
+    result = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+  } catch (error) {
+    const message = getErrorMessage(error);
+
+    if (isStaleRefreshTokenError(error) || isAuthLockError(error)) {
+      await clearStaleSupabaseSession();
+    }
+
+    const authErrorMessage = formatAuthErrorMessage(message);
+
+    return {
+      authErrorMessage,
+      errorMessage: authErrorMessage,
+      profile: null,
+      profileMessage: "",
+      session: null,
+      technicalMessage: withTechnicalDetail(message),
+      user: null,
+    };
+  }
 
   if (result.error) {
+    if (
+      isStaleRefreshTokenError(result.error.message) ||
+      isAuthLockError(result.error.message)
+    ) {
+      await clearStaleSupabaseSession();
+    }
+
     const authErrorMessage = formatAuthErrorMessage(result.error.message);
 
     return {
@@ -266,6 +333,8 @@ export async function signInWithEmailPassword({
       user: null,
     };
   }
+
+  resetSafeAuthRequest();
 
   const user = result.data.user;
   const profileResult = user && result.data.session
@@ -308,17 +377,46 @@ export async function signUpWithEmailPassword({
     };
   }
 
-  const result = await supabase.auth.signUp({
-    email,
-    options: {
-      data: {
-        full_name: fullName.trim(),
+  let result: Awaited<ReturnType<typeof supabase.auth.signUp>>;
+
+  try {
+    result = await supabase.auth.signUp({
+      email,
+      options: {
+        data: {
+          full_name: fullName.trim(),
+        },
       },
-    },
-    password,
-  });
+      password,
+    });
+  } catch (error) {
+    const message = getErrorMessage(error);
+
+    if (isStaleRefreshTokenError(error) || isAuthLockError(error)) {
+      await clearStaleSupabaseSession();
+    }
+
+    const authErrorMessage = formatAuthErrorMessage(message);
+
+    return {
+      authErrorMessage,
+      errorMessage: authErrorMessage,
+      profile: null,
+      profileMessage: "",
+      session: null,
+      technicalMessage: withTechnicalDetail(message),
+      user: null,
+    };
+  }
 
   if (result.error) {
+    if (
+      isStaleRefreshTokenError(result.error.message) ||
+      isAuthLockError(result.error.message)
+    ) {
+      await clearStaleSupabaseSession();
+    }
+
     const authErrorMessage = formatAuthErrorMessage(result.error.message);
 
     return {
@@ -331,6 +429,8 @@ export async function signUpWithEmailPassword({
       user: null,
     };
   }
+
+  resetSafeAuthRequest();
 
   const user = result.data.user;
   const profileResult = user && result.data.session
@@ -355,6 +455,29 @@ export async function signOutClientUser() {
     return getConfigErrorMessage();
   }
 
-  const result = await supabase.auth.signOut();
-  return result.error?.message ?? "";
+  try {
+    const result = await supabase.auth.signOut();
+    resetSafeAuthRequest();
+
+    if (result.error) {
+      if (
+        isStaleRefreshTokenError(result.error.message) ||
+        isAuthLockError(result.error.message)
+      ) {
+        await clearStaleSupabaseSession();
+        return "";
+      }
+
+      return formatAuthErrorMessage(result.error.message);
+    }
+
+    return "";
+  } catch (error) {
+    if (isStaleRefreshTokenError(error) || isAuthLockError(error)) {
+      await clearStaleSupabaseSession();
+      return "";
+    }
+
+    return formatAuthErrorMessage(getErrorMessage(error));
+  }
 }

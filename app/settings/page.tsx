@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useActiveDay } from "@/components/active-day";
 import { CloudSyncPanel } from "@/components/cloud-sync-panel";
+import { TeamPrivacyNotice } from "@/components/team-privacy-notice";
 import { Card, PageHeader } from "@/components/ui";
 import { getClientAuthState, signOutClientUser } from "@/lib/auth/client";
 import { getTtsServiceStatus } from "@/lib/tts/client";
@@ -68,7 +69,21 @@ export default function SettingsPage() {
     let isActive = true;
 
     async function checkCloudAccount() {
-      const authState = await getClientAuthState();
+      const authState = await getClientAuthState().catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Oturum kontrolü tamamlanamadı.";
+
+        return {
+          profile: null,
+          profileMessage:
+            "Oturum kontrolü geçici olarak başarısız oldu. Lütfen tekrar deneyin.",
+          session: null,
+          technicalMessage: message,
+          user: null,
+        };
+      });
 
       if (!isActive) {
         return;
@@ -84,6 +99,7 @@ export default function SettingsPage() {
       setCloudAccountStatus("signedOut");
       setCloudAccountEmail("");
       setCloudAccountRole("");
+      setCloudAccountMessage(authState.profileMessage);
     }
 
     checkCloudAccount();
@@ -111,10 +127,16 @@ export default function SettingsPage() {
     setExportText(json);
 
     try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard API unavailable");
+      }
+
       await navigator.clipboard.writeText(json);
       setMessage("İlerleme JSON olarak panoya kopyalandı.");
     } catch {
-      setMessage("JSON hazırlandı. Panoya kopyalanamadı; metni elle kopyalayabilirsin.");
+      setMessage(
+        "Panoya kopyalama engellendi. JSON dosyası indirmeyi kullanabilirsin.",
+      );
     }
   }
 
@@ -187,6 +209,8 @@ export default function SettingsPage() {
         title="Local practice settings"
         description="Bu sayfa cihazındaki yerel ilerlemeyi ve ses durumunu kontrol etmek için var."
       />
+
+      <TeamPrivacyNotice />
 
       <Card className="space-y-4">
         <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
@@ -285,7 +309,7 @@ export default function SettingsPage() {
                 {cloudAccountRole === "admin" ? (
                   <Link
                     href="/admin"
-                    className="inline-flex min-h-10 items-center justify-center rounded-full bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+                    className="inline-flex min-h-10 items-center justify-center rounded-full bg-linen px-4 py-2 text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
                   >
                     Admin paneli
                   </Link>
@@ -321,9 +345,9 @@ export default function SettingsPage() {
           veya tarayıcı verisi silinirse ilerleme kaybolabilir.
         </p>
         <p className="text-sm font-medium leading-6 text-muted">
-          Giriş altyapısı hazır, ancak cloud progress sync bir sonraki fazda
-          eklenecek. Yerel pratik kayıtları bu fazda cihazındaki tarayıcıda
-          kalır.
+          Giriş yaptıysan cloud progress sync kullanabilirsin. Admin panelinde
+          görünmesi için ilerlemeyi Cloud’a yedekle veya Senkronize et ile
+          göndermen gerekir.
         </p>
         <Link
           href={cloudAccountStatus === "signedIn" ? "/account" : "/login"}

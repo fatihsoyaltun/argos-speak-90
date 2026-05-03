@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { TeamPrivacyNotice } from "@/components/team-privacy-notice";
 import { Card, PageHeader } from "@/components/ui";
 import {
   getClientAuthState,
@@ -33,7 +34,13 @@ export default function AccountPage() {
     let isActive = true;
 
     async function loadAccount() {
-      const authState = await getClientAuthState();
+      const authState = await getClientAuthState().catch(() => ({
+        profile: null,
+        profileMessage:
+          "Oturum kontrolü geçici olarak başarısız oldu. Lütfen tekrar deneyin.",
+        session: null,
+        user: null,
+      }));
 
       if (!isActive) {
         return;
@@ -78,8 +85,10 @@ export default function AccountPage() {
       <PageHeader
         eyebrow="Account"
         title="Cloud account"
-        description="Ekip hesabını kontrol et. Bu fazda giriş altyapısı var; pratik ilerlemesi hala yerel cihazda tutulur."
+        description="Ekip hesabını ve cloud görünürlüğünü kontrol et. Yerel ilerleme cihazında kalır; admin panelinde yalnızca cloud’a senkronize edilen ilerleme görünür."
       />
+
+      <TeamPrivacyNotice />
 
       {accountStatus === "notConfigured" ? (
         <Card className="space-y-4">
@@ -150,7 +159,9 @@ export default function AccountPage() {
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
                   Cloud progress
                 </p>
-                <p className="mt-2 text-lg font-semibold">Not active yet</p>
+                <p className="mt-2 text-lg font-semibold">
+                  Manual sync available
+                </p>
               </div>
             </div>
 
@@ -163,7 +174,7 @@ export default function AccountPage() {
             {profile?.role === "admin" ? (
               <Link
                 href="/admin"
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto [&_*]:!text-[#17201a]"
               >
                 Admin panelini aç
               </Link>
@@ -192,9 +203,9 @@ export default function AccountPage() {
               Senkronizasyon notu
             </p>
             <p className="text-sm font-semibold leading-6 text-muted">
-              Cloud progress sync henüz aktif değil. Listen, Words, Speak,
-              Review ve Journal kayıtları bu fazda aynı cihazdaki tarayıcıda
-              kalmaya devam eder.
+              Admin panelinde yalnızca cloud’a senkronize edilen ilerleme
+              görünür. Local kayıtların bu cihazda kalır; takım takibi için
+              Settings içinden Cloud’a yedekle veya Senkronize et kullan.
             </p>
           </Card>
         </>

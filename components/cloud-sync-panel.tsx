@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useActiveDay } from "@/components/active-day";
 import { PRACTICE_PROGRESS_UPDATED_EVENT } from "@/lib/practice-storage";
 import {
@@ -12,12 +12,14 @@ import {
 } from "@/lib/supabase/progress-sync";
 
 const statusLabels: Record<CloudSyncStatus, string> = {
-  error: "Error",
-  needsAttention: "Needs sync",
-  notSignedIn: "Not signed in",
-  ready: "Ready",
-  synced: "Synced",
-  syncing: "Syncing",
+  error: "Hata",
+  needsAttention: "Sync gerekli",
+  notSignedIn: "Giriş yok",
+  ready: "Hazır",
+  synced: "Senkronize",
+  syncing: "Senkronize ediliyor",
+  authExpired: "Oturum yenilenemedi",
+  connectionError: "Geçici bağlantı hatası",
 };
 
 function formatSyncTime(value: string) {
@@ -37,16 +39,38 @@ function formatSyncTime(value: string) {
 
 export function CloudSyncPanel() {
   const { activeDay, setActiveDay } = useActiveDay();
+  const didLoadStatusRef = useRef(false);
   const [status, setStatus] = useState<CloudSyncStatus>("ready");
   const [message, setMessage] = useState("");
   const [technicalMessage, setTechnicalMessage] = useState("");
   const [lastSyncAt, setLastSyncAt] = useState("");
 
   useEffect(() => {
+    if (didLoadStatusRef.current) {
+      return;
+    }
+
+    didLoadStatusRef.current = true;
     let isActive = true;
 
     async function loadStatus() {
-      const syncStatus = await getCloudSyncStatus();
+      const syncStatus = await getCloudSyncStatus().catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Cloud sync durumu okunamadı.";
+
+        return {
+          errorMessage:
+            "Geçici bağlantı hatası. Local ilerleme korunuyor; lütfen tekrar deneyin.",
+          lastSyncAt: "",
+          status: "connectionError" as CloudSyncStatus,
+          technicalMessage:
+            process.env.NODE_ENV === "development"
+              ? `Teknik detay: ${message}`
+              : "",
+        };
+      });
 
       if (!isActive) {
         return;
@@ -58,9 +82,13 @@ export function CloudSyncPanel() {
       if (syncStatus.errorMessage) {
         setMessage(syncStatus.errorMessage);
       }
+
+      if ("technicalMessage" in syncStatus && syncStatus.technicalMessage) {
+        setTechnicalMessage(syncStatus.technicalMessage);
+      }
     }
 
-    loadStatus();
+    void loadStatus();
 
     return () => {
       isActive = false;
@@ -91,33 +119,47 @@ export function CloudSyncPanel() {
     setMessage("");
     setTechnicalMessage("");
 
-    const result =
-      action === "push"
-        ? await pushLocalProgressToCloud(activeDay)
-        : action === "pull"
-          ? await pullCloudProgressToLocal()
-          : await syncCurrentUserProgress(activeDay);
+    try {
+      const result =
+        action === "push"
+          ? await pushLocalProgressToCloud(activeDay)
+          : action === "pull"
+            ? await pullCloudProgressToLocal()
+            : await syncCurrentUserProgress(activeDay);
 
-    if (!result.ok) {
-      setStatus(result.status);
-      setMessage(result.errorMessage ?? "Cloud sync tamamlanamadı.");
-      setTechnicalMessage(result.technicalMessage ?? "");
-      return;
+      if (!result.ok) {
+        setStatus(result.status);
+        setMessage(result.errorMessage ?? "Cloud sync tamamlanamadı.");
+        setTechnicalMessage(result.technicalMessage ?? "");
+        return;
+      }
+
+      if (result.activeDay) {
+        setActiveDay(result.activeDay);
+      }
+
+      setStatus("synced");
+      setLastSyncAt(result.lastSyncAt ?? "");
+      setMessage(
+        `Tamamlandı. Cloud'a ${result.pushedDays} gün yedeklendi, ${result.pulledDays} gün geri yüklendi.`,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Cloud sync tamamlanamadı.";
+      setStatus("connectionError");
+      setMessage(
+        "Geçici bağlantı hatası. Local ilerleme korunuyor; lütfen tekrar deneyin.",
+      );
+      setTechnicalMessage(
+        process.env.NODE_ENV === "development"
+          ? `Teknik detay: ${message}`
+          : "",
+      );
     }
-
-    if (result.activeDay) {
-      setActiveDay(result.activeDay);
-    }
-
-    setStatus("synced");
-    setLastSyncAt(result.lastSyncAt ?? "");
-    setMessage(
-      `Tamamlandı. Cloud'a ${result.pushedDays} gün yedeklendi, ${result.pulledDays} gün geri yüklendi.`,
-    );
   }
 
   const isBusy = status === "syncing";
-  const isSignedOut = status === "notSignedIn";
+  const isSignedOut = status === "notSignedIn" || status === "authExpired";
   const disableActions = isBusy || isSignedOut;
 
   return (
@@ -143,7 +185,12 @@ export function CloudSyncPanel() {
         </p>
 
         <p className="text-sm font-semibold leading-6 text-muted">
-          Son sync: {formatSyncTime(lastSyncAt)}
+          Son senkronizasyon: {formatSyncTime(lastSyncAt)}
+        </p>
+
+        <p className="rounded-[1.25rem] border border-foreground/10 bg-background/85 p-4 text-sm font-semibold leading-6 text-muted">
+          Admin panelde görünmesi için Cloud’a yedekle veya Senkronize et
+          kullan.
         </p>
 
         <div className="grid gap-3 sm:grid-cols-3">
