@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  CompactSection,
+  ExpandableCard,
+  ProgressStrip,
+  StatusPill,
+} from "@/components/ui";
 import type { ReviewDrill } from "@/lib/review-content";
 import {
   getDayProgress,
@@ -152,73 +158,93 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-          Ne yapacaksın?
+    <div className="space-y-4">
+      <CompactSection
+        eyebrow="Active recall"
+        title="Hatırlayıp yaz"
+        description={drill.shortIntroTr}
+        action={<StatusPill status="active">Day {drill.day}</StatusPill>}
+      >
+        <ProgressStrip
+          items={[
+            {
+              label: `${checkedCount}/${drill.reviewItems.length} checked`,
+              status:
+                checkedCount === drill.reviewItems.length ? "done" : "active",
+            },
+            {
+              label: `${correctCount} correct`,
+              status: correctCount > 0 ? "synced" : "pending",
+            },
+            {
+              label: `${drill.reviewItems.length - checkedCount} left`,
+              status:
+                checkedCount === drill.reviewItems.length ? "done" : "pending",
+            },
+          ]}
+        />
+      </CompactSection>
+
+      <ExpandableCard
+        eyebrow="Production self-check"
+        title="Açık cevapları nasıl kontrol edeceksin?"
+        description="Model cevabı yardım içindir; açık üretim cevaplarını bu kısa listeyle kontrol et."
+      >
+        <p className="text-sm font-semibold leading-6 text-muted">
+          Açık üretim soruları otomatik AI puanı almaz. Kendi cevabını bu kısa
+          listeyle kontrol et.
         </p>
-        <p className="mt-3 text-base leading-7 text-muted">
-          {drill.shortIntroTr}
-        </p>
-        <div className="mt-4 rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-            Production self-check
-          </p>
-          <p className="mt-2 text-sm font-semibold leading-6 text-muted">
-            Açık üretim soruları otomatik AI puanı almaz. Model cevabı sadece
-            yardım içindir; kendi cevabını bu kısa listeyle kontrol et.
-          </p>
-          <div className="mt-3 grid gap-2">
-            {productionSelfCheckItems.map((item) => (
-              <p
-                key={item}
-                className="rounded-[1rem] bg-linen px-3 py-2 text-sm font-semibold leading-5 text-[#2d261d]"
-              >
-                {item}
-              </p>
-            ))}
-          </div>
+        <div className="mt-3 grid gap-2">
+          {productionSelfCheckItems.map((item) => (
+            <p
+              key={item}
+              className="rounded-[1rem] bg-linen px-3 py-2 text-sm font-semibold leading-5 text-[#2d261d]"
+            >
+              {item}
+            </p>
+          ))}
         </div>
-      </section>
+      </ExpandableCard>
 
       <section className="space-y-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-            Active recall
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold leading-tight">
-            Hatırlayıp yaz
-          </h2>
-        </div>
-
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           {drill.reviewItems.map((item, index) => {
             const result = results[index];
             const answer = answers[index] ?? "";
             const isAnswerEmpty = answer.trim().length === 0;
+            const isChecked = Boolean(result);
 
             return (
               <article
                 key={`${item.type}-${item.prompt}`}
-                className="rounded-[1.6rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6"
+                className="rounded-[1.35rem] border border-foreground/10 bg-surface p-4 shadow-soft sm:rounded-[1.6rem] sm:p-5"
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
                       Task {index + 1}
                     </p>
-                    <h3 className="mt-2 text-lg font-semibold leading-7">
+                    <h3 className="mt-1.5 text-lg font-semibold leading-7">
                       {item.prompt}
                     </h3>
                   </div>
-                  <span className="shrink-0 rounded-full bg-linen px-3 py-1.5 text-xs font-black text-moss">
-                    {reviewTypeLabels[item.type]}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <StatusPill status="active">
+                      {reviewTypeLabels[item.type]}
+                    </StatusPill>
+                    {isChecked ? (
+                      <StatusPill
+                        status={result === "correct" ? "done" : "warning"}
+                      >
+                        {result === "correct" ? "Done" : "Review"}
+                      </StatusPill>
+                    ) : null}
+                  </div>
                 </div>
 
                 <label
                   htmlFor={`review-answer-${index}`}
-                  className="mt-5 block text-xs font-bold uppercase tracking-[0.16em] text-muted"
+                  className="mt-4 block text-xs font-bold uppercase tracking-[0.16em] text-muted"
                 >
                   Cevabın
                 </label>
@@ -241,13 +267,13 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
                 </button>
 
                 {result === "correct" ? (
-                  <div className="mt-4 rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
+                  <div className="mt-3 rounded-[1.15rem] border border-moss/20 bg-sage p-3 text-sm font-semibold leading-6 text-foreground">
                     Doğru. Bu cümleyi bir kez daha sesli tekrar et.
                   </div>
                 ) : null}
 
                 {result === "needsReview" ? (
-                  <div className="mt-4 rounded-[1.25rem] border border-clay/25 bg-linen/70 p-4 text-sm leading-6 text-foreground">
+                  <div className="mt-3 rounded-[1.15rem] border border-clay/25 bg-linen/70 p-3 text-sm leading-6 text-foreground">
                     <p className="font-bold">Tekrar bak:</p>
                     <p className="mt-1 font-semibold">{item.expectedAnswer}</p>
                   </div>
@@ -258,18 +284,18 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
         </div>
       </section>
 
-      <section className="rounded-[1.75rem] border border-moss/15 bg-moss p-5 text-white shadow-soft sm:p-6">
+      <section className="rounded-[1.55rem] border border-moss/15 bg-moss p-5 text-white shadow-soft sm:rounded-[1.75rem] sm:p-6">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-linen sm:text-sm">
           Review summary
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-[1.25rem] bg-white/10 p-4">
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          <div className="rounded-[1.15rem] bg-white/10 p-3">
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-linen">
               Checked
             </p>
             <p className="mt-1 text-3xl font-semibold">{checkedCount}</p>
           </div>
-          <div className="rounded-[1.25rem] bg-white/10 p-4">
+          <div className="rounded-[1.15rem] bg-white/10 p-3">
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-linen">
               Correct
             </p>

@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  CompactSection,
+  ExpandableCard,
+  StatusPill,
+  TaskStepper,
+} from "@/components/ui";
 import type { SpeakingPractice } from "@/lib/speaking-content";
 import {
   getDayProgress,
@@ -24,12 +30,14 @@ export function SpeakingPracticeView({
   const [secondTry, setSecondTry] = useState("");
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
+  const [isSpeakCompleted, setIsSpeakCompleted] = useState(false);
 
   useEffect(() => {
     const loadTimer = window.setTimeout(() => {
       const progress = getDayProgress(practice.day);
       setFirstTry(progress.speakFirstTry);
       setSecondTry(progress.speakSecondTry);
+      setIsSpeakCompleted(progress.completedTasks.includes("speak"));
       setSaveState("idle");
     }, 0);
 
@@ -64,12 +72,27 @@ export function SpeakingPracticeView({
       speakSecondTry: secondTry,
     });
     markDayTaskCompleted(practice.day, "speak");
+    setIsSpeakCompleted(true);
     setSaveState("saved");
   }
 
+  const hasFirstTry = firstTry.trim().length > 0;
+  const hasSecondTry = secondTry.trim().length > 0;
+  const firstTryStepStatus = hasFirstTry ? "done" : "active";
+  const secondTryStepStatus = hasSecondTry
+    ? "done"
+    : hasFirstTry
+      ? "active"
+      : "pending";
+  const checkStepStatus = isSpeakCompleted && hasSecondTry
+    ? "done"
+    : hasSecondTry
+      ? "active"
+      : "pending";
+
   return (
-    <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-moss/15 bg-moss p-5 text-white shadow-soft sm:p-6">
+    <div className="space-y-4">
+      <section className="rounded-[1.55rem] border border-moss/15 bg-moss p-5 text-white shadow-soft sm:rounded-[1.75rem] sm:p-6">
         <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-sage sm:text-sm">
             Bugünkü konuşma
@@ -83,63 +106,72 @@ export function SpeakingPracticeView({
         </div>
       </section>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-          Ne yapacaksın?
-        </p>
-        <p className="mt-3 text-base leading-7 text-muted">
+      <TaskStepper
+        steps={[
+          { label: "Prompt", status: hasFirstTry ? "done" : "active" },
+          { label: "First try", status: firstTryStepStatus },
+          { label: "Second try", status: secondTryStepStatus },
+          { label: "Check", status: checkStepStatus },
+        ]}
+      />
+
+      <ExpandableCard
+        eyebrow="Ne yapacaksın?"
+        title="Kısa konuşma rehberi"
+        description="Ana görev görünür kalır; detaylı yönlendirmeyi ihtiyaç duyunca aç."
+      >
+        <p className="text-sm font-semibold leading-6 text-muted">
           {practice.speakingTipsTr}
         </p>
-      </section>
+      </ExpandableCard>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-              Speaking prompt
-            </p>
-            <h3 className="mt-1 text-xl font-semibold leading-tight">
-              Answer out loud first
-            </h3>
-          </div>
-          <span className="shrink-0 rounded-full bg-linen px-3 py-1.5 text-xs font-bold text-moss">
+      <CompactSection
+        eyebrow="Speaking prompt"
+        title="Answer out loud first"
+        action={
+          <StatusPill status="active">
             Day {practice.day}
-          </span>
-        </div>
-        <p className="mt-4 rounded-[1.4rem] bg-background/85 p-4 text-[1.03rem] font-semibold leading-8 text-foreground">
+          </StatusPill>
+        }
+      >
+        <p className="rounded-[1.25rem] bg-background/85 p-4 text-[1.03rem] font-semibold leading-8 text-foreground">
           {practice.prompt}
         </p>
-      </section>
+      </CompactSection>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
+      <CompactSection
+        eyebrow="First try"
+        title="İlk cevabını yakala"
+        description="Önce sesli cevap ver. Sonra hatırladığın cevabı buraya kısa not olarak yaz."
+      >
         <label
           htmlFor="first-try"
-          className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm"
+          className="sr-only"
         >
           First try
         </label>
-        <p className="mt-2 text-base leading-7 text-muted">
-          Önce sesli cevap ver. Sonra hatırladığın cevabı buraya kısa not olarak
-          yaz.
-        </p>
         <textarea
           id="first-try"
           value={firstTry}
           onChange={(event) => updateFirstTry(event.target.value)}
           rows={5}
           placeholder="Example: I have a busy day. First, I need coffee."
-          className="mt-4 w-full resize-none rounded-[1.4rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
+          className="w-full resize-none rounded-[1.4rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
         />
-      </section>
+      </CompactSection>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
+      <CompactSection
+        eyebrow="Second try better"
+        title="Daha net ikinci deneme"
+        description="İkinci deneme ilkinden daha net olmalı."
+      >
         <label
           htmlFor="second-try"
-          className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm"
+          className="sr-only"
         >
           Second try better
         </label>
-        <p className="mt-2 text-base leading-7 text-muted">
+        <p className="mb-3 rounded-[1.15rem] bg-linen px-3 py-2 text-sm font-semibold leading-6 text-[#2d261d]">
           Şimdi aynı cevabı daha düzenli yaz. Bir cümle daha net olsun, bir
           hedef çizgiyi kullanmaya çalış.
         </p>
@@ -149,7 +181,7 @@ export function SpeakingPracticeView({
           onChange={(event) => updateSecondTry(event.target.value)}
           rows={5}
           placeholder="Example: I have a busy day, but I want to start slowly."
-          className="mt-4 w-full resize-none rounded-[1.4rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
+          className="w-full resize-none rounded-[1.4rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
         />
         <button
           type="button"
@@ -164,66 +196,63 @@ export function SpeakingPracticeView({
             Denemelerin bu cihazda kaydedildi.
           </p>
         ) : null}
-      </section>
+      </CompactSection>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-          Pilot rubric
-        </p>
-        <h3 className="mt-1 text-2xl font-semibold leading-tight">
-          1-3 self-rating
-        </h3>
-        <p className="mt-2 text-base leading-7 text-muted">
+      <ExpandableCard
+        eyebrow="Pilot rubric"
+        title="1-3 self-rating"
+        description="Dürüst kontrol için kısa pilot rubriği."
+      >
+        <p className="text-sm font-semibold leading-6 text-muted">
           1 = tekrar dene, 2 = bugün için yeterli, 3 = güçlü cevap. Puan yerine
           dürüst kontrol yap; amaç ikinci denemeyi gerçekten iyileştirmek.
         </p>
-        <div className="mt-4 grid gap-3">
+        <div className="mt-3 grid gap-2">
           {pilotRubricItems.map((item) => (
             <div
               key={item}
-              className="rounded-[1.25rem] border border-foreground/10 bg-background/85 p-4 text-sm font-semibold leading-6 text-muted"
+              className="rounded-[1.1rem] border border-foreground/10 bg-background/85 px-3 py-2.5 text-sm font-semibold leading-6 text-muted"
             >
               {item}
             </div>
           ))}
         </div>
-      </section>
+      </ExpandableCard>
 
-      <section className="space-y-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-            Target lines
-          </p>
-          <h3 className="mt-1 text-2xl font-semibold leading-tight">
-            Konuşmanda kullanabileceğin çizgiler
-          </h3>
-        </div>
-        <div className="grid gap-3">
+      <ExpandableCard
+        eyebrow="Target lines"
+        title="Konuşmanda kullanabileceğin çizgiler"
+        description="Kopyalama; birini kendi cevabına uyarlamaya çalış."
+      >
+        <div className="grid gap-2">
           {practice.targetLines.map((line, index) => (
             <div
               key={line}
-              className="rounded-[1.4rem] border border-foreground/10 bg-surface p-4 shadow-soft"
+              className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
             >
               <div className="flex gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-sage text-sm font-black text-moss">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-sage text-sm font-black text-moss">
                   {index + 1}
                 </span>
-                <p className="pt-1 text-base font-semibold leading-7">{line}</p>
+                <p className="pt-0.5 text-sm font-semibold leading-6 text-foreground">
+                  {line}
+                </p>
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </ExpandableCard>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-          Self-check
-        </p>
-        <p className="mt-2 text-base leading-7 text-muted">
+      <ExpandableCard
+        eyebrow="Self-check"
+        title="Konuşmadan sonra kontrol et"
+        description="İkinci denemeyi daha net yapmak için kısa işaretler."
+      >
+        <p className="text-sm font-semibold leading-6 text-muted">
           Konuşmadan sonra hızlıca kontrol et. Bunlar puan değil; daha net ikinci
           deneme için küçük işaretler.
         </p>
-        <div className="mt-4 grid gap-3">
+        <div className="mt-3 grid gap-2">
           {practice.selfCheckItems.map((item) => {
             const isChecked = checkedItems.includes(item);
 
@@ -233,7 +262,7 @@ export function SpeakingPracticeView({
                 type="button"
                 onClick={() => toggleCheck(item)}
                 aria-pressed={isChecked}
-                className={`flex min-h-14 items-start gap-3 rounded-[1.25rem] border p-4 text-left text-sm font-semibold leading-6 outline-none transition active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface ${
+                className={`flex min-h-12 items-start gap-3 rounded-[1.15rem] border p-3 text-left text-sm font-semibold leading-6 outline-none transition active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface ${
                   isChecked
                     ? "border-moss/30 bg-sage text-foreground"
                     : "border-foreground/10 bg-background/85 text-muted hover:border-moss/25 hover:text-foreground"
@@ -253,7 +282,7 @@ export function SpeakingPracticeView({
             );
           })}
         </div>
-      </section>
+      </ExpandableCard>
     </div>
   );
 }
