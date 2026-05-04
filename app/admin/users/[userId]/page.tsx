@@ -3,6 +3,7 @@ import {
   Card,
   CompactSection,
   ExpandableCard,
+  type CompactStatus,
   PageHeader,
   ProgressStrip,
   StatusPill,
@@ -14,6 +15,25 @@ import {
 } from "@/lib/admin/server";
 
 export const dynamic = "force-dynamic";
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const THREE_DAYS_MS = 3 * ONE_DAY_MS;
+
+type CoachingSignal = {
+  detail: string;
+  label: string;
+  status: CompactStatus;
+};
+
+function isWithinWindow(value: string | null, windowMs: number) {
+  const time = Date.parse(value || "");
+
+  if (!Number.isFinite(time)) {
+    return false;
+  }
+
+  return Date.now() - time <= windowMs;
+}
 
 function AccessMessage({ access }: { access: AdminAccessState }) {
   if (access.status === "notConfigured") {
@@ -90,6 +110,24 @@ function truncateText(value: string | null, maxLength = 150) {
   return text.length > maxLength ? `${text.slice(0, maxLength).trim()}...` : text;
 }
 
+function getModuleGaps(progress: {
+  listen_done: boolean | null;
+  review_done: boolean | null;
+  speak_done: boolean | null;
+  words_done: boolean | null;
+} | null) {
+  if (!progress) {
+    return [];
+  }
+
+  return [
+    progress.listen_done ? "" : "Listen",
+    progress.words_done ? "" : "Words",
+    progress.speak_done ? "" : "Speak",
+    progress.review_done ? "" : "Review",
+  ].filter(Boolean);
+}
+
 function hasPracticeText(entry: {
   daily_note: string | null;
   difficult_part: string | null;
@@ -108,6 +146,44 @@ function hasPracticeText(entry: {
       entry.difficult_part ||
       entry.next_review_note,
   );
+}
+
+function getSuggestedAdminAction({
+  activeDayHasProgress,
+  hasJournalWeakPoint,
+  hasSpeakSecondTry,
+  reviewDone,
+  reviewNeedsAttention,
+  staleSync,
+}: {
+  activeDayHasProgress: boolean;
+  hasJournalWeakPoint: boolean;
+  hasSpeakSecondTry: boolean;
+  reviewDone: boolean | null;
+  reviewNeedsAttention: boolean;
+  staleSync: boolean;
+}) {
+  if (staleSync) {
+    return "Son sync gecikmiş; önce Cloud’a yedeklemesini iste.";
+  }
+
+  if (!activeDayHasProgress) {
+    return "Önce bugünkü çalışmayı yapıp Cloud’a yedeklemesini iste.";
+  }
+
+  if (!hasSpeakSecondTry) {
+    return "Bugün kısa bir speak second try istemek iyi olabilir.";
+  }
+
+  if (reviewDone === false || reviewNeedsAttention) {
+    return "Review cevaplarını birlikte kısa bir şekilde kontrol etmek iyi olabilir.";
+  }
+
+  if (!hasJournalWeakPoint) {
+    return "Kullanıcıdan Journal’da zorlandığı noktayı yazmasını iste.";
+  }
+
+  return "Kısa bir devam mesajı yeterli; çalışma düzeni görünür durumda.";
 }
 
 export default async function AdminUserPage({
@@ -141,6 +217,101 @@ export default async function AdminUserPage({
     }),
     { listen: 0, review: 0, speak: 0, words: 0 },
   );
+  const activeDay = data?.member.activeDay ?? null;
+  const activeDayProgress = activeDay
+    ? (data?.dayProgress.find((row) => row.day_number === activeDay) ?? null)
+    : null;
+  const activePracticeEntry = activeDay
+    ? (data?.practiceEntries.find((entry) => entry.day_number === activeDay) ??
+      null)
+    : null;
+  const activeReviewAnswers = activeDay
+    ? (data?.reviewAnswers.filter((answer) => answer.day_number === activeDay) ??
+      [])
+    : [];
+  const activeModuleGaps = getModuleGaps(activeDayProgress);
+  const hasSpeakSecondTry = Boolean(
+    activePracticeEntry?.speak_second_try?.trim(),
+  );
+  const hasJournalWeakPoint = Boolean(
+    activePracticeEntry?.difficult_part?.trim() ||
+      activePracticeEntry?.next_review_note?.trim(),
+  );
+  const activeReviewCheckedCount = activeReviewAnswers.filter(
+    (answer) => answer.checked_at,
+  ).length;
+  const activeReviewNeedsAttention = activeReviewAnswers.some(
+    (answer) => answer.is_correct === false,
+  );
+  const staleSync = data
+    ? !isWithinWindow(data.member.lastSeenAt, THREE_DAYS_MS)
+    : false;
+  const syncedRecently = data
+    ? isWithinWindow(data.member.lastSeenAt, ONE_DAY_MS)
+    : false;
+  const coachingSignals: CoachingSignal[] = data
+    ? [
+        {
+          detail: data.member.lastSeenAt
+            ? formatAdminDate(data.member.lastSeenAt)
+            : "Cloud sync kaydı görünmüyor.",
+          label: syncedRecently
+            ? "Recent sync"
+            : staleSync
+              ? "Sync delayed"
+              : "Sync visible",
+          status: syncedRecently ? "synced" : staleSync ? "atRisk" : "pending",
+        },
+        {
+          detail: activeDayProgress
+            ? activeModuleGaps.length > 0
+              ? `${activeModuleGaps.join(", ")} eksik görünüyor.`
+              : "Aktif gün modülleri tamam görünüyor."
+            : "Aktif gün için day_progress satırı görünmüyor.",
+          label: activeDayProgress
+            ? activeModuleGaps.length > 0
+              ? "Module gaps"
+              : "Modules ok"
+            : "No day row",
+          status: activeDayProgress
+            ? activeModuleGaps.length > 0
+              ? "warning"
+              : "done"
+            : "pending",
+        },
+        {
+          detail: hasSpeakSecondTry
+            ? "Aktif gün için ikinci deneme kaydı var."
+            : "Aktif gün için ikinci deneme kaydı görünmüyor.",
+          label: hasSpeakSecondTry ? "Second try present" : "Second try missing",
+          status: hasSpeakSecondTry ? "done" : "warning",
+        },
+        {
+          detail: activeDayProgress?.review_done
+            ? `${activeReviewCheckedCount} review cevabı kontrol edilmiş.`
+            : "Aktif gün review tamam görünmüyor.",
+          label: activeDayProgress?.review_done ? "Review done" : "Review missing",
+          status: activeDayProgress?.review_done ? "done" : "warning",
+        },
+        {
+          detail: hasJournalWeakPoint
+            ? "Journal’da zorlanılan nokta veya tekrar notu var."
+            : "Aktif gün için journal zorluk/tekrar notu görünmüyor.",
+          label: hasJournalWeakPoint ? "Journal noted" : "Journal missing",
+          status: hasJournalWeakPoint ? "done" : "warning",
+        },
+      ]
+    : [];
+  const suggestedAdminAction = data
+    ? getSuggestedAdminAction({
+        activeDayHasProgress: Boolean(activeDayProgress),
+        hasJournalWeakPoint,
+        hasSpeakSecondTry,
+        reviewDone: activeDayProgress?.review_done ?? null,
+        reviewNeedsAttention: activeReviewNeedsAttention,
+        staleSync,
+      })
+    : "";
 
   return (
     <div className="space-y-7">
@@ -217,6 +388,29 @@ export default async function AdminUserPage({
                 Dikkat: {data.member.attentionReasons.join(", ")}
               </p>
             ) : null}
+          </CompactSection>
+
+          <CompactSection
+            eyebrow="Coaching"
+            title="Coaching signals"
+            description="Mevcut cloud kayıtlarından türetilen destek sinyalleri."
+          >
+            <div className="grid gap-2 sm:grid-cols-2">
+              {coachingSignals.map((signal) => (
+                <div
+                  key={signal.label}
+                  className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
+                >
+                  <StatusPill status={signal.status}>{signal.label}</StatusPill>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+                    {signal.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 rounded-[1.15rem] border border-clay/25 bg-linen p-3 text-sm font-semibold leading-6 text-[#2d261d]">
+              Önerilen destek: {suggestedAdminAction}
+            </p>
           </CompactSection>
 
           <CompactSection

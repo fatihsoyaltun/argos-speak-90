@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   Card,
   CompactSection,
+  type CompactStatus,
   PageHeader,
   ProgressStrip,
   StatusPill,
@@ -14,6 +15,24 @@ import {
 } from "@/lib/admin/server";
 
 export const dynamic = "force-dynamic";
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const THREE_DAYS_MS = 3 * ONE_DAY_MS;
+
+type AccountabilityTag = {
+  label: string;
+  status: CompactStatus;
+};
+
+function isWithinWindow(value: string | null, windowMs: number) {
+  const time = Date.parse(value || "");
+
+  if (!Number.isFinite(time)) {
+    return false;
+  }
+
+  return Date.now() - time <= windowMs;
+}
 
 function AccessMessage({ access }: { access: AdminAccessState }) {
   if (access.status === "notConfigured") {
@@ -76,7 +95,7 @@ function StatCard({
   status = "active",
 }: {
   label: string;
-  status?: "active" | "atRisk" | "done" | "pending" | "warning";
+  status?: CompactStatus;
   value: string | number;
 }) {
   return (
@@ -92,6 +111,39 @@ function StatCard({
   );
 }
 
+function getMemberAccountabilityTags(member: AdminTeamMember) {
+  const tags: AccountabilityTag[] = [];
+  const syncedRecently = isWithinWindow(member.lastSeenAt, ONE_DAY_MS);
+  const noRecentSync = !isWithinWindow(member.lastSeenAt, THREE_DAYS_MS);
+
+  if (syncedRecently) {
+    tags.push({ label: "Synced 24h", status: "synced" });
+  } else if (noRecentSync) {
+    tags.push({ label: "No recent sync", status: "atRisk" });
+  }
+
+  if (member.currentDayHasProgress && member.currentDaySpeakDone === false) {
+    tags.push({ label: "Speak missing", status: "warning" });
+  }
+
+  if (member.currentDayHasProgress && member.currentDayReviewDone === false) {
+    tags.push({ label: "Review missing", status: "warning" });
+  }
+
+  if (
+    member.attentionReasons.length > 0 &&
+    !tags.some((tag) => tag.label === "No recent sync")
+  ) {
+    tags.push({ label: "Needs attention", status: "atRisk" });
+  }
+
+  if (tags.length === 0) {
+    tags.push({ label: "On track", status: "done" });
+  }
+
+  return tags.slice(0, 4);
+}
+
 function MemberCard({ member }: { member: AdminTeamMember }) {
   const displayName = member.fullName || member.email || "İsimsiz kullanıcı";
   const completionSummary =
@@ -99,6 +151,7 @@ function MemberCard({ member }: { member: AdminTeamMember }) {
       ? `${member.totalCompletedDays}/90 gün, ort. ${member.averageCompletionPercent}%`
       : "Henüz cloud progress yok";
   const needsAttention = member.attentionReasons.length > 0;
+  const accountabilityTags = getMemberAccountabilityTags(member);
 
   return (
     <article className="rounded-[1.35rem] border border-foreground/10 bg-background/85 p-4">
@@ -135,6 +188,13 @@ function MemberCard({ member }: { member: AdminTeamMember }) {
             },
           ]}
         />
+        <div className="flex flex-wrap gap-2">
+          {accountabilityTags.map((tag) => (
+            <StatusPill key={`${member.id}-${tag.label}`} status={tag.status}>
+              {tag.label}
+            </StatusPill>
+          ))}
+        </div>
         <div className="grid gap-2 sm:grid-cols-2">
           <p className="rounded-[1.1rem] bg-surface p-3 text-sm font-semibold leading-6 text-muted">
             Last seen:{" "}
@@ -176,6 +236,28 @@ export default async function AdminPage() {
   const needsAttention = result.ok
     ? result.data.members.filter((member) => member.attentionReasons.length > 0)
     : [];
+  const syncedRecentlyCount = result.ok
+    ? result.data.members.filter((member) =>
+        isWithinWindow(member.lastSeenAt, ONE_DAY_MS),
+      ).length
+    : 0;
+  const needsSyncCount = result.ok
+    ? result.data.members.filter(
+        (member) => !isWithinWindow(member.lastSeenAt, THREE_DAYS_MS),
+      ).length
+    : 0;
+  const speakMissingCount = result.ok
+    ? result.data.members.filter(
+        (member) =>
+          member.currentDayHasProgress && member.currentDaySpeakDone === false,
+      ).length
+    : 0;
+  const reviewMissingCount = result.ok
+    ? result.data.members.filter(
+        (member) =>
+          member.currentDayHasProgress && member.currentDayReviewDone === false,
+      ).length
+    : 0;
 
   return (
     <div className="space-y-5">
@@ -244,6 +326,40 @@ export default async function AdminPage() {
               yöneticisi tarafından görülebilir.
             </p>
           </Card>
+
+          <CompactSection
+            eyebrow="Accountability"
+            title="Coaching signals"
+            description="Mevcut sync ve day_progress verisinden türetilen destek sinyalleri."
+          >
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard
+                label="Synced 24h"
+                status={syncedRecentlyCount > 0 ? "synced" : "pending"}
+                value={syncedRecentlyCount}
+              />
+              <StatCard
+                label="Needs sync"
+                status={needsSyncCount > 0 ? "atRisk" : "done"}
+                value={needsSyncCount}
+              />
+              <StatCard
+                label="Speak missing"
+                status={speakMissingCount > 0 ? "warning" : "done"}
+                value={speakMissingCount}
+              />
+              <StatCard
+                label="Review missing"
+                status={reviewMissingCount > 0 ? "warning" : "done"}
+                value={reviewMissingCount}
+              />
+            </div>
+            <p className="mt-3 text-xs font-semibold leading-5 text-muted">
+              Journal weak point metriği overview verisinden güvenilir şekilde
+              türetilemiyor; kullanıcı detayında mevcut practice entry kayıtları
+              üzerinden gösterilir.
+            </p>
+          </CompactSection>
 
           {needsAttention.length > 0 ? (
             <CompactSection

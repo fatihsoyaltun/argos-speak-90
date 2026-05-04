@@ -28,6 +28,12 @@ export type AdminTeamMember = {
   attentionReasons: string[];
   averageCompletionPercent: number;
   completedDays: number;
+  currentDayHasProgress: boolean;
+  currentDayListenDone: boolean | null;
+  currentDayReviewDone: boolean | null;
+  currentDaySpeakDone: boolean | null;
+  currentDayUpdatedAt: string | null;
+  currentDayWordsDone: boolean | null;
   email: string;
   fullName: string;
   id: string;
@@ -182,6 +188,10 @@ function createMember({
   const completedDays = dayProgress.filter(
     (day) => (day.completion_percent ?? 0) >= 100,
   ).length;
+  const activeDay = status?.active_day ?? null;
+  const currentDayProgress = activeDay
+    ? dayProgress.find((day) => day.day_number === activeDay)
+    : null;
   const averageCompletionPercent =
     dayProgress.length > 0
       ? Math.round(
@@ -204,10 +214,16 @@ function createMember({
   }
 
   return {
-    activeDay: status?.active_day ?? null,
+    activeDay,
     attentionReasons,
     averageCompletionPercent,
     completedDays: status?.total_completed_days ?? completedDays,
+    currentDayHasProgress: Boolean(currentDayProgress),
+    currentDayListenDone: currentDayProgress?.listen_done ?? null,
+    currentDayReviewDone: currentDayProgress?.review_done ?? null,
+    currentDaySpeakDone: currentDayProgress?.speak_done ?? null,
+    currentDayUpdatedAt: currentDayProgress?.updated_at ?? null,
+    currentDayWordsDone: currentDayProgress?.words_done ?? null,
     email: profile.email ?? "",
     fullName: profile.full_name ?? "",
     id: profile.id,
