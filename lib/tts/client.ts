@@ -2,19 +2,16 @@ import type {
   TtsAudioFormat,
   TtsAudioMetadata,
   TtsClientResult,
+  TtsFailureCode,
   TtsServiceStatus,
+  TtsStatusReason,
   TtsWordTiming,
 } from "./types";
 
 type TtsApiErrorResponse = {
-  code?: string;
+  code?: TtsFailureCode | string;
   message?: string;
-  reason?:
-    | "missing_api_key"
-    | "missing_voice_id"
-    | "server_route_error"
-    | "loading_timeout"
-    | "request_failed";
+  reason?: TtsStatusReason;
 };
 
 type TtsApiSuccessResponse = {
@@ -25,6 +22,19 @@ type TtsApiSuccessResponse = {
 };
 
 const STATUS_TIMEOUT_MS = 6_000;
+const knownFailureCodes = new Set<string>([
+  "bad_request",
+  "missing_api_key",
+  "missing_voice_id",
+  "not_configured",
+  "request_failed",
+  "upstream_account_restricted",
+  "upstream_failed",
+  "upstream_model_error",
+  "upstream_quota_or_rate_limit",
+  "upstream_unauthorized",
+  "upstream_voice_not_found",
+]);
 
 function base64ToBlob(base64: string, contentType: TtsAudioFormat) {
   const binary = window.atob(base64);
@@ -83,6 +93,18 @@ function normalizeMetadata(metadata: unknown): TtsAudioMetadata | undefined {
   };
 }
 
+function normalizeErrorCode(code: unknown): TtsFailureCode {
+  if (code === "missing_api_key" || code === "missing_voice_id") {
+    return "not_configured";
+  }
+
+  if (typeof code === "string" && knownFailureCodes.has(code)) {
+    return code as TtsFailureCode;
+  }
+
+  return "request_failed";
+}
+
 export async function requestTtsAudio(
   text: string,
   signal?: AbortSignal,
@@ -104,7 +126,7 @@ export async function requestTtsAudio(
 
       return {
         ok: false,
-        code: error.code === "not_configured" ? "not_configured" : "request_failed",
+        code: normalizeErrorCode(error.code),
         reason: error.reason,
         message:
           error.message ||

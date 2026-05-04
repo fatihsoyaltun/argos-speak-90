@@ -31,6 +31,20 @@ ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 If the API key or voice ID is missing, the app shows a safe Turkish fallback
 instead of broken playback controls.
 
+After changing any ElevenLabs env var, restart the Next.js dev server so the
+server route can read the new values.
+
+Quick checks:
+
+- The API key must be an ElevenLabs server-side API key with text-to-speech
+  access.
+- The voice ID must belong to a voice that the API key can use.
+- If `/api/tts` returns `upstream_account_restricted`,
+  `upstream_unauthorized`, `upstream_voice_not_found`, or
+  `upstream_model_error`, check the JSON response in development for the safe
+  `devDetail` field. It includes the upstream status and message without
+  exposing the API key.
+
 ## Supabase Foundation
 
 The app has a Supabase client foundation for future team login, cloud progress
