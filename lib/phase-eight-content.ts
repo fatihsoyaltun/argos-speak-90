@@ -147,29 +147,30 @@ const phaseEightDays = [
   },
   {
     day: 48,
-    theme: "Asking for clarification",
-    speakingGoal: "Ask someone to explain a point again in a polite way.",
+    theme: "Clarifying a device setting",
+    speakingGoal:
+      "Ask for clarification about a selected light or filter without sounding too direct.",
     transcript:
-      "Sorry, could you explain the last point again? I understood the general idea, but I missed one detail. Did you say the meeting is on Tuesday or Thursday?",
+      "Before we capture the image, could you check the selected light group? I understood the general idea, but I am not sure which motorized filter we need. Could you confirm the selected filter?",
     keyLines: [
-      "Could you explain the last point again?",
+      "Could you check the selected light group?",
       "I understood the general idea.",
-      "I missed one detail.",
-      "Did you say Tuesday or Thursday?",
+      "I am not sure which motorized filter we need.",
+      "Could you confirm the selected filter?",
     ],
     miniTaskTr:
-      "Açıklama isteme dilini dinle. General idea, missed one detail ve did you say ifadelerini yakala.",
+      "Cihaz ayarı hakkında açıklama isteme dilini dinle. Selected light group, motorized filter ve selected filter ifadelerini yakala.",
     outputPrompt: "Write 2 polite sentences asking for clarification.",
     words: [
-      ["explain", "ik-SPLAYN", "açıklamak", "Could you explain the last point again?"],
+      ["light group", "lyt groop", "ışık grubu", "Could you check the selected light group?"],
       ["general idea", "JEN-er-uhl eye-DEE-uh", "genel fikir", "I understood the general idea."],
-      ["missed", "mist", "kaçırdım", "I missed one detail."],
-      ["detail", "DEE-tayl", "detay", "I missed one detail."],
+      ["motorized filter", "MOH-ter-yzd FIL-ter", "motorlu filtre", "Which motorized filter do we need?"],
+      ["selected filter", "suh-LEK-tid FIL-ter", "seçili filtre", "Could you confirm the selected filter?"],
     ],
     review: [
-      ["fillBlank", "I missed one ____.", "detail"],
+      ["fillBlank", "Could you check the selected light ____?", "group"],
       ["recall", "Write the sentence about the general idea.", "I understood the general idea."],
-      ["shortAnswer", "Answer in English: What are you asking about?", "I am asking about Tuesday or Thursday."],
+      ["shortAnswer", "Ask one polite question about the selected filter.", "Could you confirm the selected filter?"],
     ],
   },
   {
@@ -390,29 +391,30 @@ const phaseEightDays = [
   },
   {
     day: 57,
-    theme: "Asking for simple feedback",
-    speakingGoal: "Ask for feedback and explain what kind of help you want.",
+    theme: "Giving feedback about an export format",
+    speakingGoal:
+      "Give calm feedback about an export format mistake and ask for the right format.",
     transcript:
-      "Could you give me quick feedback on this message? I want to know if the tone is polite and clear. You do not need to rewrite it; a few comments are enough.",
+      "The image looks ready, but I think we exported it in the wrong format. The report needs WSQ today, not TIFF. Could you export it again in the required format?",
     keyLines: [
-      "Could you give me quick feedback?",
-      "I want to know if the tone is polite and clear.",
-      "You do not need to rewrite it.",
-      "A few comments are enough.",
+      "The image looks ready.",
+      "We exported it in the wrong format.",
+      "The report needs WSQ today, not TIFF.",
+      "Could you export it again in the required format?",
     ],
     miniTaskTr:
-      "Geri bildirim isteme dilini dinle. Feedback, tone ve a few comments ifadelerini yakala.",
+      "Sakin geri bildirim dilini dinle. Wrong format, WSQ, TIFF ve export it again ifadelerini yakala.",
     outputPrompt: "Write 2 sentences asking for feedback.",
     words: [
-      ["feedback", "FEED-bak", "geri bildirim", "Could you give me quick feedback?"],
-      ["tone", "tohn", "üslup/ton", "The tone is polite and clear."],
-      ["rewrite", "ree-RYT", "yeniden yazmak", "You do not need to rewrite it."],
-      ["comments", "KOM-ents", "yorumlar", "A few comments are enough."],
+      ["export format", "EK-sport FOR-mat", "dışa aktarma formatı", "Please use the required export format."],
+      ["WSQ", "dub-uhl-yoo es kyoo", "WSQ formatı", "The report needs WSQ today."],
+      ["TIFF", "tif", "TIFF formatı", "It does not need TIFF today."],
+      ["calm feedback", "kahm FEED-bak", "sakin geri bildirim", "Give calm feedback about the format."],
     ],
     review: [
-      ["fillBlank", "A few comments are ____.", "enough"],
-      ["recall", "Write the sentence about tone.", "I want to know if the tone is polite and clear."],
-      ["shortAnswer", "Answer in English: What do you want?", "I want quick feedback on this message."],
+      ["fillBlank", "The report needs ____ today.", "WSQ"],
+      ["recall", "Write the sentence about exporting again.", "Could you export it again in the required format?"],
+      ["shortAnswer", "Give polite feedback about the wrong export format.", "I think we exported it in the wrong format. Could you export it again?"],
     ],
   },
   {
@@ -579,29 +581,30 @@ const phaseEightDays = [
   },
   {
     day: 64,
-    theme: "Explaining a simple process",
-    speakingGoal: "Explain a process step by step without sounding mechanical.",
+    theme: "Explaining a contactless image workflow",
+    speakingGoal:
+      "Explain a contactless capture, archive, and report process step by step.",
     transcript:
-      "First, I collect the information I need. Then I organize it into three simple groups. After that, I write a short summary, check the details, and send it to the team.",
+      "First, we use a contactless workflow to capture the fingerprint image. Then we save the image in the archive. After that, we check the details and add it to the report.",
     keyLines: [
-      "First, I collect the information I need.",
-      "Then I organize it into three simple groups.",
-      "After that, I write a short summary.",
-      "I check the details and send it to the team.",
+      "First, we use a contactless workflow.",
+      "Then we save the image in the archive.",
+      "After that, we check the details.",
+      "We add it to the report.",
     ],
     miniTaskTr:
-      "Süreç anlatımını dinle. First, then, after that ve check the details yapılarını takip et.",
+      "Temassız görüntü iş akışını dinle. First, then, after that, image archive ve report ifadelerini takip et.",
     outputPrompt: "Write 2 sentences explaining a simple process you do.",
     words: [
-      ["collect", "kuh-LEKT", "toplamak", "I collect the information I need."],
-      ["organize", "OR-guh-nyz", "düzenlemek", "I organize it into three groups."],
-      ["summary", "SUHM-uh-ree", "özet", "I write a short summary."],
+      ["contactless workflow", "KON-takt-les WURK-flow", "temassız iş akışı", "We use a contactless workflow."],
+      ["image archive", "IM-ij AR-kyv", "görüntü arşivi", "We save the image in the archive."],
+      ["report", "ri-PORT", "rapor", "We add the image to the report."],
       ["details", "DEE-taylz", "detaylar", "I check the details."],
     ],
     review: [
-      ["fillBlank", "I organize it into three simple ____.", "groups"],
-      ["recall", "Write the sentence about the summary.", "I write a short summary."],
-      ["shortAnswer", "Answer in English: What do you do first?", "First, I collect the information I need."],
+      ["fillBlank", "We save the image in the ____.", "archive"],
+      ["recall", "Write the sentence about the report.", "We add it to the report."],
+      ["shortAnswer", "Explain one step in the contactless workflow.", "First, we use a contactless workflow to capture the image."],
     ],
   },
   {
@@ -742,55 +745,57 @@ const phaseEightDays = [
   {
     day: 70,
     theme: "Giving instructions politely",
-    speakingGoal: "Give simple instructions without sounding too direct.",
+    speakingGoal:
+      "Give a polite UVC safety instruction without sounding too direct.",
     transcript:
-      "Please open the file and check the first page. If the numbers look correct, add your name at the bottom. After that, send it back to me when you have time.",
+      "Please use the darkroom when UVC mode is selected. If you are not sure, check the safety warning first. After that, capture the image when the workflow is ready.",
     keyLines: [
-      "Please open the file.",
-      "Check the first page.",
-      "Add your name at the bottom.",
-      "Send it back to me when you have time.",
+      "Please use the darkroom.",
+      "UVC mode is selected.",
+      "Check the safety warning first.",
+      "Capture the image when the workflow is ready.",
     ],
     miniTaskTr:
-      "Kibar talimat dilini dinle. Please, if ve when you have time ifadelerini yakala.",
+      "Kibar güvenlik talimatını dinle. UVC mode, darkroom ve safety warning ifadelerini yakala.",
     outputPrompt: "Write 2 polite instructions for a simple task.",
     words: [
-      ["check", "chek", "kontrol etmek", "Check the first page."],
-      ["correct", "kuh-REKT", "doğru", "The numbers look correct."],
-      ["bottom", "BOT-uhm", "alt kısım", "Add your name at the bottom."],
-      ["send back", "send bak", "geri göndermek", "Send it back to me."],
+      ["UVC mode", "yoo-vee-see mohd", "UVC modu", "UVC mode is selected."],
+      ["darkroom", "DARK-room", "karanlık oda", "Please use the darkroom."],
+      ["safety warning", "SAYF-tee WOR-ning", "güvenlik uyarısı", "Check the safety warning first."],
+      ["workflow", "WURK-flow", "iş akışı", "The workflow is ready."],
     ],
     review: [
-      ["fillBlank", "Add your name at the ____.", "bottom"],
-      ["recall", "Write the sentence with: when you have time.", "Send it back to me when you have time."],
-      ["shortAnswer", "Answer in English: What should they check?", "They should check the first page."],
+      ["fillBlank", "Please use the ____ when UVC mode is selected.", "darkroom"],
+      ["recall", "Write the sentence about the safety warning.", "Check the safety warning first."],
+      ["shortAnswer", "Write one polite UVC safety instruction.", "Please use the darkroom when UVC mode is selected."],
     ],
   },
   {
     day: 71,
-    theme: "Talking about priorities",
-    speakingGoal: "Explain what is most important and what can wait.",
+    theme: "Choosing a customer demo priority",
+    speakingGoal:
+      "Choose one customer demo priority and give a short reason.",
     transcript:
-      "The most important thing today is finishing the customer reply. The design notes can wait until tomorrow because they are not urgent. If I finish the reply early, I will start the notes after lunch.",
+      "For this customer demo, I would start with the contactless workflow. Then I would mention that it is chemical-free and uses a 45.9MP 8K camera. Those points are clear and useful for a first explanation.",
     keyLines: [
-      "The most important thing is finishing the customer reply.",
-      "The design notes can wait until tomorrow.",
-      "They are not urgent.",
-      "I will start the notes after lunch.",
+      "I would start with the contactless workflow.",
+      "It is chemical-free.",
+      "It uses a 45.9MP 8K camera.",
+      "Those points are clear and useful.",
     ],
     miniTaskTr:
-      "Öncelik anlatımını dinle. Most important, can wait ve not urgent ifadelerini yakala.",
+      "Müşteri demosunda öncelik seçme dilini dinle. Contactless, chemical-free ve 45.9MP 8K camera ifadelerini yakala.",
     outputPrompt: "Write 2 sentences about your priorities today.",
     words: [
-      ["most important", "mohst im-POR-tuhnt", "en önemli", "The most important thing is the reply."],
-      ["customer reply", "KUS-tuh-mer ri-PLY", "müşteri cevabı", "I need to finish the customer reply."],
-      ["can wait", "kan wayt", "bekleyebilir", "The notes can wait."],
-      ["urgent", "UR-juhnt", "acil", "They are not urgent."],
+      ["45.9MP 8K camera", "for-tee fyv poynt nyn em-pee ayt-kay KAM-ruh", "45.9MP 8K kamera", "It uses a 45.9MP 8K camera."],
+      ["contactless", "KON-takt-les", "temassız", "I would start with the contactless workflow."],
+      ["chemical-free", "KEM-i-kuhl free", "kimyasalsız", "The workflow is chemical-free."],
+      ["customer demo", "KUS-tuh-mer DEM-oh", "müşteri demosu", "This is useful for a customer demo."],
     ],
     review: [
-      ["fillBlank", "The design notes can ____ until tomorrow.", "wait"],
-      ["recall", "Write the sentence about the most important thing.", "The most important thing today is finishing the customer reply."],
-      ["shortAnswer", "Answer in English: Why can the notes wait?", "They are not urgent."],
+      ["fillBlank", "I would start with the ____ workflow.", "contactless"],
+      ["recall", "Write the sentence about chemicals.", "It is chemical-free."],
+      ["shortAnswer", "Choose one customer demo priority and give one reason.", "I would start with the contactless workflow because it is easy to explain."],
     ],
   },
   {
@@ -1011,29 +1016,30 @@ const phaseEightDays = [
   },
   {
     day: 80,
-    theme: "Explaining a small decision at work",
-    speakingGoal: "Explain a decision with context, reason, and next step.",
+    theme: "Making a work decision about export and report",
+    speakingGoal:
+      "Explain a work decision about export, report, or AFIS workflow with one reason.",
     transcript:
-      "I moved the deadline to Friday because we need one more review. The main work is finished, but I want the final version to be accurate. I will send a short note to the team today.",
+      "Before we send the file, we need to decide the next step. If the image is needed for an AFIS workflow, WSQ may be the right export format. I think we should check the report first, then export it.",
     keyLines: [
-      "I moved the deadline to Friday.",
-      "We need one more review.",
-      "I want the final version to be accurate.",
-      "I will send a short note to the team.",
+      "We need to decide the next step.",
+      "The image is needed for an AFIS workflow.",
+      "WSQ may be the right export format.",
+      "We should check the report first.",
     ],
     miniTaskTr:
-      "Karar açıklama dilini dinle. Moved the deadline, one more review ve accurate ifadelerini yakala.",
+      "İş kararı anlatımını dinle. AFIS workflow, WSQ, report ve may be ifadelerini yakala.",
     outputPrompt: "Write 2 sentences explaining a small decision.",
     words: [
-      ["deadline", "DED-lyn", "son tarih", "I moved the deadline to Friday."],
-      ["review", "ri-VYOO", "gözden geçirme", "We need one more review."],
-      ["accurate", "AK-yuh-rit", "doğru", "The final version should be accurate."],
-      ["short note", "short noht", "kısa not", "I will send a short note."],
+      ["AFIS workflow", "AY-fis WURK-flow", "AFIS iş akışı", "The image is needed for an AFIS workflow."],
+      ["report", "ri-PORT", "rapor", "We should check the report first."],
+      ["WSQ", "dub-uhl-yoo es kyoo", "WSQ formatı", "WSQ may be the right export format."],
+      ["next step", "nekst step", "sonraki adım", "We need to decide the next step."],
     ],
     review: [
-      ["fillBlank", "I moved the deadline to ____.", "Friday"],
-      ["recall", "Write the sentence about one more review.", "We need one more review."],
-      ["shortAnswer", "Answer in English: Why did you move the deadline?", "I want the final version to be accurate."],
+      ["fillBlank", "The image is needed for an ____ workflow.", "AFIS"],
+      ["recall", "Write the sentence about the report.", "We should check the report first."],
+      ["shortAnswer", "Write one work decision about export or report with a reason.", "I think we should check the report first because the image may be needed for AFIS."],
     ],
   },
   {
@@ -1146,29 +1152,30 @@ const phaseEightDays = [
   },
   {
     day: 85,
-    theme: "Explaining a problem and two options",
-    speakingGoal: "Describe a problem and offer two possible solutions.",
+    theme: "Giving options when fingerprint detail is unclear",
+    speakingGoal:
+      "Describe unclear fingerprint detail and offer two possible next steps.",
     transcript:
-      "The room is not available at two, so we have two options. We can move the meeting to three, or we can use the smaller room downstairs. I think the smaller room is fine for four people.",
+      "The fingerprint detail is not clear yet, so we have two options. We can try another UV, VIS, or IR mode, or we can use image enhancement. I think we should change the light first and compare the result.",
     keyLines: [
-      "The room is not available at two.",
+      "The fingerprint detail is not clear yet.",
       "We have two options.",
-      "We can move the meeting to three.",
-      "The smaller room is fine for four people.",
+      "We can try another UV, VIS, or IR mode.",
+      "We can use image enhancement.",
     ],
     miniTaskTr:
-      "Problem ve iki seçenek anlatımını dinle. Available, two options ve fine for ifadelerini yakala.",
+      "Problem ve iki seçenek anlatımını dinle. Fingerprint detail, UV/VIS/IR ve image enhancement ifadelerini yakala.",
     outputPrompt: "Write 2 sentences giving two options for a problem.",
     words: [
-      ["available", "uh-VAY-luh-buhl", "müsait", "The room is not available."],
-      ["options", "OP-shuhnz", "seçenekler", "We have two options."],
-      ["downstairs", "DOWN-stairz", "alt katta", "The smaller room is downstairs."],
-      ["fine for", "fyn for", "için uygun", "It is fine for four people."],
+      ["UV/VIS/IR", "yoo-vee viz eye-ar", "UV/görünür/IR", "We can try another UV, VIS, or IR mode."],
+      ["image enhancement", "IM-ij in-HANS-muhnt", "görüntü iyileştirme", "We can use image enhancement."],
+      ["fingerprint detail", "FING-ger-print DEE-tayl", "parmak izi detayı", "The fingerprint detail is not clear yet."],
+      ["compare the result", "kum-PAIR thuh ri-ZULT", "sonucu karşılaştırmak", "We can compare the result."],
     ],
     review: [
       ["fillBlank", "We have two ____.", "options"],
-      ["recall", "Write the sentence about moving the meeting.", "We can move the meeting to three."],
-      ["shortAnswer", "Answer in English: What room is fine for four people?", "The smaller room is fine for four people."],
+      ["recall", "Write the sentence about image enhancement.", "We can use image enhancement."],
+      ["shortAnswer", "Present two options when fingerprint detail is not clear.", "We can try another light mode, or we can use image enhancement."],
     ],
   },
   {
@@ -1227,29 +1234,30 @@ const phaseEightDays = [
   },
   {
     day: 88,
-    theme: "Summarizing a discussion",
-    speakingGoal: "Summarize what was decided and what happens next.",
+    theme: "Summarizing a technical observation",
+    speakingGoal:
+      "Summarize a technical observation and say what happens next.",
     transcript:
-      "To summarize, we agreed to keep the current plan for one more week. Mehmet will check the numbers, and I will prepare the short presentation. We will review everything again on Friday.",
+      "To summarize, the fingerprint was observed on the surface, and the image includes a date stamp. The geotag is also saved with the image. We will review the report again on Friday.",
     keyLines: [
-      "To summarize, we agreed to keep the current plan.",
-      "Mehmet will check the numbers.",
-      "I will prepare the short presentation.",
-      "We will review everything again on Friday.",
+      "The fingerprint was observed on the surface.",
+      "The image includes a date stamp.",
+      "The geotag is also saved with the image.",
+      "We will review the report again on Friday.",
     ],
     miniTaskTr:
-      "Toplantı özeti dilini dinle. To summarize, agreed, will check ve review again ifadelerini yakala.",
+      "Teknik gözlem özeti dilini dinle. Observed, date stamp, geotag ve review the report ifadelerini yakala.",
     outputPrompt: "Write 2 sentences summarizing a simple discussion.",
     words: [
-      ["to summarize", "toh SUHM-uh-ryz", "özetlemek gerekirse", "To summarize, we agreed."],
-      ["agreed", "uh-GREED", "anlaştık", "We agreed to keep the plan."],
-      ["current plan", "KUR-uhnt plan", "mevcut plan", "Keep the current plan."],
-      ["review again", "ri-VYOO uh-GEN", "tekrar gözden geçirmek", "We will review everything again."],
+      ["observed", "uhb-ZURVD", "gözlemlendi", "The fingerprint was observed on the surface."],
+      ["date stamp", "dayt stamp", "tarih damgası", "The image includes a date stamp."],
+      ["geotag", "JEE-oh-tag", "coğrafi etiket", "The geotag is saved with the image."],
+      ["technical observation", "TEK-ni-kuhl ob-zer-VAY-shuhn", "teknik gözlem", "This is a technical observation."],
     ],
     review: [
-      ["fillBlank", "To summarize, we ____ to keep the current plan.", "agreed"],
-      ["recall", "Write the sentence about the presentation.", "I will prepare the short presentation."],
-      ["shortAnswer", "Answer in English: When will you review everything again?", "We will review everything again on Friday."],
+      ["fillBlank", "The image includes a date ____.", "stamp"],
+      ["recall", "Write the sentence about the geotag.", "The geotag is also saved with the image."],
+      ["shortAnswer", "Write one cautious technical observation sentence.", "The fingerprint was observed on the surface, and the image appears clearer."],
     ],
   },
   {
@@ -1308,6 +1316,39 @@ const phaseEightDays = [
   },
 ];
 
+const deviceSpeakingPromptByDay: Record<number, string> = {
+  48: "Clarification task: ask about a device setting in 4-5 sentences. Mention the selected light group or selected filter, then ask one polite follow-up question.",
+  57: "Feedback task: explain the export-format mistake calmly in 4-5 sentences. Mention WSQ or TIFF, then ask for the required format.",
+  64: "Process task: explain a contactless image workflow in 4-5 sentences. Include capture, image archive, and report in a simple order.",
+  70: "Milestone check: speak in 4-5 sentences. Give a polite UVC safety instruction, include one reason or example, then improve one sentence in your second try.",
+  71: "Customer demo task: choose one 8K demo priority in 4-6 sentences. Mention contactless, chemical-free, or the 45.9MP 8K camera, then give one reason.",
+  80: "Work decision task: explain whether to check the report or export for an AFIS workflow. Speak in 4-6 sentences and give one reason.",
+  85: "Problem-solving task: explain unclear fingerprint detail, give two options, and recommend one next step in 4-6 sentences.",
+  88: "Summary task: summarize a technical observation in 4-6 sentences. Use observed, date stamp, or geotag, then add one next step.",
+};
+
+const deviceListeningOutputByDay: Record<number, string> = {
+  48: "Write 2 sentences: identify what needs clarification, then ask a polite question about the selected filter.",
+  57: "Write 2 sentences: explain the export-format problem, then ask for the required format.",
+  64: "Write 2 sentences: summarize the contactless workflow, then name the archive or report step.",
+  70: "Write 3 short notes: the UVC safety instruction, the darkroom step, and one thing to check first.",
+  71: "Write 2 sentences: choose one customer demo priority, then give one short reason.",
+  80: "Write 2 sentences: state the work decision, then explain the report or AFIS workflow reason.",
+  85: "Write 2 sentences: describe the unclear fingerprint detail, then give two possible options.",
+  88: "Write 2 sentences: summarize the technical observation, then add one cautious next step.",
+};
+
+const deviceMiniGoalByDay: Record<number, string> = {
+  48: "Mini hedef: 4-5 cümlede ayarı netleştir; ikinci denemede daha kibar bir clarification question ekle.",
+  57: "Mini hedef: 4-5 cümlede format hatasını sakin anlat; ikinci denemede daha net ve daha kibar söyle.",
+  64: "Mini hedef: 4-5 cümlede süreci sırayla anlat; ikinci denemede first, then, after that akışını güçlendir.",
+  70: "Mini hedef: 4-5 cümleyle UVC güvenlik talimatı ver, reason/example ekle ve ikinci denemeyi belirgin şekilde iyileştir.",
+  71: "Mini hedef: 60 saniyede bir demo önceliği seç, kısa bir reason ekle ve ikinci denemede daha müşteri dostu söyle.",
+  80: "Mini hedef: 60 saniyede export/report/AFIS kararını açıkla; ikinci denemede karar sebebini daha net söyle.",
+  85: "Mini hedef: 60 saniyede iki seçenek sun; ikinci denemede önerdiğin next step cümlesini netleştir.",
+  88: "Mini hedef: 60 saniyede teknik gözlemi özetle; ikinci denemede observed veya appears clearer gibi dikkatli dil kullan.",
+};
+
 export const phaseEightDayPlans = phaseEightDays.map((day) => ({
   day: day.day,
   theme: day.theme,
@@ -1336,6 +1377,10 @@ export const phaseEightDayWords = phaseEightDays.map((day) => ({
 }));
 
 function buildPhaseEightPrompt(day: (typeof phaseEightDays)[number]) {
+  if (deviceSpeakingPromptByDay[day.day]) {
+    return deviceSpeakingPromptByDay[day.day];
+  }
+
   if (day.day === 70) {
     return "Milestone check: speak in 4-5 sentences. Explain a small problem or decision, include one reason or example, then improve one sentence in your second try.";
   }
@@ -1371,6 +1416,10 @@ function buildPhaseEightPrompt(day: (typeof phaseEightDays)[number]) {
 }
 
 function buildPhaseEightListeningOutput(day: (typeof phaseEightDays)[number]) {
+  if (deviceListeningOutputByDay[day.day]) {
+    return deviceListeningOutputByDay[day.day];
+  }
+
   if (day.day === 70) {
     return "Write 3 short notes: the main instruction, one polite phrase, and one step you should check again.";
   }
@@ -1387,6 +1436,10 @@ function buildPhaseEightListeningOutput(day: (typeof phaseEightDays)[number]) {
 }
 
 function buildPhaseEightMiniGoal(day: (typeof phaseEightDays)[number]) {
+  if (deviceMiniGoalByDay[day.day]) {
+    return deviceMiniGoalByDay[day.day];
+  }
+
   if (day.day === 70) {
     return "Mini hedef: 4-5 cümleyle küçük bir problem veya kararı açıkla, reason/example ekle ve ikinci denemeyi belirgin şekilde iyileştir.";
   }
@@ -1413,7 +1466,7 @@ export const phaseEightSpeakingPractices = phaseEightDays.map((day) => ({
     ...(day.day === 70
       ? [
           "4-5 cümle kurdum mu?",
-          "Küçük bir problem veya kararı açıkladım mı?",
+          "Kibar bir UVC güvenlik talimatı verdim mi?",
           "Bir reason veya example ekledim mi?",
           "İkinci denemem belirgin şekilde daha iyi mi?",
         ]
