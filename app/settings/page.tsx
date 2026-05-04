@@ -4,8 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useActiveDay } from "@/components/active-day";
 import { CloudSyncPanel } from "@/components/cloud-sync-panel";
-import { TeamPrivacyNotice } from "@/components/team-privacy-notice";
-import { Card, PageHeader } from "@/components/ui";
+import {
+  CompactSection,
+  ExpandableCard,
+  PageHeader,
+  ProgressStrip,
+  StatusPill,
+} from "@/components/ui";
 import { getClientAuthState, signOutClientUser } from "@/lib/auth/client";
 import { getTtsServiceStatus } from "@/lib/tts/client";
 import {
@@ -203,271 +208,295 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <PageHeader
         eyebrow="Settings"
         title="Local practice settings"
         description="Bu sayfa cihazındaki yerel ilerlemeyi ve ses durumunu kontrol etmek için var."
       />
 
-      <TeamPrivacyNotice />
-
-      <Card className="space-y-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-            Pilot
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold leading-tight">
-            Pilot kullanım rehberi
-          </h2>
-          <p className="mt-2 text-sm font-semibold leading-6 text-muted">
-            Kayıt, günlük çalışma, cloud sync ve admin görünürlüğü için kısa
-            ekip rehberi.
-          </p>
+      <CompactSection
+        eyebrow="Cloud account"
+        title={
+          cloudAccountStatus === "checking"
+            ? "Hesap kontrol ediliyor"
+            : cloudAccountStatus === "signedIn"
+              ? "Cloud hesabın bağlı"
+              : "Cloud hesabı bağlı değil"
+        }
+        description={
+          cloudAccountEmail
+            ? cloudAccountEmail
+            : "Cloud sync isteğe bağlıdır; yerel çalışma bu cihazda kalır."
+        }
+        action={
+          <StatusPill
+            status={
+              cloudAccountStatus === "signedIn"
+                ? "synced"
+                : cloudAccountStatus === "checking"
+                  ? "pending"
+                  : "noSync"
+            }
+          >
+            {cloudAccountStatus === "signedIn"
+              ? "Signed in"
+              : cloudAccountStatus === "checking"
+                ? "Checking"
+                : "Not signed in"}
+          </StatusPill>
+        }
+      >
+        <div className="flex flex-wrap gap-2">
+          {cloudAccountRole === "admin" && cloudAccountStatus === "signedIn" ? (
+            <Link
+              href="/admin"
+              className="inline-flex min-h-10 items-center justify-center rounded-full bg-linen px-4 py-2 text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
+            >
+              Admin paneli
+            </Link>
+          ) : null}
+          <Link
+            href={cloudAccountStatus === "signedIn" ? "/account" : "/login"}
+            className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+          >
+            {cloudAccountStatus === "signedIn"
+              ? "Cloud account aç"
+              : "Login sayfasına git"}
+          </Link>
+          {cloudAccountStatus === "signedIn" ? (
+            <button
+              type="button"
+              onClick={() => {
+                void signOutFromSettings();
+              }}
+              disabled={isSigningOut}
+              className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-surface px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+            >
+              {isSigningOut ? "Çıkış yapılıyor" : "Çıkış yap"}
+            </button>
+          ) : null}
         </div>
-        <Link
-          href="/pilot"
-          className="flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
-        >
-          Pilot kullanım rehberi
-        </Link>
-      </Card>
-
-      <Card className="space-y-4">
-        <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-            Active day
+        {cloudAccountMessage ? (
+          <p className="mt-3 text-sm font-semibold leading-5 text-muted">
+            {cloudAccountMessage}
           </p>
-          <p className="mt-2 text-2xl font-semibold leading-tight">
-            Day {activeDay} / 90
-          </p>
-        </div>
+        ) : null}
+      </CompactSection>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+      <CloudSyncPanel />
+
+      <CompactSection
+        eyebrow="Local device"
+        title={`Day ${activeDay} / 90`}
+        description="Aktif günü ve bu cihazdaki yerel ilerlemeyi yönet."
+        action={<StatusPill status="active">Local-first</StatusPill>}
+      >
+        <div className="grid gap-2 sm:grid-cols-3">
           <button
             type="button"
             onClick={resetActiveDay}
-            className="min-h-12 rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+            className="min-h-11 rounded-full bg-[#17201a] px-4 py-3 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
           >
-            Reset active day to Day 1
+            Reset Day 1
           </button>
           <button
             type="button"
             onClick={clearLocalProgress}
-            className="min-h-12 rounded-full border border-foreground/20 bg-surface px-5 py-4 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+            className="min-h-11 rounded-full border border-foreground/20 bg-surface px-4 py-3 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
           >
             Clear local progress
           </button>
+          <Link
+            href="/journal"
+            className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+          >
+            Journal aç
+          </Link>
         </div>
-
-        <Link
-          href="/journal"
-          className="flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-        >
-          Practice Journal aç
-        </Link>
-
         {message ? (
-          <p className="rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
+          <p className="mt-3 rounded-[1.25rem] border border-moss/20 bg-sage p-3 text-sm font-semibold leading-6 text-foreground">
             {message}
           </p>
         ) : null}
-      </Card>
+      </CompactSection>
 
-      <CloudSyncPanel />
-
-      <Card className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-              Audio
-            </p>
-            <p className="mt-2 text-lg font-semibold">
-              {audioStatus === "checking"
-                ? "Ses durumu kontrol ediliyor"
-                : audioStatus === "configured"
-                  ? "ElevenLabs ses servisi hazır"
-                  : "Ses servisi henüz hazır değil"}
-            </p>
-          </div>
-          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-              Practice mode
-            </p>
-            <p className="mt-2 text-lg font-semibold">Local-first</p>
-          </div>
-          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-              Cloud sync
-            </p>
-            <p className="mt-2 text-lg font-semibold">
-              {supabaseStatus.configured ? "Supabase ready" : "Not connected"}
-            </p>
-            {supabaseStatus.invalidMessage ? (
-              <p className="mt-1 text-sm font-semibold leading-5 text-muted">
-                {supabaseStatus.invalidMessage}
-              </p>
-            ) : null}
-          </div>
-          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-              Cloud account
-            </p>
-            <p className="mt-2 text-lg font-semibold">
-              {cloudAccountStatus === "checking"
-                ? "Kontrol ediliyor"
-                : cloudAccountStatus === "signedIn"
-                  ? "Signed in"
-                  : "Not signed in"}
-            </p>
-            {cloudAccountEmail ? (
-              <p className="mt-1 break-words text-sm font-semibold leading-5 text-muted">
-                {cloudAccountEmail}
-              </p>
-            ) : null}
-            {cloudAccountStatus === "signedIn" ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {cloudAccountRole === "admin" ? (
-                  <Link
-                    href="/admin"
-                    className="inline-flex min-h-10 items-center justify-center rounded-full bg-linen px-4 py-2 text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
-                  >
-                    Admin paneli
-                  </Link>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={() => {
-                    void signOutFromSettings();
-                  }}
-                  disabled={isSigningOut}
-                  className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-surface px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-                >
-                  {isSigningOut ? "Çıkış yapılıyor" : "Çıkış yap"}
-                </button>
-              </div>
-            ) : null}
-            {cloudAccountMessage ? (
-              <p className="mt-3 text-sm font-semibold leading-5 text-muted">
-                {cloudAccountMessage}
-              </p>
-            ) : null}
-          </div>
-          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-              Program length
-            </p>
-            <p className="mt-2 text-lg font-semibold">90 days</p>
-          </div>
-        </div>
-
-        <p className="rounded-[1.4rem] bg-linen p-4 text-sm font-semibold leading-6 text-[#2d261d]">
+      <CompactSection
+        eyebrow="System status"
+        title="Ses, cloud ve program"
+        description="Kısa durum özeti. Teknik kontroller aynı şekilde çalışmaya devam eder."
+      >
+        <ProgressStrip
+          items={[
+            {
+              label:
+                audioStatus === "checking"
+                  ? "Audio checking"
+                  : audioStatus === "configured"
+                    ? "Audio ready"
+                    : "Audio not ready",
+              status:
+                audioStatus === "configured"
+                  ? "synced"
+                  : audioStatus === "checking"
+                    ? "pending"
+                    : "warning",
+            },
+            {
+              label: supabaseStatus.configured
+                ? "Supabase ready"
+                : "Cloud not connected",
+              status: supabaseStatus.configured ? "synced" : "noSync",
+            },
+            {
+              label: "90 days",
+              status: "active",
+            },
+          ]}
+        />
+        {supabaseStatus.invalidMessage ? (
+          <p className="mt-3 text-sm font-semibold leading-5 text-muted">
+            {supabaseStatus.invalidMessage}
+          </p>
+        ) : null}
+        <p className="mt-3 rounded-[1.25rem] bg-linen p-3 text-sm font-semibold leading-6 text-[#2d261d]">
           Bu sürüm ilerlemeyi bu cihazdaki tarayıcıda saklar. Cihaz değişirse
           veya tarayıcı verisi silinirse ilerleme kaybolabilir.
         </p>
-        <p className="text-sm font-medium leading-6 text-muted">
-          Giriş yaptıysan cloud progress sync kullanabilirsin. Admin panelde
-          güncel görünmek için çalışma sonrası Cloud’a yedekle veya Senkronize
-          et kullan.
-        </p>
+      </CompactSection>
+
+      <CompactSection
+        eyebrow="Pilot"
+        title="Pilot kullanım rehberi"
+        description="Kayıt, günlük çalışma, cloud sync ve admin görünürlüğü için kısa ekip rehberi."
+      >
         <Link
-          href={cloudAccountStatus === "signedIn" ? "/account" : "/login"}
-          className="flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+          href="/pilot"
+          className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
         >
-          {cloudAccountStatus === "signedIn"
-            ? "Cloud account aç"
-            : "Login sayfasına git"}
+          Pilot kullanım rehberi
         </Link>
-      </Card>
+      </CompactSection>
 
-      <Card className="space-y-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-            Export / Import
+      <ExpandableCard
+        eyebrow="Ekip kullanımı"
+        title="Gizlilik ve admin görünürlüğü"
+        description="Cloud sync kullanırsan hangi ilerleme bilgilerinin admin tarafından görülebileceğini açıklar."
+      >
+        <div className="space-y-3 text-sm font-semibold leading-6 text-muted">
+          <p>
+            Bu uygulama İngilizce pratik ilerlemesini takip etmek için
+            kullanılır.
           </p>
-          <h2 className="mt-1 text-2xl font-semibold leading-tight">
-            Yerel ilerlemeyi taşı
-          </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-muted">
-            Dışa aktarma yalnızca bu uygulamanın yerel pratik cevaplarını içerir.
-            API anahtarı veya gizli ses ayarı içermez.
+          <p>
+            Giriş yapıp cloud sync kullandığında aktif günün, tamamladığın
+            modüller, review durumu, yazılı pratik cevapların ve journal notların
+            ekip yöneticisi tarafından görülebilir.
+          </p>
+          <p>
+            Ses kayıtları tutulmaz. ElevenLabs API anahtarı kullanıcı
+            ilerlemesine kaydedilmez.
+          </p>
+          <p>
+            Yerel ilerleme, cloud’a yedeklemediğin sürece bu cihazdaki
+            tarayıcıda kalır. Cloud sync isteğe bağlıdır; ancak farklı cihazdan
+            geri yükleme ve admin panelde görünmek için cloud’a yedekleme
+            gerekir.
           </p>
         </div>
+      </ExpandableCard>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => {
-              void copyExportJson();
-            }}
-            className="min-h-12 rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-          >
-            Export JSON kopyala
-          </button>
-          <button
-            type="button"
-            onClick={downloadExportJson}
-            className="min-h-12 rounded-full border border-foreground/20 bg-surface px-5 py-4 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-          >
-            JSON indir
-          </button>
-        </div>
-
-        {exportText ? (
-          <textarea
-            readOnly
-            value={exportText}
-            rows={5}
-            aria-label="Exported progress JSON"
-            className="w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 font-mono text-xs leading-5 text-foreground outline-none"
-          />
-        ) : null}
-
-        <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
-          <label
-            htmlFor="import-progress-json"
-            className="text-xs font-bold uppercase tracking-[0.16em] text-clay"
-          >
-            Import JSON
-          </label>
-          <p className="mt-2 text-sm font-medium leading-6 text-muted">
-            Daha önce aldığın Argos ilerleme JSON metnini yapıştır veya dosya
-            seç. Hatalı JSON uygulamayı bozmaz; sadece içe aktarılmaz.
-          </p>
-          <textarea
-            id="import-progress-json"
-            value={importText}
-            onChange={(event) => {
-              setImportText(event.target.value);
-              setImportMessage("");
-            }}
-            rows={6}
-            placeholder='{"version":1,"days":{...}}'
-            className="mt-4 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-surface p-4 font-mono text-xs leading-5 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
-          />
-          <input
-            type="file"
-            accept="application/json,.json"
-            onChange={(event) => {
-              void loadImportFile(event.target.files?.[0]);
-            }}
-            className="mt-3 block w-full text-sm font-semibold text-muted file:mr-3 file:min-h-10 file:rounded-full file:border-0 file:bg-linen file:px-4 file:text-sm file:font-black file:text-[#17201a]"
-          />
-          <button
-            type="button"
-            onClick={importProgress}
-            disabled={importText.trim().length === 0}
-            className="mt-4 min-h-12 w-full rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto"
-          >
-            Import progress
-          </button>
-          {importMessage ? (
-            <p className="mt-4 rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
-              {importMessage}
+      <ExpandableCard
+        eyebrow="Advanced"
+        title="Advanced local data"
+        description="Yerel ilerlemeyi JSON olarak dışa/içe aktar. Veri formatı aynı kalır."
+      >
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold leading-tight">
+              Yerel ilerlemeyi taşı
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-muted">
+              Dışa aktarma yalnızca bu uygulamanın yerel pratik cevaplarını
+              içerir. API anahtarı veya gizli ses ayarı içermez.
             </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => {
+                void copyExportJson();
+              }}
+              className="min-h-12 rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+            >
+              Export JSON kopyala
+            </button>
+            <button
+              type="button"
+              onClick={downloadExportJson}
+              className="min-h-12 rounded-full border border-foreground/20 bg-surface px-5 py-4 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+            >
+              JSON indir
+            </button>
+          </div>
+
+          {exportText ? (
+            <textarea
+              readOnly
+              value={exportText}
+              rows={5}
+              aria-label="Exported progress JSON"
+              className="w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 font-mono text-xs leading-5 text-foreground outline-none"
+            />
           ) : null}
+
+          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
+            <label
+              htmlFor="import-progress-json"
+              className="text-xs font-bold uppercase tracking-[0.16em] text-clay"
+            >
+              Import JSON
+            </label>
+            <p className="mt-2 text-sm font-medium leading-6 text-muted">
+              Daha önce aldığın Argos ilerleme JSON metnini yapıştır veya dosya
+              seç. Hatalı JSON uygulamayı bozmaz; sadece içe aktarılmaz.
+            </p>
+            <textarea
+              id="import-progress-json"
+              value={importText}
+              onChange={(event) => {
+                setImportText(event.target.value);
+                setImportMessage("");
+              }}
+              rows={6}
+              placeholder='{"version":1,"days":{...}}'
+              className="mt-4 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-surface p-4 font-mono text-xs leading-5 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
+            />
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => {
+                void loadImportFile(event.target.files?.[0]);
+              }}
+              className="mt-3 block w-full text-sm font-semibold text-muted file:mr-3 file:min-h-10 file:rounded-full file:border-0 file:bg-linen file:px-4 file:text-sm file:font-black file:text-[#17201a]"
+            />
+            <button
+              type="button"
+              onClick={importProgress}
+              disabled={importText.trim().length === 0}
+              className="mt-4 min-h-12 w-full rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto"
+            >
+              Import progress
+            </button>
+            {importMessage ? (
+              <p className="mt-4 rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
+                {importMessage}
+              </p>
+            ) : null}
+          </div>
         </div>
-      </Card>
+      </ExpandableCard>
     </div>
   );
 }

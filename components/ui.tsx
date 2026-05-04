@@ -135,7 +135,7 @@ export function ExpandableCard({
   return (
     <details
       className={`group rounded-[1.45rem] border border-foreground/10 bg-surface p-4 shadow-soft sm:rounded-[1.75rem] sm:p-5 ${className}`}
-      open={defaultOpen}
+      {...(defaultOpen ? { open: true } : {})}
     >
       <summary className="flex cursor-pointer list-none items-start justify-between gap-3 outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&::-webkit-details-marker]:hidden">
         <span className="min-w-0">

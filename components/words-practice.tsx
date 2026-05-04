@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ExpandableCard, ProgressStrip } from "@/components/ui";
 import type { WordItem } from "@/lib/words-content";
 import {
   getDayProgress,
@@ -263,34 +264,65 @@ export function WordsPractice({
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-          Ne yapacaksın?
-        </p>
-        <p className="mt-3 text-base leading-7 text-muted">
+    <div className="space-y-4">
+      <ExpandableCard
+        eyebrow="Ne yapacaksın?"
+        title="Kelimeleri hızlı tara, sonra kullan"
+        description="Anlamı görünür tut; örnek cümleyi ihtiyaç duyunca aç."
+      >
+        <p className="text-sm font-semibold leading-6 text-muted">
           Kelimeleri tek tek oku. Telaffuzu sesli dene, Türkçe anlamı kontrol
           et, sonra örnek cümleyi yüksek sesle tekrar et. Hedef kelimeyi pasif
           bilmek değil; kısa bir cümlede kullanmak.
         </p>
-      </section>
+      </ExpandableCard>
 
       <section className="space-y-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-            Day {day} words
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold leading-tight">
-            Bugün kullanacağın kelimeler
-          </h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
+              Day {day} words
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold leading-tight">
+              Bugün kullanacağın kelimeler
+            </h2>
+          </div>
+          <a
+            href="#word-sentence-card"
+            className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:min-w-fit"
+          >
+            Yazma pratiğine geç
+          </a>
         </div>
+
+        <ProgressStrip
+          items={[
+            { label: `Day ${day}`, status: "active" },
+            { label: `${words.length} words`, status: "done" },
+            {
+              label:
+                ttsConfigState === "checking"
+                  ? "Audio checking"
+                  : ttsConfigState === "configured"
+                    ? "Audio ready"
+                    : "Audio off",
+              status:
+                ttsConfigState === "configured"
+                  ? "synced"
+                  : ttsConfigState === "checking"
+                    ? "pending"
+                    : "noSync",
+            },
+          ]}
+        />
+
         {ttsConfigState === "notConfigured" ? (
-          <p className="rounded-[1.25rem] border border-foreground/10 bg-linen/70 p-4 text-sm font-semibold leading-6 text-foreground">
+          <p className="rounded-[1.15rem] border border-foreground/10 bg-linen/70 px-4 py-3 text-sm font-semibold leading-6 text-foreground">
             Kelime seslendirme henüz yapılandırılmadı.
           </p>
         ) : null}
 
-        <div className="grid gap-3">
+        <div className="grid gap-2.5">
           {words.map((item, index) => {
             const wordAudioId = getAudioId("word", index);
             const exampleAudioId = getAudioId("example", index);
@@ -300,66 +332,83 @@ export function WordsPractice({
             return (
               <article
                 key={item.word}
-                className="rounded-[1.6rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6"
+                className="rounded-[1.35rem] border border-foreground/10 bg-surface p-4 shadow-soft sm:rounded-[1.6rem] sm:p-5"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
                       Word {index + 1}
                     </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <h3 className="min-w-0 text-3xl font-semibold leading-none tracking-tight">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <h3 className="min-w-0 text-2xl font-semibold leading-none tracking-tight sm:text-3xl">
                         {item.word}
                       </h3>
-                      {canShowAudioControls ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            void playWordAudio({
-                              id: wordAudioId,
-                              kind: "word",
-                              text: item.word,
-                            });
-                          }}
-                          aria-label={getAudioButtonAriaLabel(
-                            "word",
-                            wordAudioId,
-                          )}
-                          className={`min-h-10 min-w-[5.75rem] rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
-                            wordIsActive && audioState === "playing"
-                              ? "bg-moss text-white"
-                              : "bg-[#17201a] text-white hover:bg-[#33493a]"
-                          }`}
-                        >
-                          {getAudioButtonLabel(wordAudioId)}
-                        </button>
-                      ) : null}
+                      <span className="rounded-full bg-sage px-3 py-1.5 text-xs font-black text-moss">
+                        {item.pronunciation}
+                      </span>
                     </div>
-                    {audioErrors[wordAudioId] ? (
-                      <p className="mt-3 rounded-[1rem] border border-clay/20 bg-linen/70 p-3 text-sm font-semibold leading-5 text-foreground">
-                        {audioErrors[wordAudioId]}
-                      </p>
-                    ) : null}
                   </div>
-                  <span className="shrink-0 rounded-full bg-sage px-3 py-1.5 text-xs font-black text-moss">
-                    {item.pronunciation}
-                  </span>
+                  {canShowAudioControls ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void playWordAudio({
+                          id: wordAudioId,
+                          kind: "word",
+                          text: item.word,
+                        });
+                      }}
+                      aria-label={getAudioButtonAriaLabel(
+                        "word",
+                        wordAudioId,
+                      )}
+                      className={`min-h-10 min-w-[5.75rem] shrink-0 rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+                        wordIsActive && audioState === "playing"
+                          ? "bg-moss text-white"
+                          : "bg-[#17201a] text-white hover:bg-[#33493a]"
+                      }`}
+                    >
+                      {getAudioButtonLabel(wordAudioId)}
+                    </button>
+                  ) : null}
                 </div>
 
-                <div className="mt-5 grid gap-3">
-                  <div className="rounded-[1.25rem] bg-background/85 p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
-                      Kısa anlam
-                    </p>
-                    <p className="mt-1 text-base font-semibold text-foreground">
-                      {item.shortMeaningTr}
-                    </p>
-                  </div>
+                {audioErrors[wordAudioId] ? (
+                  <p className="mt-3 rounded-[1rem] border border-clay/20 bg-linen/70 p-3 text-sm font-semibold leading-5 text-foreground">
+                    {audioErrors[wordAudioId]}
+                  </p>
+                ) : null}
 
-                  <div className="rounded-[1.25rem] border border-foreground/10 bg-linen/60 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
+                <div className="mt-3 rounded-[1.15rem] bg-background/85 px-3 py-2.5">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
+                    Kısa anlam
+                  </p>
+                  <p className="mt-1 text-base font-semibold leading-6 text-foreground">
+                    {item.shortMeaningTr}
+                  </p>
+                </div>
+
+                <details className="group mt-3 rounded-[1.15rem] border border-foreground/10 bg-linen/60 px-3 py-3">
+                  <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-linen [&::-webkit-details-marker]:hidden">
+                    <span className="min-w-0">
+                      <span className="block text-xs font-bold uppercase tracking-[0.14em] text-muted">
                         Example
+                      </span>
+                      <span className="mt-0.5 block text-sm font-semibold leading-5 text-foreground">
+                        Örnek cümleyi aç
+                      </span>
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-lg font-black leading-none text-[#17201a] transition group-open:rotate-45"
+                    >
+                      +
+                    </span>
+                  </summary>
+                  <div className="mt-3 border-t border-foreground/10 pt-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="min-w-0 text-base font-semibold leading-7 text-foreground">
+                        {item.exampleSentence}
                       </p>
                       {canShowAudioControls ? (
                         <button
@@ -375,7 +424,7 @@ export function WordsPractice({
                             "example",
                             exampleAudioId,
                           )}
-                          className={`min-h-10 min-w-[5.75rem] rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-linen ${
+                          className={`min-h-10 min-w-[5.75rem] shrink-0 rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-linen ${
                             exampleIsActive && audioState === "playing"
                               ? "bg-moss text-white"
                               : "bg-[#17201a] text-white hover:bg-[#33493a]"
@@ -385,23 +434,23 @@ export function WordsPractice({
                         </button>
                       ) : null}
                     </div>
-                    <p className="mt-2 text-base font-semibold leading-7 text-foreground">
-                      {item.exampleSentence}
-                    </p>
                     {audioErrors[exampleAudioId] ? (
                       <p className="mt-3 rounded-[1rem] border border-clay/20 bg-surface/70 p-3 text-sm font-semibold leading-5 text-foreground">
                         {audioErrors[exampleAudioId]}
                       </p>
                     ) : null}
                   </div>
-                </div>
+                </details>
               </article>
             );
           })}
         </div>
       </section>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
+      <section
+        id="word-sentence-card"
+        className="scroll-mt-6 rounded-[1.45rem] border border-foreground/10 bg-surface p-4 shadow-soft sm:rounded-[1.75rem] sm:p-5"
+      >
         <label
           htmlFor="word-sentence"
           className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm"
