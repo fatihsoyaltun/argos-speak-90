@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { Card, PageHeader } from "@/components/ui";
+import {
+  Card,
+  CompactSection,
+  ExpandableCard,
+  PageHeader,
+  ProgressStrip,
+  StatusPill,
+} from "@/components/ui";
 import {
   formatAdminDate,
   getAdminUserDetail,
@@ -62,7 +69,7 @@ function DetailStat({
   value: string | number;
 }) {
   return (
-    <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
+    <div className="rounded-[1.2rem] border border-foreground/10 bg-background/85 p-3">
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
         {label}
       </p>
@@ -71,6 +78,16 @@ function DetailStat({
       </p>
     </div>
   );
+}
+
+function truncateText(value: string | null, maxLength = 150) {
+  const text = value?.trim() ?? "";
+
+  if (!text) {
+    return "";
+  }
+
+  return text.length > maxLength ? `${text.slice(0, maxLength).trim()}...` : text;
 }
 
 function hasPracticeText(entry: {
@@ -100,6 +117,30 @@ export default async function AdminUserPage({
 }) {
   const { userId } = await params;
   const result = await getAdminUserDetail(userId);
+  const data = result.ok ? result.data : null;
+  const learnerName =
+    data?.profile.full_name || data?.profile.email || "İsimsiz kullanıcı";
+  const recentDayProgress = data?.dayProgress.slice(-7).reverse() ?? [];
+  const recentProgressDetails = data?.dayProgress.slice(-10).reverse() ?? [];
+  const practiceEntriesWithText =
+    data?.practiceEntries.filter(hasPracticeText) ?? [];
+  const checkedReviewCount =
+    data?.reviewAnswers.filter((answer) => answer.checked_at).length ?? 0;
+  const correctReviewCount =
+    data?.reviewAnswers.filter((answer) => answer.is_correct === true).length ??
+    0;
+  const needsReviewCount =
+    data?.reviewAnswers.filter((answer) => answer.is_correct === false).length ??
+    0;
+  const moduleCounts = recentDayProgress.reduce(
+    (counts, row) => ({
+      listen: counts.listen + (row.listen_done ? 1 : 0),
+      review: counts.review + (row.review_done ? 1 : 0),
+      speak: counts.speak + (row.speak_done ? 1 : 0),
+      words: counts.words + (row.words_done ? 1 : 0),
+    }),
+    { listen: 0, review: 0, speak: 0, words: 0 },
+  );
 
   return (
     <div className="space-y-7">
@@ -134,55 +175,153 @@ export default async function AdminUserPage({
         </Card>
       ) : null}
 
-      {result.ok ? (
+      {data ? (
         <>
-          <Card className="space-y-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-                Learner
-              </p>
-              <h1 className="mt-1 break-words text-2xl font-semibold leading-tight">
-                {result.data.profile.full_name ||
-                  result.data.profile.email ||
-                  "İsimsiz kullanıcı"}
-              </h1>
-              {result.data.profile.full_name && result.data.profile.email ? (
-                <p className="mt-1 break-words text-sm font-semibold leading-5 text-muted">
-                  {result.data.profile.email}
-                </p>
+          <CompactSection
+            eyebrow="Learner"
+            title={learnerName}
+            description={
+              data.profile.full_name && data.profile.email
+                ? data.profile.email
+                : "Cloud’a yedeklenen öğrenme ilerlemesi."
+            }
+          >
+            <div className="flex flex-wrap gap-2">
+              <StatusPill status={data.member.role === "admin" ? "active" : "pending"}>
+                {data.member.role}
+              </StatusPill>
+              <StatusPill status={data.member.lastSeenAt ? "synced" : "noSync"}>
+                {data.member.lastSeenAt ? "Synced" : "No sync"}
+              </StatusPill>
+              <StatusPill status={data.member.activeDay ? "active" : "pending"}>
+                Day {data.member.activeDay ?? "-"}
+              </StatusPill>
+              {data.member.attentionReasons.length > 0 ? (
+                <StatusPill status="atRisk">Needs attention</StatusPill>
               ) : null}
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <DetailStat label="Role" value={result.data.member.role} />
-              <DetailStat
-                label="Active day"
-                value={result.data.member.activeDay ?? "-"}
-              />
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <DetailStat
                 label="Last seen"
-                value={formatAdminDate(result.data.member.lastSeenAt)}
+                value={formatAdminDate(data.member.lastSeenAt)}
               />
               <DetailStat
                 label="Completed days"
-                value={`${result.data.member.totalCompletedDays}/90`}
+                value={`${data.member.totalCompletedDays}/90`}
               />
             </div>
-          </Card>
 
-          <Card className="space-y-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-                Day 1-90
+            {data.member.attentionReasons.length > 0 ? (
+              <p className="mt-3 rounded-[1.1rem] border border-clay/25 bg-linen p-3 text-sm font-semibold leading-6 text-[#2d261d]">
+                Dikkat: {data.member.attentionReasons.join(", ")}
               </p>
-              <h2 className="mt-1 text-2xl font-semibold leading-tight">
-                Progress overview
-              </h2>
+            ) : null}
+          </CompactSection>
+
+          <CompactSection
+            eyebrow="Last 7 synced days"
+            title="Recent module activity"
+            description="Mevcut day_progress kayıtlarından türetilen son gün özeti."
+          >
+            <ProgressStrip
+              items={[
+                { label: `${recentDayProgress.length} days`, status: "active" },
+                { label: `Listen ${moduleCounts.listen}`, status: moduleCounts.listen ? "done" : "pending" },
+                { label: `Words ${moduleCounts.words}`, status: moduleCounts.words ? "done" : "pending" },
+                { label: `Speak ${moduleCounts.speak}`, status: moduleCounts.speak ? "done" : "pending" },
+                { label: `Review ${moduleCounts.review}`, status: moduleCounts.review ? "done" : "pending" },
+              ]}
+            />
+
+            <div className="mt-3 grid gap-2">
+              {recentDayProgress.length > 0 ? (
+                recentDayProgress.map((row) => (
+                  <div
+                    key={row.day_number}
+                    className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-black">Day {row.day_number}</p>
+                      <StatusPill
+                        status={(row.completion_percent ?? 0) >= 100 ? "done" : "active"}
+                      >
+                        {row.completion_percent ?? 0}%
+                      </StatusPill>
+                    </div>
+                    <ProgressStrip
+                      className="mt-2 bg-transparent"
+                      items={[
+                        { label: "L", status: row.listen_done ? "done" : "pending" },
+                        { label: "W", status: row.words_done ? "done" : "pending" },
+                        { label: "S", status: row.speak_done ? "done" : "pending" },
+                        { label: "R", status: row.review_done ? "done" : "pending" },
+                      ]}
+                    />
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm font-semibold leading-6 text-muted">
+                  Henüz day_progress kaydı yok.
+                </p>
+              )}
             </div>
+          </CompactSection>
+
+          <CompactSection
+            eyebrow="Practice preview"
+            title="Recent written practice"
+            description="Uzun cevaplar burada kısaltılır; tam metin aşağıdaki ayrıntılarda."
+          >
+            <div className="grid gap-2">
+              {practiceEntriesWithText.slice(0, 3).map((entry) => (
+                <article
+                  key={entry.day_number}
+                  className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
+                >
+                  <p className="text-sm font-black">Day {entry.day_number}</p>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+                    {truncateText(
+                      entry.speak_second_try ||
+                        entry.speak_first_try ||
+                        entry.listen_output ||
+                        entry.words_output ||
+                        entry.daily_note ||
+                        entry.difficult_part ||
+                        entry.next_review_note,
+                    ) || "Kayıt var, metin önizlenemedi."}
+                  </p>
+                </article>
+              ))}
+              {practiceEntriesWithText.length === 0 ? (
+                <p className="text-sm font-semibold leading-6 text-muted">
+                  Henüz practice entry kaydı yok.
+                </p>
+              ) : null}
+            </div>
+          </CompactSection>
+
+          <CompactSection
+            eyebrow="Review"
+            title="Answer summary"
+            description="Review cevaplarının mevcut cloud özetidir."
+          >
+            <div className="grid gap-2 sm:grid-cols-3">
+              <DetailStat label="Checked" value={checkedReviewCount} />
+              <DetailStat label="Correct" value={correctReviewCount} />
+              <DetailStat label="Needs review" value={needsReviewCount} />
+            </div>
+          </CompactSection>
+
+          <ExpandableCard
+            eyebrow="Full 90 days"
+            title="Day 1-90 progress grid"
+            description="Tüm günleri kompakt grid olarak aç."
+          >
             <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
               {Array.from({ length: 90 }, (_, index) => {
                 const dayNumber = index + 1;
-                const row = result.data.dayProgress.find(
+                const row = data.dayProgress.find(
                   (progress) => progress.day_number === dayNumber,
                 );
                 const percent = row?.completion_percent ?? 0;
@@ -192,7 +331,7 @@ export default async function AdminUserPage({
                 return (
                   <div
                     key={dayNumber}
-                    className={`flex h-12 items-center justify-center rounded-2xl text-xs font-black ${
+                    className={`flex h-11 items-center justify-center rounded-2xl text-xs font-black ${
                       isComplete
                         ? "bg-[#17201a] text-white"
                         : hasProgress
@@ -206,28 +345,26 @@ export default async function AdminUserPage({
                 );
               })}
             </div>
-          </Card>
+          </ExpandableCard>
 
-          <Card className="space-y-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-                Recent progress
-              </p>
-              <h2 className="mt-1 text-2xl font-semibold leading-tight">
-                Day progress rows
-              </h2>
-            </div>
-            <div className="grid gap-3">
-              {result.data.dayProgress.slice(-10).reverse().map((row) => (
+          <ExpandableCard
+            eyebrow="Recent progress"
+            title="Day progress details"
+            description="Son 10 day_progress kaydının modül ayrıntıları."
+          >
+            <div className="grid gap-2">
+              {recentProgressDetails.map((row) => (
                 <div
                   key={row.day_number}
-                  className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4"
+                  className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-lg font-semibold">Day {row.day_number}</p>
-                    <span className="rounded-full bg-linen px-3 py-1.5 text-xs font-black text-moss">
+                    <p className="text-base font-semibold">Day {row.day_number}</p>
+                    <StatusPill
+                      status={(row.completion_percent ?? 0) >= 100 ? "done" : "active"}
+                    >
                       {row.completion_percent ?? 0}%
-                    </span>
+                    </StatusPill>
                   </div>
                   <p className="mt-2 text-sm font-semibold leading-6 text-muted">
                     Listen {row.listen_done ? "done" : "-"} · Words{" "}
@@ -237,44 +374,34 @@ export default async function AdminUserPage({
                   </p>
                 </div>
               ))}
-              {result.data.dayProgress.length === 0 ? (
+              {data.dayProgress.length === 0 ? (
                 <p className="text-sm font-semibold leading-6 text-muted">
                   Henüz day_progress kaydı yok.
                 </p>
               ) : null}
             </div>
-          </Card>
+          </ExpandableCard>
 
-          <Card className="space-y-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-                Practice entries
-              </p>
-              <h2 className="mt-1 text-2xl font-semibold leading-tight">
-                Recent saved answers
-              </h2>
-            </div>
+          <ExpandableCard
+            eyebrow="Practice entries"
+            title="Full saved answers"
+            description="Listen, Words, Speak ve Journal metinlerinin son kayıtları."
+          >
             <div className="grid gap-3">
-              {result.data.practiceEntries.filter(hasPracticeText).map((entry) => (
+              {practiceEntriesWithText.map((entry) => (
                 <article
                   key={entry.day_number}
-                  className="space-y-3 rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4"
+                  className="space-y-3 rounded-[1.25rem] border border-foreground/10 bg-background/85 p-4"
                 >
                   <p className="text-lg font-semibold">Day {entry.day_number}</p>
                   {entry.listen_output ? (
                     <p className="text-sm font-semibold leading-6 text-muted">
-                      Listen:{" "}
-                      <span className="text-foreground">
-                        {entry.listen_output}
-                      </span>
+                      Listen: <span className="text-foreground">{entry.listen_output}</span>
                     </p>
                   ) : null}
                   {entry.words_output ? (
                     <p className="text-sm font-semibold leading-6 text-muted">
-                      Words:{" "}
-                      <span className="text-foreground">
-                        {entry.words_output}
-                      </span>
+                      Words: <span className="text-foreground">{entry.words_output}</span>
                     </p>
                   ) : null}
                   {entry.speak_first_try || entry.speak_second_try ? (
@@ -299,50 +426,57 @@ export default async function AdminUserPage({
                   ) : null}
                 </article>
               ))}
-              {result.data.practiceEntries.filter(hasPracticeText).length ===
-              0 ? (
+              {practiceEntriesWithText.length === 0 ? (
                 <p className="text-sm font-semibold leading-6 text-muted">
                   Henüz practice entry kaydı yok.
                 </p>
               ) : null}
             </div>
-          </Card>
+          </ExpandableCard>
 
-          <Card className="space-y-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-                Review
-              </p>
-              <h2 className="mt-1 text-2xl font-semibold leading-tight">
-                Answer summary
-              </h2>
+          <ExpandableCard
+            eyebrow="Review answers"
+            title="Full review answer list"
+            description={`${data.reviewAnswers.length} review answer row shown by existing RLS.`}
+          >
+            <div className="grid gap-2">
+              {data.reviewAnswers.map((answer) => (
+                <article
+                  key={`${answer.day_number}-${answer.item_index}`}
+                  className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-black">
+                      Day {answer.day_number} · Item {answer.item_index + 1}
+                    </p>
+                    <StatusPill
+                      status={
+                        answer.is_correct === true
+                          ? "done"
+                          : answer.is_correct === false
+                            ? "warning"
+                            : "pending"
+                      }
+                    >
+                      {answer.is_correct === true
+                        ? "Correct"
+                        : answer.is_correct === false
+                          ? "Needs review"
+                          : "Unchecked"}
+                    </StatusPill>
+                  </div>
+                  <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-foreground">
+                    {answer.answer || "Boş cevap"}
+                  </p>
+                </article>
+              ))}
+              {data.reviewAnswers.length === 0 ? (
+                <p className="text-sm font-semibold leading-6 text-muted">
+                  Henüz review answer kaydı yok.
+                </p>
+              ) : null}
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <DetailStat
-                label="Checked"
-                value={
-                  result.data.reviewAnswers.filter((answer) => answer.checked_at)
-                    .length
-                }
-              />
-              <DetailStat
-                label="Correct"
-                value={
-                  result.data.reviewAnswers.filter(
-                    (answer) => answer.is_correct === true,
-                  ).length
-                }
-              />
-              <DetailStat
-                label="Needs review"
-                value={
-                  result.data.reviewAnswers.filter(
-                    (answer) => answer.is_correct === false,
-                  ).length
-                }
-              />
-            </div>
-          </Card>
+          </ExpandableCard>
         </>
       ) : null}
     </div>
