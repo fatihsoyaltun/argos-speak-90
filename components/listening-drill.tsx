@@ -1,6 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CompactSection,
+  ExpandableCard,
+  StatusPill,
+  TaskStepper,
+} from "@/components/ui";
 import type { ListeningDrill } from "@/lib/listening-content";
 import { getTtsServiceStatus } from "@/lib/tts/client";
 import {
@@ -473,9 +479,12 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
     setSaveState("saved");
   }
 
+  const hasResponse = response.trim().length > 0;
+  const hasListenedToCurrentDay = hasLoadedAudio && audioDay === drill.day;
+
   return (
-    <div className="space-y-6">
-      <section className="rounded-[1.75rem] border border-moss/15 bg-moss p-5 text-white shadow-soft sm:p-6">
+    <div className="space-y-4">
+      <section className="rounded-[1.55rem] border border-moss/15 bg-moss p-5 text-white shadow-soft sm:rounded-[1.75rem] sm:p-6">
         <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-sage sm:text-sm">
             Bugünkü çalışma
@@ -531,13 +540,13 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         ) : null}
 
         {ttsConfigState === "checking" ? (
-          <div className="mt-5 rounded-[1.25rem] border border-surface/25 bg-surface/10 p-4 text-sm font-semibold leading-6 text-sage">
+          <div className="mt-4 rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
             Ses servisi kontrol ediliyor.
           </div>
         ) : null}
 
         {ttsConfigState === "notConfigured" ? (
-          <div className="mt-5 rounded-[1.25rem] border border-surface/25 bg-surface/10 p-4 text-sm font-semibold leading-6 text-sage">
+          <div className="mt-4 rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
             <p>Ses servisi henüz yapılandırılmadı.</p>
             <p className="mt-2 text-sage/85">
               ElevenLabs API anahtarı ve ses ayarları eklendiğinde bu bölüm
@@ -547,25 +556,42 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         ) : null}
 
         {audioError ? (
-          <p className="mt-3 rounded-[1.25rem] border border-surface/25 bg-surface/10 p-4 text-sm font-semibold leading-6 text-sage">
+          <p className="mt-3 rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
             {audioError}
           </p>
         ) : null}
 
       </section>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-          Ne yapacaksın?
-        </p>
-        <p className="mt-3 text-base leading-7 text-muted">
+      <TaskStepper
+        steps={[
+          {
+            label: "Listen",
+            status: hasListenedToCurrentDay
+              ? "done"
+              : canShowAudioControls
+                ? "active"
+                : "pending",
+          },
+          { label: "Read", status: hasResponse ? "done" : "active" },
+          { label: "Catch lines", status: hasResponse ? "done" : "active" },
+          { label: "Write", status: hasResponse ? "done" : "active" },
+        ]}
+      />
+
+      <ExpandableCard
+        eyebrow="Ne yapacaksın?"
+        title="Dinle, oku, kısa cevap yaz"
+        description="Detaylı çalışma yönlendirmesini ihtiyaç duyunca aç."
+      >
+        <p className="text-sm font-semibold leading-6 text-muted">
           Önce metni dinle. Sonra transcripti oku ve cümlelerin doğal sırasını
           fark et. Hedef ezber yapmak değil; kısa, gerçek İngilizceyi yakalayıp
           kendi cümleni kurmak.
         </p>
-      </section>
+      </ExpandableCard>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
+      <section className="rounded-[1.45rem] border border-foreground/10 bg-surface p-4 shadow-soft sm:rounded-[1.75rem] sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
@@ -587,12 +613,12 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
             >
               {compactAudioLabel}
             </button>
-            <span className="rounded-full bg-linen px-3 py-2 text-xs font-bold text-moss">
+            <StatusPill status="active">
               Day {drill.day}
-            </span>
+            </StatusPill>
           </div>
         </div>
-        <p className="mt-4 rounded-[1.4rem] bg-background/85 p-4 text-[1.03rem] leading-8 text-foreground">
+        <p className="mt-4 rounded-[1.25rem] bg-background/85 p-4 text-[1.03rem] leading-8 text-foreground">
           {transcriptSegments.map((segment) => {
             const isCurrentWord =
               typeof segment.wordIndex === "number" &&
@@ -618,47 +644,42 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         </p>
       </section>
 
-      <section className="space-y-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-            Yakalaman gereken cümleler
-          </p>
-          <h3 className="mt-1 text-2xl font-semibold leading-tight">
-            Sesli tekrar et
-          </h3>
-        </div>
-        <div className="grid gap-3">
+      <ExpandableCard
+        eyebrow="Yakalaman gereken cümleler"
+        title="Sesli tekrar et"
+        description={`${drill.keyLines.length} hedef cümle. İhtiyaç duyunca açıp tekrar et.`}
+      >
+        <div className="grid gap-2">
           {drill.keyLines.map((line, index) => (
             <div
               key={line}
-              className="rounded-[1.4rem] border border-foreground/10 bg-surface p-4 shadow-soft"
+              className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
             >
               <div className="flex gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-sage text-sm font-black text-moss">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-sage text-sm font-black text-moss">
                   {index + 1}
                 </span>
-                <p className="pt-1 text-base font-semibold leading-7">{line}</p>
+                <p className="pt-0.5 text-sm font-semibold leading-6 text-foreground">
+                  {line}
+                </p>
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </ExpandableCard>
 
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-          Mini task
-        </p>
-        <p className="mt-3 text-base leading-7 text-muted">{drill.miniTaskTr}</p>
-      </section>
-
-      <section className="rounded-[1.75rem] border border-foreground/10 bg-surface p-5 shadow-soft sm:p-6">
+      <CompactSection
+        eyebrow="Mini task"
+        title="Kısa cevabın"
+        description={drill.miniTaskTr}
+      >
         <label
           htmlFor="listen-response"
-          className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm"
+          className="sr-only"
         >
           Kısa cevabın
         </label>
-        <p className="mt-2 text-base leading-7 text-muted">
+        <p className="rounded-[1.15rem] bg-linen px-3 py-2 text-sm font-semibold leading-6 text-[#2d261d]">
           {drill.outputPrompt}
         </p>
         <textarea
@@ -670,7 +691,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
           }}
           rows={5}
           placeholder="Example: I have a slow morning. First, I need coffee."
-          className="mt-4 w-full resize-none rounded-[1.4rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
+          className="mt-3 w-full resize-none rounded-[1.4rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
         />
         <button
           type="button"
@@ -685,7 +706,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
             Cevabın bu cihazda kaydedildi.
           </p>
         ) : null}
-      </section>
+      </CompactSection>
     </div>
   );
 }

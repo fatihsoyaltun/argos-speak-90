@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { DayNavigator, useActiveDay } from "@/components/active-day";
-import { Card, PageHeader } from "@/components/ui";
+import {
+  CompactSection,
+  ExpandableCard,
+  PageHeader,
+  ProgressStrip,
+  StatusPill,
+} from "@/components/ui";
 import { listeningDrills } from "@/lib/listening-content";
 import {
   getDayProgress,
@@ -97,7 +103,7 @@ export default function JournalPage() {
   const completedTasks = progress?.completedTasks ?? [];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <PageHeader
         eyebrow={`Journal · Day ${activeDay}`}
         title="Practice journal"
@@ -106,55 +112,82 @@ export default function JournalPage() {
 
       <DayNavigator />
 
-      <Card className="space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-              Current day
-            </p>
-            <h2 className="mt-1 text-2xl font-semibold leading-tight">
-              Day {activeDay} saved work
-            </h2>
-          </div>
-          <span className="shrink-0 rounded-full bg-sage px-3 py-1.5 text-xs font-black text-moss">
+      <CompactSection
+        eyebrow="Current day"
+        title={`Day ${activeDay} saved work`}
+        description={`Son kayıt: ${formatUpdatedAt(progress?.updatedAt ?? "")}`}
+        action={
+          <StatusPill status={completedTasks.length === 4 ? "done" : "active"}>
             {completedTasks.length}/4
-          </span>
+          </StatusPill>
+        }
+      >
+        <ProgressStrip
+          items={taskOrder.map((task) => ({
+            label: taskLabels[task],
+            status: completedTasks.includes(task) ? "done" : "pending",
+          }))}
+        />
+      </CompactSection>
+
+      <CompactSection
+        eyebrow="Daily notes"
+        title="Yarın için küçük notlar"
+        description="Bugünkü çalışma hakkında kısa not bırak. Bu alanlar cihazında yerel olarak kaydedilir."
+      >
+        <div className="grid gap-3">
+          <label className="block">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
+              Bugünün kısa notu
+            </span>
+            <textarea
+              value={progress?.dailyNote ?? ""}
+              onChange={(event) =>
+                updateJournalField("dailyNote", event.target.value)
+              }
+              rows={3}
+              placeholder="Bugün ne iyi gitti?"
+              className="mt-2 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
+              Bugün zorlandığım şey
+            </span>
+            <textarea
+              value={progress?.difficultPart ?? ""}
+              onChange={(event) =>
+                updateJournalField("difficultPart", event.target.value)
+              }
+              rows={3}
+              placeholder="Örneğin: geçmiş zaman cümlesini kurmak zor geldi."
+              className="mt-2 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
+              Yarın tekrar etmem gereken şey
+            </span>
+            <textarea
+              value={progress?.nextReviewNote ?? ""}
+              onChange={(event) =>
+                updateJournalField("nextReviewNote", event.target.value)
+              }
+              rows={3}
+              placeholder="Örneğin: hedef cümleleri bir kez daha sesli tekrar et."
+              className="mt-2 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
+            />
+          </label>
         </div>
+      </CompactSection>
 
-        <div className="grid gap-2 sm:grid-cols-4">
-          {taskOrder.map((task) => {
-            const isComplete = completedTasks.includes(task);
-
-            return (
-              <span
-                key={task}
-                className={`rounded-full px-3 py-2 text-center text-xs font-black ${
-                  isComplete
-                    ? "bg-moss text-white"
-                    : "bg-linen text-[#4c453b]"
-                }`}
-              >
-                {taskLabels[task]}
-              </span>
-            );
-          })}
-        </div>
-
-        <p className="text-sm font-semibold leading-6 text-muted">
-          Son kayıt: {formatUpdatedAt(progress?.updatedAt ?? "")}
-        </p>
-      </Card>
-
-      <section className="space-y-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
-            Saved answers
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold leading-tight">
-            Bugünkü yazılı pratik
-          </h2>
-        </div>
-
+      <ExpandableCard
+        eyebrow="Saved answers"
+        title="Bugünkü yazılı pratik"
+        description="Listen, Words ve Speak cevaplarını arşiv olarak aç."
+      >
         <div className="grid gap-3">
           <SavedTextBlock
             label={listening.title}
@@ -173,18 +206,13 @@ export default function JournalPage() {
             value={progress?.speakSecondTry ?? ""}
           />
         </div>
-      </section>
+      </ExpandableCard>
 
-      <Card className="space-y-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-            Review answers
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold leading-tight">
-            Kontrol ettiğin cevaplar
-          </h2>
-        </div>
-
+      <ExpandableCard
+        eyebrow="Review answers"
+        title="Kontrol ettiğin cevaplar"
+        description={`${checkedReviewAnswers.length} review cevabı kaydedildi.`}
+      >
         <div className="grid gap-3">
           {checkedReviewAnswers.length > 0 ? (
             checkedReviewAnswers.map(([index, answer]) => {
@@ -226,63 +254,7 @@ export default function JournalPage() {
             </p>
           )}
         </div>
-      </Card>
-
-      <Card className="space-y-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
-            Daily notes
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold leading-tight">
-            Yarın için küçük notlar
-          </h2>
-        </div>
-
-        <label className="block">
-          <span className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
-            Bugünün kısa notu
-          </span>
-          <textarea
-            value={progress?.dailyNote ?? ""}
-            onChange={(event) =>
-              updateJournalField("dailyNote", event.target.value)
-            }
-            rows={3}
-            placeholder="Bugün ne iyi gitti?"
-            className="mt-2 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
-            Bugün zorlandığım şey
-          </span>
-          <textarea
-            value={progress?.difficultPart ?? ""}
-            onChange={(event) =>
-              updateJournalField("difficultPart", event.target.value)
-            }
-            rows={3}
-            placeholder="Örneğin: geçmiş zaman cümlesini kurmak zor geldi."
-            className="mt-2 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-xs font-bold uppercase tracking-[0.14em] text-muted">
-            Yarın tekrar etmem gereken şey
-          </span>
-          <textarea
-            value={progress?.nextReviewNote ?? ""}
-            onChange={(event) =>
-              updateJournalField("nextReviewNote", event.target.value)
-            }
-            rows={3}
-            placeholder="Örneğin: hedef cümleleri bir kez daha sesli tekrar et."
-            className="mt-2 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
-          />
-        </label>
-      </Card>
+      </ExpandableCard>
     </div>
   );
 }
