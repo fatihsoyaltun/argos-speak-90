@@ -216,6 +216,20 @@ export default function SettingsPage() {
       />
 
       <CompactSection
+        eyebrow="Professional English"
+        title="Professional English / Device Lab"
+        description="Kaynak kontrollü cihaz iletişimi pratiği."
+        action={<StatusPill status="pending">Read-only</StatusPill>}
+      >
+        <Link
+          href="/device-lab"
+          className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
+        >
+          Device Lab’i aç
+        </Link>
+      </CompactSection>
+
+      <CompactSection
         eyebrow="Cloud account"
         title={
           cloudAccountStatus === "checking"
