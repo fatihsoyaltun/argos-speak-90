@@ -7,6 +7,7 @@ import {
   ControlLabel,
   SourceReferenceList,
 } from "../../_components/device-lab-ui";
+import { DeviceLabPracticePanel } from "../../_components/device-lab-practice-panel";
 
 type ModulePageProps = {
   params: Promise<{ deviceSlug: string; moduleId: string }>;
@@ -48,7 +49,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
           {learningModule.learnerLevel}
         </span>
         <span className="inline-flex items-center rounded-full border border-foreground/10 bg-surface px-2.5 py-1 text-[0.7rem] font-black leading-4 text-muted">
-          read_only
+          local_practice
         </span>
       </div>
 
@@ -217,6 +218,16 @@ export default async function ModulePage({ params }: ModulePageProps) {
       >
         <SourceReferenceList references={learningModule.sourceReferences} />
       </CompactSection>
+
+      <DeviceLabPracticePanel
+        deviceSlug={device.slug}
+        moduleId={learningModule.id}
+        moduleTitle={learningModule.titleTr}
+        firstTryInstruction={learningModule.firstTryInstructionTr}
+        secondTryInstruction={learningModule.secondTryInstructionTr}
+        reviewInstruction={learningModule.reviewTaskTr}
+        journalInstruction={learningModule.journalPromptTr}
+      />
     </div>
   );
 }
