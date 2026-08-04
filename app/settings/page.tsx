@@ -223,7 +223,7 @@ export default function SettingsPage() {
       >
         <Link
           href="/device-lab"
-          className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
+          className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black text-[#17201a] outline-none transition visited:text-[#17201a] hover:bg-sage hover:text-[#17201a] active:scale-[0.98] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:text-[#17201a]"
         >
           Device Lab’i aç
         </Link>
@@ -265,14 +265,14 @@ export default function SettingsPage() {
           {cloudAccountRole === "admin" && cloudAccountStatus === "signedIn" ? (
             <Link
               href="/admin"
-              className="inline-flex min-h-10 items-center justify-center rounded-full bg-linen px-4 py-2 text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition visited:text-[#17201a] hover:bg-sage hover:text-[#17201a] active:scale-[0.98] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:text-[#17201a]"
             >
               Admin paneli
             </Link>
           ) : null}
           <Link
             href={cloudAccountStatus === "signedIn" ? "/account" : "/login"}
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
           >
             {cloudAccountStatus === "signedIn"
               ? "Cloud account aç"
@@ -285,7 +285,7 @@ export default function SettingsPage() {
                 void signOutFromSettings();
               }}
               disabled={isSigningOut}
-              className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-surface px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-surface px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
             >
               {isSigningOut ? "Çıkış yapılıyor" : "Çıkış yap"}
             </button>
@@ -386,7 +386,7 @@ export default function SettingsPage() {
       >
         <Link
           href="/pilot"
-          className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-[#17201a]"
+          className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black text-[#17201a] outline-none transition visited:text-[#17201a] hover:bg-sage hover:text-[#17201a] active:scale-[0.98] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:text-[#17201a]"
         >
           Pilot kullanım rehberi
         </Link>
@@ -493,7 +493,7 @@ export default function SettingsPage() {
               onChange={(event) => {
                 void loadImportFile(event.target.files?.[0]);
               }}
-              className="mt-3 block w-full text-sm font-semibold text-muted file:mr-3 file:min-h-10 file:rounded-full file:border-0 file:bg-linen file:px-4 file:text-sm file:font-black file:text-[#17201a]"
+              className="mt-3 block w-full text-sm font-semibold text-muted file:mr-3 file:min-h-11 file:rounded-full file:border-0 file:bg-linen file:px-4 file:text-sm file:font-black file:text-[#17201a]"
             />
             <button
               type="button"

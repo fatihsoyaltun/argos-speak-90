@@ -185,7 +185,7 @@ export default function PilotPage() {
 
       <Link
         href="/settings"
-        className="flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+        className="flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black text-[#17201a] outline-none transition visited:text-[#17201a] hover:bg-sage hover:text-[#17201a] active:scale-[0.98] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
       >
         Settings’e dön
       </Link>

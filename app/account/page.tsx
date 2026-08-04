@@ -174,7 +174,7 @@ export default function AccountPage() {
             {profile?.role === "admin" ? (
               <Link
                 href="/admin"
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black !text-[#17201a] outline-none transition visited:!text-[#17201a] hover:bg-sage hover:!text-[#17201a] active:scale-[0.98] active:!text-[#17201a] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto [&_*]:!text-[#17201a]"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-foreground/20 bg-linen px-5 py-4 text-center text-sm font-black text-[#17201a] outline-none transition visited:text-[#17201a] hover:bg-sage hover:text-[#17201a] active:scale-[0.98] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto [&_*]:text-[#17201a]"
               >
                 Admin panelini aç
               </Link>

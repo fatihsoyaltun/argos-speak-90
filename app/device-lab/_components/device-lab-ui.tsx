@@ -40,7 +40,7 @@ export function BackLink({ href, children }: { href: string; children: React.Rea
   return (
     <Link
       href={href}
-      className="inline-flex min-h-10 items-center rounded-full border border-foreground/15 bg-surface px-4 py-2 text-sm font-black text-foreground outline-none transition hover:bg-linen active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+      className="inline-flex min-h-11 items-center rounded-full border border-foreground/15 bg-surface px-4 py-2 text-sm font-black text-foreground outline-none transition hover:bg-linen active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-background"
     >
       <span aria-hidden="true" className="mr-2">
         &larr;

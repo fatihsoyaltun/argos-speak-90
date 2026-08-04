@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { CompactSection, PageHeader } from "@/components/ui";
+import { ButtonLink, CompactSection, PageHeader } from "@/components/ui";
 import {
   assertDeviceLabDataValid,
   deviceLabDevices,
@@ -72,12 +71,12 @@ export default function DeviceLabPage() {
                 </p>
               ) : null}
 
-              <Link
+              <ButtonLink
                 href={`/device-lab/${device.slug}`}
-                className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#17201a] px-4 py-3 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto"
+                className="mt-4 w-full focus-visible:ring-offset-surface sm:w-auto"
               >
                 Cihaz detayını aç
-              </Link>
+              </ButtonLink>
             </CompactSection>
           ))}
         </div>

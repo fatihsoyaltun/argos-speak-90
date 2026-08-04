@@ -609,7 +609,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
               }}
               disabled={compactAudioDisabled}
               aria-label={compactAudioAriaLabel}
-              className="min-h-10 rounded-full bg-[#17201a] px-3.5 py-2 text-xs font-black text-white shadow-sm outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="min-h-11 rounded-full bg-[#17201a] px-3.5 py-2 text-xs font-black text-white shadow-sm outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             >
               {compactAudioLabel}
             </button>

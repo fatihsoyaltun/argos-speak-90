@@ -1,5 +1,63 @@
 import Link from "next/link";
+import type { ButtonHTMLAttributes, ComponentProps } from "react";
 import type { FlowStep } from "@/lib/phase-one-content";
+
+type ButtonVariant = "primary" | "secondary";
+
+const buttonBaseStyles =
+  "inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-3 text-center text-sm font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 disabled:cursor-not-allowed disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100";
+
+const buttonVariantStyles: Record<ButtonVariant, string> = {
+  primary:
+    "border-[#17201a] bg-[#17201a] text-white shadow-soft visited:text-white hover:border-[#33493a] hover:bg-[#33493a] hover:text-white active:border-[#26372c] active:bg-[#26372c] active:text-white focus-visible:text-white disabled:border-[#d7d0c6] disabled:bg-[#d7d0c6] disabled:text-[#3f493f]",
+  secondary:
+    "border-foreground/20 bg-surface text-[#17201a] visited:text-[#17201a] hover:bg-linen hover:text-[#17201a] active:bg-[#e6dac8] active:text-[#17201a] focus-visible:text-[#17201a] disabled:border-[#d7d0c6] disabled:bg-[#d7d0c6] disabled:text-[#3f493f]",
+};
+
+export function Button({
+  children,
+  className = "",
+  disabled,
+  isLoading = false,
+  loadingLabel = "Yükleniyor",
+  type = "button",
+  variant = "primary",
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  isLoading?: boolean;
+  loadingLabel?: string;
+  variant?: ButtonVariant;
+}) {
+  return (
+    <button
+      {...props}
+      type={type}
+      disabled={disabled || isLoading}
+      aria-busy={isLoading || undefined}
+      className={`${buttonBaseStyles} ${buttonVariantStyles[variant]} ${isLoading ? "cursor-wait" : ""} ${className}`}
+    >
+      {isLoading ? loadingLabel : children}
+    </button>
+  );
+}
+
+export function ButtonLink({
+  children,
+  className = "",
+  variant = "primary",
+  ...props
+}: ComponentProps<typeof Link> & {
+  variant?: ButtonVariant;
+}) {
+  return (
+    <Link
+      {...props}
+      className={`${buttonBaseStyles} ${buttonVariantStyles[variant]} ${className}`}
+    >
+      {children}
+    </Link>
+  );
+}
 
 export type CompactStatus =
   | "active"
@@ -64,7 +122,7 @@ export function StatusPill({
   href?: string;
   status: CompactStatus;
 }) {
-  const classes = `inline-flex min-h-8 items-center justify-center rounded-full border px-3 py-1.5 text-xs font-black leading-none outline-none transition focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${statusStyles[status]} ${href ? "hover:brightness-95 active:scale-[0.98]" : ""} ${className}`;
+  const classes = `inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-xs font-black leading-none outline-none transition focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${statusStyles[status]} ${href ? "min-h-11 hover:brightness-95 active:scale-[0.98]" : "min-h-8"} ${className}`;
 
   if (href) {
     return (
@@ -211,7 +269,7 @@ export function TaskStepper({
             <span className="min-w-0 truncate">{step.label}</span>
           </>
         );
-        const classes = `flex min-h-10 items-center gap-2 rounded-[1rem] border px-3 py-2 text-sm font-black leading-none outline-none transition focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${statusStyles[step.status]} ${step.href ? "hover:brightness-95 active:scale-[0.98]" : ""}`;
+        const classes = `flex min-h-11 items-center gap-2 rounded-[1rem] border px-3 py-2 text-sm font-black leading-none outline-none transition focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${statusStyles[step.status]} ${step.href ? "hover:brightness-95 active:scale-[0.98]" : ""}`;
 
         return (
           <li key={`${step.label}-${index}`} className="min-w-0">
@@ -259,7 +317,7 @@ export function ArrowButton({
       href={href}
       className={`inline-flex min-h-12 w-full items-center justify-center rounded-full px-5 py-4 text-sm font-bold outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 sm:w-auto ${
         variant === "light"
-          ? "bg-white !text-[#17201a] shadow-sm hover:bg-[#efe5d6] hover:!text-[#17201a] active:bg-[#e6dac8] active:!text-[#17201a] focus-visible:ring-offset-moss [&>span]:!text-[#17201a]"
+          ? "bg-white text-[#17201a] shadow-sm visited:text-[#17201a] hover:bg-[#efe5d6] hover:text-[#17201a] active:bg-[#e6dac8] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-offset-moss [&>span]:text-[#17201a]"
           : "bg-[#17201a] text-white shadow-soft hover:bg-[#33493a] focus-visible:ring-offset-background"
       }`}
     >

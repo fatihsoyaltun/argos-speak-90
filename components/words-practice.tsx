@@ -289,7 +289,7 @@ export function WordsPractice({
           </div>
           <a
             href="#word-sentence-card"
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:min-w-fit"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:min-w-fit"
           >
             Yazma pratiğine geç
           </a>
@@ -362,7 +362,7 @@ export function WordsPractice({
                         "word",
                         wordAudioId,
                       )}
-                      className={`min-h-10 min-w-[5.75rem] shrink-0 rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+                      className={`min-h-11 min-w-[5.75rem] shrink-0 rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
                         wordIsActive && audioState === "playing"
                           ? "bg-moss text-white"
                           : "bg-[#17201a] text-white hover:bg-[#33493a]"
@@ -389,7 +389,7 @@ export function WordsPractice({
                 </div>
 
                 <details className="group mt-3 rounded-[1.15rem] border border-foreground/10 bg-linen/60 px-3 py-3">
-                  <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-linen [&::-webkit-details-marker]:hidden">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-linen [&::-webkit-details-marker]:hidden">
                     <span className="min-w-0">
                       <span className="block text-xs font-bold uppercase tracking-[0.14em] text-muted">
                         Example
@@ -424,7 +424,7 @@ export function WordsPractice({
                             "example",
                             exampleAudioId,
                           )}
-                          className={`min-h-10 min-w-[5.75rem] shrink-0 rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-linen ${
+                          className={`min-h-11 min-w-[5.75rem] shrink-0 rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-linen ${
                             exampleIsActive && audioState === "playing"
                               ? "bg-moss text-white"
                               : "bg-[#17201a] text-white hover:bg-[#33493a]"

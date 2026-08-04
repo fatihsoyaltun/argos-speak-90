@@ -43,7 +43,7 @@ function AccessMessage({ access }: { access: AdminAccessState }) {
         </p>
         <Link
           href="/settings"
-          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#17201a] px-4 py-3 text-sm font-black !text-white outline-none transition visited:!text-white hover:bg-[#33493a] hover:!text-white active:!text-white focus-visible:!text-white focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-white"
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#17201a] px-4 py-3 text-sm font-black text-white outline-none transition visited:text-white hover:bg-[#33493a] hover:text-white active:text-white focus-visible:text-white focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:text-white"
         >
           Settings’e dön
         </Link>
@@ -59,7 +59,7 @@ function AccessMessage({ access }: { access: AdminAccessState }) {
         </p>
         <Link
           href="/login"
-          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#17201a] px-4 py-3 text-sm font-black !text-white outline-none transition visited:!text-white hover:bg-[#33493a] hover:!text-white active:!text-white focus-visible:!text-white focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:!text-white"
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#17201a] px-4 py-3 text-sm font-black text-white outline-none transition visited:text-white hover:bg-[#33493a] hover:text-white active:text-white focus-visible:text-white focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:text-white"
         >
           Login sayfasına git
         </Link>
@@ -223,7 +223,7 @@ function MemberCard({ member }: { member: AdminTeamMember }) {
 
       <Link
         href={`/admin/users/${member.id}`}
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#17201a] px-4 py-3 text-center text-sm font-black !text-white outline-none transition visited:!text-white hover:bg-[#33493a] hover:!text-white active:scale-[0.98] active:!text-white focus-visible:!text-white focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto [&_*]:!text-white"
+        className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#17201a] px-4 py-3 text-center text-sm font-black text-white outline-none transition visited:text-white hover:bg-[#33493a] hover:text-white active:scale-[0.98] active:text-white focus-visible:text-white focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto [&_*]:text-white"
       >
         Detayları gör
       </Link>
@@ -373,7 +373,7 @@ export default async function AdminPage() {
                   <Link
                     key={member.id}
                     href={`/admin/users/${member.id}`}
-                    className="flex min-h-12 items-center justify-between gap-3 rounded-[1.15rem] border border-clay/25 bg-linen px-3 py-2 text-sm font-black !text-[#2d261d] outline-none transition visited:!text-[#2d261d] hover:bg-sage hover:!text-[#17201a] active:scale-[0.99] focus-visible:!text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+                    className="flex min-h-12 items-center justify-between gap-3 rounded-[1.15rem] border border-clay/25 bg-linen px-3 py-2 text-sm font-black text-[#2d261d] outline-none transition visited:text-[#2d261d] hover:bg-sage hover:text-[#17201a] active:scale-[0.99] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
                   >
                     <span className="min-w-0 truncate">
                       {member.fullName || member.email || "İsimsiz kullanıcı"}
