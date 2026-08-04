@@ -391,30 +391,30 @@ const phaseEightDays = [
   },
   {
     day: 57,
-    theme: "Giving feedback about an export format",
+    theme: "Giving feedback about an export-format request",
     speakingGoal:
-      "Give calm feedback about an export format mistake and ask for the right format.",
+      "Give calm feedback about an example export-format request without presenting it as a universal device rule.",
     transcript:
-      "The image looks ready, but I think we exported it in the wrong format. The report needs WSQ today, not TIFF. Could you export it again in the required format?",
+      "The image looks ready, but this case request asks for WSQ today, not TIFF. That is the requested format for this example, not a general device rule. Could you export it again in the requested format?",
     keyLines: [
       "The image looks ready.",
-      "We exported it in the wrong format.",
-      "The report needs WSQ today, not TIFF.",
-      "Could you export it again in the required format?",
+      "This case request asks for WSQ today, not TIFF.",
+      "This is an example request, not a general device rule.",
+      "Could you export it again in the requested format?",
     ],
     miniTaskTr:
-      "Sakin geri bildirim dilini dinle. Wrong format, WSQ, TIFF ve export it again ifadelerini yakala.",
+      "Sakin geri bildirim dilini dinle. Case request, WSQ, TIFF ve requested format ifadelerini yakala. Bunun genel bir cihaz kuralı olmadığını fark et.",
     outputPrompt: "Write 2 sentences asking for feedback.",
     words: [
-      ["export format", "EK-sport FOR-mat", "dışa aktarma formatı", "Please use the required export format."],
-      ["WSQ", "dub-uhl-yoo es kyoo", "WSQ formatı", "The report needs WSQ today."],
-      ["TIFF", "tif", "TIFF formatı", "It does not need TIFF today."],
-      ["calm feedback", "kahm FEED-bak", "sakin geri bildirim", "Give calm feedback about the format."],
+      ["export format", "EK-sport FOR-mat", "dışa aktarma formatı", "Please use the requested export format."],
+      ["WSQ", "dub-uhl-yoo es kyoo", "WSQ formatı", "This case request asks for WSQ today."],
+      ["TIFF", "tif", "TIFF formatı", "This example does not request TIFF today."],
+      ["case request", "kays ri-KWEST", "vaka talebi", "Please check the case request first."],
     ],
     review: [
-      ["fillBlank", "The report needs ____ today.", "WSQ"],
-      ["recall", "Write the sentence about exporting again.", "Could you export it again in the required format?"],
-      ["shortAnswer", "Give polite feedback about the wrong export format.", "I think we exported it in the wrong format. Could you export it again?"],
+      ["fillBlank", "This case request asks for ____ today.", "WSQ"],
+      ["recall", "Write the sentence about the example request.", "This is an example request, not a general device rule."],
+      ["shortAnswer", "Ask politely for the requested export format.", "Could you export it again in the requested format?"],
     ],
   },
   {
@@ -581,30 +581,30 @@ const phaseEightDays = [
   },
   {
     day: 64,
-    theme: "Explaining a contactless image workflow",
+    theme: "Describing an example contactless workflow",
     speakingGoal:
-      "Explain a contactless capture, archive, and report process step by step.",
+      "Describe a simple example with source-listed contactless, archive, and reporting language without presenting a full operating procedure.",
     transcript:
-      "First, we use a contactless workflow to capture the fingerprint image. Then we save the image in the archive. After that, we check the details and add it to the report.",
+      "The source describes the workflow as contactless and lists an image archive and reporting features. We can describe a simple example with capture, archive, and report language. This is communication practice, not a full operating procedure.",
     keyLines: [
-      "First, we use a contactless workflow.",
-      "Then we save the image in the archive.",
-      "After that, we check the details.",
-      "We add it to the report.",
+      "The source describes the workflow as contactless.",
+      "The source lists an image archive.",
+      "It also lists reporting features.",
+      "This is not a full operating procedure.",
     ],
     miniTaskTr:
-      "Temassız görüntü iş akışını dinle. First, then, after that, image archive ve report ifadelerini takip et.",
+      "Kaynak kontrollü örnek workflow dilini dinle. Source describes, image archive, reporting features ve not a full operating procedure ifadelerini takip et.",
     outputPrompt: "Write 2 sentences explaining a simple process you do.",
     words: [
-      ["contactless workflow", "KON-takt-les WURK-flow", "temassız iş akışı", "We use a contactless workflow."],
-      ["image archive", "IM-ij AR-kyv", "görüntü arşivi", "We save the image in the archive."],
-      ["report", "ri-PORT", "rapor", "We add the image to the report."],
-      ["details", "DEE-taylz", "detaylar", "I check the details."],
+      ["contactless workflow", "KON-takt-les WURK-flow", "temassız iş akışı", "The source describes the workflow as contactless."],
+      ["image archive", "IM-ij AR-kyv", "görüntü arşivi", "The source lists an image archive."],
+      ["reporting feature", "ri-POR-ting FEE-cher", "raporlama özelliği", "The source lists reporting features."],
+      ["operating procedure", "OP-uh-ray-ting proh-SEE-jer", "işletim prosedürü", "This is not a full operating procedure."],
     ],
     review: [
-      ["fillBlank", "We save the image in the ____.", "archive"],
-      ["recall", "Write the sentence about the report.", "We add it to the report."],
-      ["shortAnswer", "Explain one step in the contactless workflow.", "First, we use a contactless workflow to capture the image."],
+      ["fillBlank", "The source lists an image ____.", "archive"],
+      ["recall", "Write the sentence about the procedure limit.", "This is not a full operating procedure."],
+      ["shortAnswer", "Describe the source-listed workflow cautiously.", "The source describes the workflow as contactless and lists reporting features."],
     ],
   },
   {
@@ -744,58 +744,58 @@ const phaseEightDays = [
   },
   {
     day: 70,
-    theme: "Giving instructions politely",
+    theme: "Giving a source-backed UVC warning",
     speakingGoal:
-      "Give a polite UVC safety instruction without sounding too direct.",
+      "State the two-part UVC source warning clearly without presenting complete safety training.",
     transcript:
-      "Please use the darkroom when UVC mode is selected. If you are not sure, check the safety warning first. After that, capture the image when the workflow is ready.",
+      "According to the source, UVC can be harmful to the human body. Use UVC with the supplied darkroom. This is the source warning, not complete safety training.",
     keyLines: [
-      "Please use the darkroom.",
-      "UVC mode is selected.",
-      "Check the safety warning first.",
-      "Capture the image when the workflow is ready.",
+      "According to the source, UVC can be harmful to the human body.",
+      "Use UVC with the supplied darkroom.",
+      "Follow the source warning.",
+      "This is not complete safety training.",
     ],
     miniTaskTr:
-      "Kibar güvenlik talimatını dinle. UVC mode, darkroom ve safety warning ifadelerini yakala.",
+      "Kaynak uyarısını dinle. Harmful to the human body, supplied darkroom ve source warning ifadelerini yakala. Bunun tam güvenlik eğitimi olmadığını unutma.",
     outputPrompt: "Write 2 polite instructions for a simple task.",
     words: [
-      ["UVC mode", "yoo-vee-see mohd", "UVC modu", "UVC mode is selected."],
-      ["darkroom", "DARK-room", "karanlık oda", "Please use the darkroom."],
-      ["safety warning", "SAYF-tee WOR-ning", "güvenlik uyarısı", "Check the safety warning first."],
-      ["workflow", "WURK-flow", "iş akışı", "The workflow is ready."],
+      ["harmful", "HARM-fuhl", "zararlı", "According to the source, UVC can be harmful to the human body."],
+      ["supplied darkroom", "suh-PLYD DARK-room", "ürünle birlikte verilen karanlık oda", "Use UVC with the supplied darkroom."],
+      ["source warning", "sors WOR-ning", "kaynak uyarısı", "Follow the source warning."],
+      ["safety training", "SAYF-tee TRAY-ning", "güvenlik eğitimi", "This is not complete safety training."],
     ],
     review: [
-      ["fillBlank", "Please use the ____ when UVC mode is selected.", "darkroom"],
-      ["recall", "Write the sentence about the safety warning.", "Check the safety warning first."],
-      ["shortAnswer", "Write one polite UVC safety instruction.", "Please use the darkroom when UVC mode is selected."],
+      ["fillBlank", "Use UVC with the supplied ____.", "darkroom"],
+      ["recall", "Write the sentence about the UVC risk.", "According to the source, UVC can be harmful to the human body."],
+      ["shortAnswer", "Write the two-part UVC source warning.", "According to the source, UVC can be harmful to the human body. Use UVC with the supplied darkroom."],
     ],
   },
   {
     day: 71,
     theme: "Choosing a customer demo priority",
     speakingGoal:
-      "Choose one customer demo priority and give a short reason.",
+      "Choose one source-backed customer demo priority and give a short reason with appropriate attribution.",
     transcript:
-      "For this customer demo, I would start with the contactless workflow. Then I would mention that it is chemical-free and uses a 45.9MP 8K camera. Those points are clear and useful for a first explanation.",
+      "For this customer demo, I would start with the source-described workflow. The source describes it as contactless and states that it does not require powder or chemicals. The source also lists a 45.9MP 8K camera.",
     keyLines: [
-      "I would start with the contactless workflow.",
-      "It is chemical-free.",
-      "It uses a 45.9MP 8K camera.",
-      "Those points are clear and useful.",
+      "The source describes the workflow as contactless.",
+      "The source states that the workflow does not require powder or chemicals.",
+      "The source lists a 45.9MP 8K camera.",
+      "I would use these source-backed points in the demo.",
     ],
     miniTaskTr:
-      "Müşteri demosunda öncelik seçme dilini dinle. Contactless, chemical-free ve 45.9MP 8K camera ifadelerini yakala.",
+      "Müşteri demosunda kaynak atfını dinle. Source describes, does not require powder or chemicals ve 45.9MP 8K camera ifadelerini yakala.",
     outputPrompt: "Write 2 sentences about your priorities today.",
     words: [
-      ["45.9MP 8K camera", "for-tee fyv poynt nyn em-pee ayt-kay KAM-ruh", "45.9MP 8K kamera", "It uses a 45.9MP 8K camera."],
-      ["contactless", "KON-takt-les", "temassız", "I would start with the contactless workflow."],
-      ["chemical-free", "KEM-i-kuhl free", "kimyasalsız", "The workflow is chemical-free."],
-      ["customer demo", "KUS-tuh-mer DEM-oh", "müşteri demosu", "This is useful for a customer demo."],
+      ["45.9MP 8K camera", "for-tee fyv poynt nyn em-pee ayt-kay KAM-ruh", "45.9MP 8K kamera", "The source lists a 45.9MP 8K camera."],
+      ["contactless", "KON-takt-les", "temassız", "The source describes the workflow as contactless."],
+      ["powder or chemicals", "POW-der or KEM-i-kuhlz", "toz veya kimyasallar", "The source states that the workflow does not require powder or chemicals."],
+      ["source-backed", "sors bakt", "kaynak destekli", "I would use these source-backed points in the demo."],
     ],
     review: [
-      ["fillBlank", "I would start with the ____ workflow.", "contactless"],
-      ["recall", "Write the sentence about chemicals.", "It is chemical-free."],
-      ["shortAnswer", "Choose one customer demo priority and give one reason.", "I would start with the contactless workflow because it is easy to explain."],
+      ["fillBlank", "The source describes the workflow as ____.", "contactless"],
+      ["recall", "Write the sentence about powder or chemicals.", "The source states that the workflow does not require powder or chemicals."],
+      ["shortAnswer", "Choose one source-backed customer demo point.", "I would mention that the source lists a 45.9MP 8K camera."],
     ],
   },
   {
@@ -1016,30 +1016,30 @@ const phaseEightDays = [
   },
   {
     day: 80,
-    theme: "Making a work decision about export and report",
+    theme: "Explaining an AFIS preparation decision",
     speakingGoal:
-      "Explain a work decision about export, report, or AFIS workflow with one reason.",
+      "Explain an AFIS preparation decision for a manual submission workflow without implying direct integration or an undocumented export requirement.",
     transcript:
-      "Before we send the file, we need to decide the next step. If the image is needed for an AFIS workflow, WSQ may be the right export format. I think we should check the report first, then export it.",
+      "Before we prepare the image, we need to confirm the requested export format. The presentation describes a manual AFIS submission workflow, but direct AFIS integration is not documented in the available source. We should check the case request before exporting.",
     keyLines: [
-      "We need to decide the next step.",
-      "The image is needed for an AFIS workflow.",
-      "WSQ may be the right export format.",
-      "We should check the report first.",
+      "Confirm the requested export format.",
+      "The presentation describes a manual AFIS submission workflow.",
+      "Direct AFIS integration is not documented in the available source.",
+      "Check the case request before exporting.",
     ],
     miniTaskTr:
-      "İş kararı anlatımını dinle. AFIS workflow, WSQ, report ve may be ifadelerini yakala.",
+      "Kaynak kontrollü AFIS hazırlık dilini dinle. Manual AFIS submission workflow, requested export format ve not documented ifadelerini yakala.",
     outputPrompt: "Write 2 sentences explaining a small decision.",
     words: [
-      ["AFIS workflow", "AY-fis WURK-flow", "AFIS iş akışı", "The image is needed for an AFIS workflow."],
-      ["report", "ri-PORT", "rapor", "We should check the report first."],
-      ["WSQ", "dub-uhl-yoo es kyoo", "WSQ formatı", "WSQ may be the right export format."],
-      ["next step", "nekst step", "sonraki adım", "We need to decide the next step."],
+      ["AFIS preparation", "AY-fis prep-uh-RAY-shuhn", "AFIS hazırlığı", "The image is being prepared for manual AFIS submission."],
+      ["manual AFIS submission workflow", "MAN-yoo-uhl AY-fis sub-MISH-uhn WURK-flow", "manuel AFIS gönderim iş akışı", "The presentation describes a manual AFIS submission workflow."],
+      ["requested export format", "ri-KWES-tid EK-sport FOR-mat", "talep edilen dışa aktarma formatı", "Confirm the requested export format."],
+      ["not documented", "not DOK-yuh-men-tid", "belgelenmemiş", "Direct AFIS integration is not documented in the available source."],
     ],
     review: [
-      ["fillBlank", "The image is needed for an ____ workflow.", "AFIS"],
-      ["recall", "Write the sentence about the report.", "We should check the report first."],
-      ["shortAnswer", "Write one work decision about export or report with a reason.", "I think we should check the report first because the image may be needed for AFIS."],
+      ["fillBlank", "The presentation describes a manual AFIS submission ____.", "workflow"],
+      ["recall", "Write the sentence about direct integration.", "Direct AFIS integration is not documented in the available source."],
+      ["shortAnswer", "State one cautious AFIS preparation step.", "We should confirm the requested export format before preparing the image for manual AFIS submission."],
     ],
   },
   {
@@ -1152,30 +1152,30 @@ const phaseEightDays = [
   },
   {
     day: 85,
-    theme: "Giving options when fingerprint detail is unclear",
+    theme: "Clarifying an unclear fingerprint image",
     speakingGoal:
-      "Describe unclear fingerprint detail and offer two possible next steps.",
+      "Use clarification language for an unclear fingerprint image without inventing troubleshooting settings.",
     transcript:
-      "The fingerprint detail is not clear yet, so we have two options. We can try another UV, VIS, or IR mode, or we can use image enhancement. I think we should change the light first and compare the result.",
+      "The fingerprint detail is not clear yet. The source lists UV, VIS, and IR imaging and image enhancement features, but it does not give exact settings for this case. We should confirm the selected mode and check the operator procedure.",
     keyLines: [
       "The fingerprint detail is not clear yet.",
-      "We have two options.",
-      "We can try another UV, VIS, or IR mode.",
-      "We can use image enhancement.",
+      "The source lists UV, VIS, and IR imaging.",
+      "The source lists image enhancement features.",
+      "Confirm the selected mode and check the operator procedure.",
     ],
     miniTaskTr:
-      "Problem ve iki seçenek anlatımını dinle. Fingerprint detail, UV/VIS/IR ve image enhancement ifadelerini yakala.",
+      "Kaynak kontrollü clarification dilini dinle. Fingerprint detail, source lists, selected mode ve operator procedure ifadelerini yakala. Exact setting uydurulmadığına dikkat et.",
     outputPrompt: "Write 2 sentences giving two options for a problem.",
     words: [
-      ["UV/VIS/IR", "yoo-vee viz eye-ar", "UV/görünür/IR", "We can try another UV, VIS, or IR mode."],
-      ["image enhancement", "IM-ij in-HANS-muhnt", "görüntü iyileştirme", "We can use image enhancement."],
+      ["UV/VIS/IR", "yoo-vee viz eye-ar", "UV/görünür/IR", "The source lists UV, VIS, and IR imaging."],
+      ["image enhancement", "IM-ij in-HANS-muhnt", "görüntü iyileştirme", "The source lists image enhancement features."],
       ["fingerprint detail", "FING-ger-print DEE-tayl", "parmak izi detayı", "The fingerprint detail is not clear yet."],
-      ["compare the result", "kum-PAIR thuh ri-ZULT", "sonucu karşılaştırmak", "We can compare the result."],
+      ["operator procedure", "OP-uh-ray-ter proh-SEE-jer", "operatör prosedürü", "Check the operator procedure for exact settings."],
     ],
     review: [
-      ["fillBlank", "We have two ____.", "options"],
-      ["recall", "Write the sentence about image enhancement.", "We can use image enhancement."],
-      ["shortAnswer", "Present two options when fingerprint detail is not clear.", "We can try another light mode, or we can use image enhancement."],
+      ["fillBlank", "Confirm the selected ____.", "mode"],
+      ["recall", "Write the sentence about exact settings.", "The source does not give exact settings for this case."],
+      ["shortAnswer", "Ask for clarification without recommending a setting.", "Please confirm the selected mode and check the operator procedure."],
     ],
   },
   {
@@ -1234,30 +1234,30 @@ const phaseEightDays = [
   },
   {
     day: 88,
-    theme: "Summarizing a technical observation",
+    theme: "Using cautious technical reporting language",
     speakingGoal:
-      "Summarize a technical observation and say what happens next.",
+      "Summarize a technical observation without claiming that metadata exists unless it was recorded or enabled.",
     transcript:
-      "To summarize, the fingerprint was observed on the surface, and the image includes a date stamp. The geotag is also saved with the image. We will review the report again on Friday.",
+      "The fingerprint was observed on the surface. The software lists date-stamp and geotag features, but a report should mention them when they were recorded or enabled. We should review the actual image record before reporting the next step.",
     keyLines: [
       "The fingerprint was observed on the surface.",
-      "The image includes a date stamp.",
-      "The geotag is also saved with the image.",
-      "We will review the report again on Friday.",
+      "The software lists date-stamp and geotag features.",
+      "Mention metadata when it was recorded or enabled.",
+      "Review the actual image record before reporting the next step.",
     ],
     miniTaskTr:
-      "Teknik gözlem özeti dilini dinle. Observed, date stamp, geotag ve review the report ifadelerini yakala.",
+      "Dikkatli teknik raporlama dilini dinle. Observed, software lists, if recorded ve where enabled anlamlarını takip et.",
     outputPrompt: "Write 2 sentences summarizing a simple discussion.",
     words: [
       ["observed", "uhb-ZURVD", "gözlemlendi", "The fingerprint was observed on the surface."],
-      ["date stamp", "dayt stamp", "tarih damgası", "The image includes a date stamp."],
-      ["geotag", "JEE-oh-tag", "coğrafi etiket", "The geotag is saved with the image."],
-      ["technical observation", "TEK-ni-kuhl ob-zer-VAY-shuhn", "teknik gözlem", "This is a technical observation."],
+      ["metadata features", "MET-uh-day-tuh FEE-chers", "meta veri özellikleri", "The software lists date-stamp and geotag features."],
+      ["if recorded", "if ri-KOR-did", "kaydedildiyse", "Mention the metadata if it was recorded."],
+      ["where enabled", "wair en-AY-buhld", "etkinleştirildiği yerde", "Report the feature where enabled."],
     ],
     review: [
-      ["fillBlank", "The image includes a date ____.", "stamp"],
-      ["recall", "Write the sentence about the geotag.", "The geotag is also saved with the image."],
-      ["shortAnswer", "Write one cautious technical observation sentence.", "The fingerprint was observed on the surface, and the image appears clearer."],
+      ["fillBlank", "Mention the metadata if it was ____.", "recorded"],
+      ["recall", "Write the sentence about the software features.", "The software lists date-stamp and geotag features."],
+      ["shortAnswer", "Write one cautious technical reporting sentence.", "The fingerprint was observed on the surface; metadata should be reported when recorded or enabled."],
     ],
   },
   {
@@ -1318,35 +1318,35 @@ const phaseEightDays = [
 
 const deviceSpeakingPromptByDay: Record<number, string> = {
   48: "Clarification task: ask about a device setting in 4-5 sentences. Mention the selected light group or selected filter, then ask one polite follow-up question.",
-  57: "Feedback task: explain the export-format mistake calmly in 4-5 sentences. Mention WSQ or TIFF, then ask for the required format.",
-  64: "Process task: explain a contactless image workflow in 4-5 sentences. Include capture, image archive, and report in a simple order.",
-  70: "Milestone check: speak in 4-5 sentences. Give a polite UVC safety instruction, include one reason or example, then improve one sentence in your second try.",
-  71: "Customer demo task: choose one 8K demo priority in 4-6 sentences. Mention contactless, chemical-free, or the 45.9MP 8K camera, then give one reason.",
-  80: "Work decision task: explain whether to check the report or export for an AFIS workflow. Speak in 4-6 sentences and give one reason.",
-  85: "Problem-solving task: explain unclear fingerprint detail, give two options, and recommend one next step in 4-6 sentences.",
-  88: "Summary task: summarize a technical observation in 4-6 sentences. Use observed, date stamp, or geotag, then add one next step.",
+  57: "Feedback task: explain an example export-format request calmly in 4-5 sentences. Mention WSQ or TIFF, make clear that it is not a general device rule, then ask for the requested format.",
+  64: "Process-language task: describe a simple example with source-listed contactless, image archive, and reporting language in 4-5 sentences. State that it is not a full operating procedure.",
+  70: "Milestone check: speak in 4-5 sentences. State that UVC can be harmful to the human body according to the source, say to use UVC with the supplied darkroom, and note that this is not complete safety training.",
+  71: "Customer demo task: choose one source-backed 8K demo point in 4-6 sentences. Use source attribution for the contactless or powder-and-chemical-free workflow, or mention the 45.9MP 8K camera without adding a performance claim.",
+  80: "Work-language task: explain an AFIS preparation decision for a manual submission workflow in 4-6 sentences. Confirm the requested export format and state that direct AFIS integration is not documented in the available source.",
+  85: "Clarification task: describe unclear fingerprint detail in 4-6 sentences. Confirm the selected mode, state that exact settings are not documented in the available source, and refer to the operator procedure without recommending a setting.",
+  88: "Reporting-language task: summarize a technical observation in 4-6 sentences. Mention software-listed metadata features when recorded or where enabled, then add one cautious next step.",
 };
 
 const deviceListeningOutputByDay: Record<number, string> = {
   48: "Write 2 sentences: identify what needs clarification, then ask a polite question about the selected filter.",
-  57: "Write 2 sentences: explain the export-format problem, then ask for the required format.",
-  64: "Write 2 sentences: summarize the contactless workflow, then name the archive or report step.",
-  70: "Write 3 short notes: the UVC safety instruction, the darkroom step, and one thing to check first.",
-  71: "Write 2 sentences: choose one customer demo priority, then give one short reason.",
-  80: "Write 2 sentences: state the work decision, then explain the report or AFIS workflow reason.",
-  85: "Write 2 sentences: describe the unclear fingerprint detail, then give two possible options.",
-  88: "Write 2 sentences: summarize the technical observation, then add one cautious next step.",
+  57: "Write 2 sentences: describe the example export-format request, then ask for the requested format without presenting it as a general device rule.",
+  64: "Write 2 sentences: name two source-listed workflow features, then state that the example is not a full operating procedure.",
+  70: "Write 3 short notes: the source-stated UVC risk, the supplied-darkroom instruction, and the limit that this is not complete safety training.",
+  71: "Write 2 sentences: choose one source-backed customer demo point, then give one short reason with source attribution.",
+  80: "Write 2 sentences: describe the manual AFIS submission workflow context, then state the direct-integration limitation.",
+  85: "Write 2 sentences: describe the unclear fingerprint detail, then ask for confirmation without recommending a light or setting.",
+  88: "Write 2 sentences: summarize the technical observation, then add an if-recorded or where-enabled reporting condition.",
 };
 
 const deviceMiniGoalByDay: Record<number, string> = {
   48: "Mini hedef: 4-5 cümlede ayarı netleştir; ikinci denemede daha kibar bir clarification question ekle.",
-  57: "Mini hedef: 4-5 cümlede format hatasını sakin anlat; ikinci denemede daha net ve daha kibar söyle.",
-  64: "Mini hedef: 4-5 cümlede süreci sırayla anlat; ikinci denemede first, then, after that akışını güçlendir.",
-  70: "Mini hedef: 4-5 cümleyle UVC güvenlik talimatı ver, reason/example ekle ve ikinci denemeyi belirgin şekilde iyileştir.",
-  71: "Mini hedef: 60 saniyede bir demo önceliği seç, kısa bir reason ekle ve ikinci denemede daha müşteri dostu söyle.",
-  80: "Mini hedef: 60 saniyede export/report/AFIS kararını açıkla; ikinci denemede karar sebebini daha net söyle.",
-  85: "Mini hedef: 60 saniyede iki seçenek sun; ikinci denemede önerdiğin next step cümlesini netleştir.",
-  88: "Mini hedef: 60 saniyede teknik gözlemi özetle; ikinci denemede observed veya appears clearer gibi dikkatli dil kullan.",
+  57: "Mini hedef: 4-5 cümlede örnek format talebini sakin anlat; bunun genel cihaz kuralı olmadığını söyle ve ikinci denemeyi daha kibar yap.",
+  64: "Mini hedef: 4-5 cümlede source-listed özelliklerle basit bir örnek anlat; bunun full operating procedure olmadığını açıkça söyle.",
+  70: "Mini hedef: 4-5 cümlede UVC'nin kaynağa göre insan vücuduna zararlı olabileceğini ve supplied darkroom ile kullanılması gerektiğini söyle; bunun tam safety training olmadığını ekle.",
+  71: "Mini hedef: 60 saniyede source-backed bir demo noktası seç; contactless veya powder/chemical-free workflow için kaynak atfı kullan.",
+  80: "Mini hedef: 60 saniyede AFIS preparation ve manual AFIS submission workflow bağlamını açıkla; direct integration'ın available source içinde documented olmadığını söyle.",
+  85: "Mini hedef: 60 saniyede clarification yap; exact setting önermeden selected mode ve operator procedure kontrolünü iste.",
+  88: "Mini hedef: 60 saniyede teknik gözlemi özetle; metadata için if recorded veya where enabled koşulunu kullan.",
 };
 
 export const phaseEightDayPlans = phaseEightDays.map((day) => ({
@@ -1466,8 +1466,9 @@ export const phaseEightSpeakingPractices = phaseEightDays.map((day) => ({
     ...(day.day === 70
       ? [
           "4-5 cümle kurdum mu?",
-          "Kibar bir UVC güvenlik talimatı verdim mi?",
-          "Bir reason veya example ekledim mi?",
+          "UVC'nin kaynağa göre insan vücuduna zararlı olabileceğini söyledim mi?",
+          "UVC için supplied darkroom talimatını söyledim mi?",
+          "Bunun complete safety training olmadığını belirttim mi?",
           "İkinci denemem belirgin şekilde daha iyi mi?",
         ]
       : day.day === 90
