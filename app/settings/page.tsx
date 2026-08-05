@@ -12,11 +12,14 @@ import {
   StatusPill,
 } from "@/components/ui";
 import { getClientAuthState, signOutClientUser } from "@/lib/auth/client";
+import {
+  exportLocalBackupAsJson,
+  importLocalBackupFromJson,
+} from "@/lib/local-storage-keys";
 import { getTtsServiceStatus } from "@/lib/tts/client";
 import {
   clearAllArgosProgress,
-  exportPracticeProgressAsJson,
-  importPracticeProgressFromJson,
+  notifyPracticeProgressChanged,
 } from "@/lib/practice-storage";
 import { getSupabaseConfigStatus } from "@/lib/supabase/env";
 
@@ -128,8 +131,15 @@ export default function SettingsPage() {
   }
 
   async function copyExportJson() {
-    const json = exportPracticeProgressAsJson();
-    setExportText(json);
+    let json: string;
+
+    try {
+      json = exportLocalBackupAsJson(window.localStorage);
+      setExportText(json);
+    } catch {
+      setMessage("Yerel yedek hazırlanamadı. Tarayıcı depolaması kapalı olabilir.");
+      return;
+    }
 
     try {
       if (!navigator.clipboard?.writeText) {
@@ -137,7 +147,7 @@ export default function SettingsPage() {
       }
 
       await navigator.clipboard.writeText(json);
-      setMessage("İlerleme JSON olarak panoya kopyalandı.");
+      setMessage("Tam yerel yedek JSON olarak panoya kopyalandı.");
     } catch {
       setMessage(
         "Panoya kopyalama engellendi. JSON dosyası indirmeyi kullanabilirsin.",
@@ -146,29 +156,54 @@ export default function SettingsPage() {
   }
 
   function downloadExportJson() {
-    const json = exportPracticeProgressAsJson();
-    setExportText(json);
+    let json: string;
+
+    try {
+      json = exportLocalBackupAsJson(window.localStorage);
+      setExportText(json);
+    } catch {
+      setMessage("Yerel yedek hazırlanamadı. Tarayıcı depolaması kapalı olabilir.");
+      return;
+    }
 
     try {
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "argos-speak-90-progress.json";
+      link.download = "argos-speak-90-local-backup.json";
       link.click();
       URL.revokeObjectURL(url);
-      setMessage("İlerleme JSON dosyası indirildi.");
+      setMessage("Tam yerel yedek JSON dosyası indirildi.");
     } catch {
       setMessage("JSON hazırlandı. Dosya indirilemedi; metni elle kopyalayabilirsin.");
     }
   }
 
   function importProgress() {
-    const result = importPracticeProgressFromJson(importText);
+    let result;
+
+    try {
+      result = importLocalBackupFromJson(importText, window.localStorage);
+    } catch {
+      setImportMessage(
+        "Yedek içe aktarılamadı. Tarayıcı depolaması kapalı olabilir.",
+      );
+      return;
+    }
 
     if (result.ok) {
-      setImportMessage(`${result.importedDays} günlük ilerleme içe aktarıldı.`);
-      setExportText(exportPracticeProgressAsJson());
+      if (result.activeDay) {
+        setActiveDay(result.activeDay);
+      }
+
+      notifyPracticeProgressChanged();
+      setImportMessage(
+        result.format === "complete"
+          ? `${result.importedDays} günlük ilerleme, aktif gün ve ${result.importedDeviceModules} Device Lab kaydı içe aktarıldı.`
+          : `${result.importedDays} günlük eski ilerleme yedeği içe aktarıldı; aktif gün ve Device Lab kayıtları değiştirilmedi.`,
+      );
+      setExportText(exportLocalBackupAsJson(window.localStorage));
       return;
     }
 
@@ -423,7 +458,7 @@ export default function SettingsPage() {
       <ExpandableCard
         eyebrow="Advanced"
         title="Advanced local data"
-        description="Yerel ilerlemeyi JSON olarak dışa/içe aktar. Veri formatı aynı kalır."
+        description="Aktif gün, pratik ilerlemesi ve Device Lab kayıtlarını tek JSON yedeğinde taşı."
       >
         <div className="space-y-4">
           <div>
@@ -431,8 +466,9 @@ export default function SettingsPage() {
               Yerel ilerlemeyi taşı
             </h2>
             <p className="mt-2 text-sm font-medium leading-6 text-muted">
-              Dışa aktarma yalnızca bu uygulamanın yerel pratik cevaplarını
-              içerir. API anahtarı veya gizli ses ayarı içermez.
+              Dışa aktarma aktif günü, yerel pratik cevaplarını ve Device Lab
+              kayıtlarını içerir. Cloud oturumu, API anahtarı veya gizli ses
+              ayarı içermez.
             </p>
           </div>
 
@@ -474,7 +510,8 @@ export default function SettingsPage() {
             </label>
             <p className="mt-2 text-sm font-medium leading-6 text-muted">
               Daha önce aldığın Argos ilerleme JSON metnini yapıştır veya dosya
-              seç. Hatalı JSON uygulamayı bozmaz; sadece içe aktarılmaz.
+              seç. Eski yalnız-pratik yedekleri de desteklenir. Hatalı JSON
+              uygulamayı bozmaz; hiçbir yerel anahtar değiştirilmez.
             </p>
             <textarea
               id="import-progress-json"
@@ -484,7 +521,7 @@ export default function SettingsPage() {
                 setImportMessage("");
               }}
               rows={6}
-              placeholder='{"version":1,"days":{...}}'
+              placeholder='{"version":2,"product":"argos-speak-90",...}'
               className="mt-4 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-surface p-4 font-mono text-xs leading-5 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
             />
             <input
@@ -501,7 +538,7 @@ export default function SettingsPage() {
               disabled={importText.trim().length === 0}
               className="mt-4 min-h-12 w-full rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto"
             >
-              Import progress
+              Yerel yedeği içe aktar
             </button>
             {importMessage ? (
               <p className="mt-4 rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">

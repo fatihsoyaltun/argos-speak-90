@@ -23,8 +23,8 @@ Durum sözlüğü: `Tamamlandı`, `Sıradaki`, `Bekliyor`, `Engelli`.
 |---|---|---|---|
 | PLAN-0 | Araştırma ve yönetişim | Tamamlandı | — |
 | P1 | Buton kontrastı ve etkileşim acil kapısı | Tamamlandı | PLAN-0 |
-| P2 | Tek kullanıcı veri güvenliği ve çıkış envanteri | Sıradaki | P1 |
-| P3 | Login/Admin/cloud emekliliği | Bekliyor | P2 |
+| P2 | Tek kullanıcı veri güvenliği ve çıkış envanteri | Tamamlandı | P1 |
+| P3 | Login/Admin/cloud emekliliği | Sıradaki | P2 |
 | P4 | Tasarım sistemi, shell ve navigation temeli | Bekliyor | P3 |
 | P5 | Device Lab sade hap bilgi deneyimi | Bekliyor | P4 |
 | P6 | TTS güvenilirlik temeli | Bekliyor | P4 |
@@ -111,7 +111,7 @@ Device Lab'deki görünmez CTA'yı kök nedenden düzeltmek ve bütün mevcut bu
 
 ## P2 — Tek kullanıcı veri güvenliği ve çıkış envanteri
 
-**Durum: Sıradaki**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -144,7 +144,7 @@ Login/Admin/cloud kaldırılmadan önce kullanıcı ilerlemesini kaybetmeyecek k
 
 ## P3 — Login/Admin/cloud emekliliği
 
-**Durum: Bekliyor**
+**Durum: Sıradaki**
 
 ### Amaç
 
