@@ -50,6 +50,6 @@ export const navigationItems = [
   { label: "Words", href: "/words" },
   { label: "Speak", href: "/speak" },
   { label: "Review", href: "/review" },
-  { label: "Stats", href: "/stats" },
+  { label: "İlerleme", href: "/stats" },
   { label: "Settings", href: "/settings" },
 ];

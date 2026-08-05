@@ -2,7 +2,7 @@
 
 **Kanonik uygulama sırası**
 
-**Son güncelleme:** 4 Ağustos 2026
+**Son güncelleme:** 5 Ağustos 2026
 
 ## 1. Faz yürütme protokolü
 
@@ -24,8 +24,8 @@ Durum sözlüğü: `Tamamlandı`, `Sıradaki`, `Bekliyor`, `Engelli`.
 | PLAN-0 | Araştırma ve yönetişim | Tamamlandı | — |
 | P1 | Buton kontrastı ve etkileşim acil kapısı | Tamamlandı | PLAN-0 |
 | P2 | Tek kullanıcı veri güvenliği ve çıkış envanteri | Tamamlandı | P1 |
-| P3 | Login/Admin/cloud emekliliği | Sıradaki | P2 |
-| P4 | Tasarım sistemi, shell ve navigation temeli | Bekliyor | P3 |
+| P3 | Login/Admin/cloud emekliliği | Tamamlandı | P2 |
+| P4 | Tasarım sistemi, shell ve navigation temeli | Sıradaki | P3 |
 | P5 | Device Lab sade hap bilgi deneyimi | Bekliyor | P4 |
 | P6 | TTS güvenilirlik temeli | Bekliyor | P4 |
 | P7 | TTS kapsam genişletmesi | Bekliyor | P5, P6 |
@@ -144,7 +144,7 @@ Login/Admin/cloud kaldırılmadan önce kullanıcı ilerlemesini kaybetmeyecek k
 
 ## P3 — Login/Admin/cloud emekliliği
 
-**Durum: Sıradaki**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -179,7 +179,7 @@ Uygulamayı tek kullanıcı, yerel ilerleme modeline geçirmek; basit `/stats` i
 
 ## P4 — Tasarım sistemi, shell ve navigation temeli
 
-**Durum: Bekliyor**
+**Durum: Sıradaki**
 
 ### Amaç
 

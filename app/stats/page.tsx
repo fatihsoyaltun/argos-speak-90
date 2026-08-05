@@ -29,16 +29,16 @@ export default function StatsPage() {
   }, [activeDay]);
 
   const stats = [
-    ["Current day", String(activeDay)],
-    ["Completed modules", `${completedCount}/4`],
-    ["Practice mode", "Local"],
+    ["Aktif gün", String(activeDay)],
+    ["Tamamlanan görev", `${completedCount}/4`],
+    ["Saklama", "Bu cihaz"],
   ];
 
   return (
     <div className="space-y-7">
       <PageHeader
-        eyebrow="Stats"
-        title="Progress will stay visible."
+        eyebrow="İlerleme"
+        title="Yerel ilerlemen"
         description="Bu ekranda aynı cihazdaki yerel günlük ilerleme özetini görebilirsin."
       />
 

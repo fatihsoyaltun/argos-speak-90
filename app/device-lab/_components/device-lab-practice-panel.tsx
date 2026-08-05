@@ -177,7 +177,7 @@ export function DeviceLabPracticePanel({
       </div>
 
       <p className="mt-4 rounded-[1.15rem] border border-clay/20 bg-linen p-3 text-sm font-bold leading-6 text-[#2d261d]">
-        Bu kayıt sadece bu tarayıcıda tutulur. Cloud/admin senkronu yoktur.
+        Bu kayıt sadece bu tarayıcıda tutulur.
       </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">

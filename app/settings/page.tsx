@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useActiveDay } from "@/components/active-day";
-import { CloudSyncPanel } from "@/components/cloud-sync-panel";
 import {
   CompactSection,
   ExpandableCard,
@@ -11,7 +10,6 @@ import {
   ProgressStrip,
   StatusPill,
 } from "@/components/ui";
-import { getClientAuthState, signOutClientUser } from "@/lib/auth/client";
 import {
   exportLocalBackupAsJson,
   importLocalBackupFromJson,
@@ -21,27 +19,12 @@ import {
   clearAllArgosProgress,
   notifyPracticeProgressChanged,
 } from "@/lib/practice-storage";
-import { getSupabaseConfigStatus } from "@/lib/supabase/env";
 
 type AudioStatus = "checking" | "configured" | "notConfigured";
-type CloudAccountStatus =
-  | "checking"
-  | "notConfigured"
-  | "signedIn"
-  | "signedOut";
 
 export default function SettingsPage() {
   const { activeDay, setActiveDay, clearActiveDayStorage } = useActiveDay();
-  const supabaseStatus = getSupabaseConfigStatus();
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("checking");
-  const [cloudAccountStatus, setCloudAccountStatus] =
-    useState<CloudAccountStatus>(
-      supabaseStatus.configured ? "checking" : "notConfigured",
-    );
-  const [cloudAccountEmail, setCloudAccountEmail] = useState("");
-  const [cloudAccountRole, setCloudAccountRole] = useState("");
-  const [cloudAccountMessage, setCloudAccountMessage] = useState("");
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const [message, setMessage] = useState("");
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
@@ -68,54 +51,6 @@ export default function SettingsPage() {
       isActive = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (!supabaseStatus.configured) {
-      return;
-    }
-
-    let isActive = true;
-
-    async function checkCloudAccount() {
-      const authState = await getClientAuthState().catch((error: unknown) => {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Oturum kontrolü tamamlanamadı.";
-
-        return {
-          profile: null,
-          profileMessage:
-            "Oturum kontrolü geçici olarak başarısız oldu. Lütfen tekrar deneyin.",
-          session: null,
-          technicalMessage: message,
-          user: null,
-        };
-      });
-
-      if (!isActive) {
-        return;
-      }
-
-      if (authState.user) {
-        setCloudAccountStatus("signedIn");
-        setCloudAccountEmail(authState.user.email ?? "");
-        setCloudAccountRole(authState.profile?.role ?? "member");
-        return;
-      }
-
-      setCloudAccountStatus("signedOut");
-      setCloudAccountEmail("");
-      setCloudAccountRole("");
-      setCloudAccountMessage(authState.profileMessage);
-    }
-
-    checkCloudAccount();
-
-    return () => {
-      isActive = false;
-    };
-  }, [supabaseStatus.configured]);
 
   function resetActiveDay() {
     setActiveDay(1);
@@ -223,25 +158,6 @@ export default function SettingsPage() {
     }
   }
 
-  async function signOutFromSettings() {
-    setIsSigningOut(true);
-    setCloudAccountMessage("");
-
-    const errorMessage = await signOutClientUser();
-
-    setIsSigningOut(false);
-
-    if (errorMessage) {
-      setCloudAccountMessage(errorMessage);
-      return;
-    }
-
-    setCloudAccountStatus("signedOut");
-    setCloudAccountEmail("");
-    setCloudAccountRole("");
-    setCloudAccountMessage("Çıkış yapıldı. Yerel ilerleme korunuyor.");
-  }
-
   return (
     <div className="space-y-5">
       <PageHeader
@@ -263,77 +179,6 @@ export default function SettingsPage() {
           Device Lab’i aç
         </Link>
       </CompactSection>
-
-      <CompactSection
-        eyebrow="Cloud account"
-        title={
-          cloudAccountStatus === "checking"
-            ? "Hesap kontrol ediliyor"
-            : cloudAccountStatus === "signedIn"
-              ? "Cloud hesabın bağlı"
-              : "Cloud hesabı bağlı değil"
-        }
-        description={
-          cloudAccountEmail
-            ? cloudAccountEmail
-            : "Cloud sync isteğe bağlıdır; yerel çalışma bu cihazda kalır."
-        }
-        action={
-          <StatusPill
-            status={
-              cloudAccountStatus === "signedIn"
-                ? "synced"
-                : cloudAccountStatus === "checking"
-                  ? "pending"
-                  : "noSync"
-            }
-          >
-            {cloudAccountStatus === "signedIn"
-              ? "Signed in"
-              : cloudAccountStatus === "checking"
-                ? "Checking"
-                : "Not signed in"}
-          </StatusPill>
-        }
-      >
-        <div className="flex flex-wrap gap-2">
-          {cloudAccountRole === "admin" && cloudAccountStatus === "signedIn" ? (
-            <Link
-              href="/admin"
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition visited:text-[#17201a] hover:bg-sage hover:text-[#17201a] active:scale-[0.98] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:text-[#17201a]"
-            >
-              Admin paneli
-            </Link>
-          ) : null}
-          <Link
-            href={cloudAccountStatus === "signedIn" ? "/account" : "/login"}
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-          >
-            {cloudAccountStatus === "signedIn"
-              ? "Cloud account aç"
-              : "Login sayfasına git"}
-          </Link>
-          {cloudAccountStatus === "signedIn" ? (
-            <button
-              type="button"
-              onClick={() => {
-                void signOutFromSettings();
-              }}
-              disabled={isSigningOut}
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-surface px-4 py-2 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-            >
-              {isSigningOut ? "Çıkış yapılıyor" : "Çıkış yap"}
-            </button>
-          ) : null}
-        </div>
-        {cloudAccountMessage ? (
-          <p className="mt-3 text-sm font-semibold leading-5 text-muted">
-            {cloudAccountMessage}
-          </p>
-        ) : null}
-      </CompactSection>
-
-      <CloudSyncPanel />
 
       <CompactSection
         eyebrow="Local device"
@@ -372,7 +217,7 @@ export default function SettingsPage() {
 
       <CompactSection
         eyebrow="System status"
-        title="Ses, cloud ve program"
+        title="Ses ve program"
         description="Kısa durum özeti. Teknik kontroller aynı şekilde çalışmaya devam eder."
       >
         <ProgressStrip
@@ -392,22 +237,11 @@ export default function SettingsPage() {
                     : "warning",
             },
             {
-              label: supabaseStatus.configured
-                ? "Supabase ready"
-                : "Cloud not connected",
-              status: supabaseStatus.configured ? "synced" : "noSync",
-            },
-            {
               label: "90 days",
               status: "active",
             },
           ]}
         />
-        {supabaseStatus.invalidMessage ? (
-          <p className="mt-3 text-sm font-semibold leading-5 text-muted">
-            {supabaseStatus.invalidMessage}
-          </p>
-        ) : null}
         <p className="mt-3 rounded-[1.25rem] bg-linen p-3 text-sm font-semibold leading-6 text-[#2d261d]">
           Bu sürüm ilerlemeyi bu cihazdaki tarayıcıda saklar. Cihaz değişirse
           veya tarayıcı verisi silinirse ilerleme kaybolabilir.
@@ -415,45 +249,17 @@ export default function SettingsPage() {
       </CompactSection>
 
       <CompactSection
-        eyebrow="Pilot"
-        title="Pilot kullanım rehberi"
-        description="Kayıt, günlük çalışma, cloud sync ve admin görünürlüğü için kısa ekip rehberi."
+        eyebrow="Guide"
+        title="Yerel kullanım rehberi"
+        description="Günlük çalışma ve bu cihazdaki ilerlemeyi koruma adımları."
       >
         <Link
           href="/pilot"
           className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black text-[#17201a] outline-none transition visited:text-[#17201a] hover:bg-sage hover:text-[#17201a] active:scale-[0.98] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:text-[#17201a]"
         >
-          Pilot kullanım rehberi
+          Yerel kullanım rehberi
         </Link>
       </CompactSection>
-
-      <ExpandableCard
-        eyebrow="Ekip kullanımı"
-        title="Gizlilik ve admin görünürlüğü"
-        description="Cloud sync kullanırsan hangi ilerleme bilgilerinin admin tarafından görülebileceğini açıklar."
-      >
-        <div className="space-y-3 text-sm font-semibold leading-6 text-muted">
-          <p>
-            Bu uygulama İngilizce pratik ilerlemesini takip etmek için
-            kullanılır.
-          </p>
-          <p>
-            Giriş yapıp cloud sync kullandığında aktif günün, tamamladığın
-            modüller, review durumu, yazılı pratik cevapların ve journal notların
-            ekip yöneticisi tarafından görülebilir.
-          </p>
-          <p>
-            Ses kayıtları tutulmaz. ElevenLabs API anahtarı kullanıcı
-            ilerlemesine kaydedilmez.
-          </p>
-          <p>
-            Yerel ilerleme, cloud’a yedeklemediğin sürece bu cihazdaki
-            tarayıcıda kalır. Cloud sync isteğe bağlıdır; ancak farklı cihazdan
-            geri yükleme ve admin panelde görünmek için cloud’a yedekleme
-            gerekir.
-          </p>
-        </div>
-      </ExpandableCard>
 
       <ExpandableCard
         eyebrow="Advanced"
@@ -467,8 +273,7 @@ export default function SettingsPage() {
             </h2>
             <p className="mt-2 text-sm font-medium leading-6 text-muted">
               Dışa aktarma aktif günü, yerel pratik cevaplarını ve Device Lab
-              kayıtlarını içerir. Cloud oturumu, API anahtarı veya gizli ses
-              ayarı içermez.
+              kayıtlarını içerir. API anahtarı veya gizli ses ayarı içermez.
             </p>
           </div>
 
