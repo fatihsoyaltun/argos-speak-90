@@ -193,6 +193,24 @@ export function CloudSyncPanel() {
           veya Senkronize et kullan.
         </p>
 
+        <div className="rounded-[1.25rem] border border-clay/25 bg-linen/80 p-4 text-sm font-semibold leading-6 text-[#2d261d]">
+          <p className="font-black">Cloud çıkışı öncesi son yerel yedek</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5">
+            <li>Advanced local data bölümünden önce bir JSON indir.</li>
+            <li>
+              Giriş yaptıktan sonra Senkronize et ile cloud’daki daha yeni
+              günleri bu cihaza al.
+            </li>
+            <li>
+              Sonucu kontrol et ve aktif gün ile Device Lab kayıtlarını da
+              içeren ikinci JSON’u indir.
+            </li>
+          </ol>
+          <p className="mt-2">
+            Bu adımlar yalnız senin eyleminle çalışır; cloud verisini silmez.
+          </p>
+        </div>
+
         <div className="grid gap-3 sm:grid-cols-3">
           <button
             type="button"

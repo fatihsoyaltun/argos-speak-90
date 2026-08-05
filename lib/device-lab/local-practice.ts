@@ -1,7 +1,7 @@
 import type { DeviceSlug } from "./types";
+import { DEVICE_LAB_PRACTICE_STORAGE_KEY } from "@/lib/local-storage-keys";
 
-export const DEVICE_LAB_PRACTICE_STORAGE_KEY =
-  "argos-device-lab-practice-v1";
+export { DEVICE_LAB_PRACTICE_STORAGE_KEY } from "@/lib/local-storage-keys";
 
 export type DeviceLabLocalPractice = {
   deviceSlug: DeviceSlug;
