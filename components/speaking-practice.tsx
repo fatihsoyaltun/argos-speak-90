@@ -7,6 +7,11 @@ import {
   StatusPill,
   TaskStepper,
 } from "@/components/ui";
+import {
+  TtsAudioAction,
+  TtsAudioScope,
+  TtsAudioStatus,
+} from "@/components/tts-audio-scope";
 import type { SpeakingPractice } from "@/lib/speaking-content";
 import {
   getDayProgress,
@@ -91,7 +96,8 @@ export function SpeakingPracticeView({
       : "pending";
 
   return (
-    <div className="space-y-4">
+    <TtsAudioScope day={practice.day} scope="learning-content">
+      <div className="space-y-4">
       <section className="rounded-[1.55rem] border border-moss/15 bg-moss p-5 text-white shadow-soft sm:rounded-[1.75rem] sm:p-6">
         <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-sage sm:text-sm">
@@ -129,14 +135,21 @@ export function SpeakingPracticeView({
         eyebrow="Speaking prompt"
         title="Answer out loud first"
         action={
-          <StatusPill status="active">
-            Day {practice.day}
-          </StatusPill>
+          <div className="flex flex-wrap justify-end gap-2">
+            <TtsAudioAction
+              id={`speak-prompt-${practice.day}`}
+              text={practice.prompt}
+              idleAriaLabel="Konuşma promptunu dinle"
+              className="px-3.5 py-2 text-xs"
+            />
+            <StatusPill status="active">Day {practice.day}</StatusPill>
+          </div>
         }
       >
         <p className="rounded-[1.25rem] bg-background/85 p-4 text-[1.03rem] font-semibold leading-8 text-foreground">
           {practice.prompt}
         </p>
+        <TtsAudioStatus className="mt-3" />
       </CompactSection>
 
       <CompactSection
@@ -230,13 +243,22 @@ export function SpeakingPracticeView({
               key={line}
               className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
             >
-              <div className="flex gap-3">
+              <div className="flex items-start gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-sage text-sm font-black text-moss">
                   {index + 1}
                 </span>
-                <p className="pt-0.5 text-sm font-semibold leading-6 text-foreground">
-                  {line}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <p className="pt-0.5 text-sm font-semibold leading-6 text-foreground">
+                    {line}
+                  </p>
+                  <TtsAudioAction
+                    id={`speak-target-${practice.day}-${index}`}
+                    text={line}
+                    idleAriaLabel={`Hedef cümle ${index + 1} sesini dinle`}
+                    variant="ghost"
+                    className="mt-2 px-3.5 py-2 text-xs"
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -283,6 +305,7 @@ export function SpeakingPracticeView({
           })}
         </div>
       </ExpandableCard>
-    </div>
+      </div>
+    </TtsAudioScope>
   );
 }

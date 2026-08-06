@@ -56,7 +56,7 @@ export function AudioAction({
       disabled={disabled}
       aria-label={ariaLabel}
       aria-busy={visibleState === "loading" || undefined}
-      className={className}
+      className={`focus-visible:outline-[3px] focus-visible:outline-solid focus-visible:outline-offset-[3px] focus-visible:outline-clay ${className}`}
     >
       <span aria-live="polite">{label}</span>
     </Button>

@@ -11,7 +11,10 @@ import {
 import type { ListeningDrill } from "@/lib/listening-content";
 import { getTtsServiceStatus } from "@/lib/tts/client";
 import { createTtsCacheKey } from "@/lib/tts/audio-cache";
-import { useAudioController } from "@/lib/tts/use-audio-controller";
+import {
+  type AudioControllerRequest,
+  useAudioController,
+} from "@/lib/tts/use-audio-controller";
 import {
   getDayProgress,
   markDayTaskCompleted,
@@ -72,7 +75,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   const [ttsVoiceId, setTtsVoiceId] = useState("");
   const canShowAudioControls = ttsConfigState === "configured";
   const audioId = `listen-${drill.day}`;
-  const ttsCacheKey = useMemo(
+  const transcriptTtsCacheKey = useMemo(
     () =>
       createTtsCacheKey({
         day: drill.day,
@@ -201,18 +204,18 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
     };
   }, [drill.day, stopAudio]);
 
-  const audioRequest = useMemo(
+  const transcriptAudioRequest = useMemo(
     () => ({
-      cacheKey: ttsCacheKey,
+      cacheKey: transcriptTtsCacheKey,
       id: audioId,
       includeAlignment: true,
       text: drill.transcriptExcerpt,
     }),
-    [audioId, drill.transcriptExcerpt, ttsCacheKey],
+    [audioId, drill.transcriptExcerpt, transcriptTtsCacheKey],
   );
 
-  async function handleAudioAction() {
-    const isActive = audio.activeId === audioId;
+  async function handleAudioAction(request: AudioControllerRequest) {
+    const isActive = audio.activeId === request.id;
 
     if (isActive && (audio.state === "loading" || audio.state === "playing")) {
       audio.cancel();
@@ -224,7 +227,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
       return;
     }
 
-    await audio.play(audioRequest);
+    await audio.play(request);
   }
 
   async function replayAudio() {
@@ -233,7 +236,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
       return;
     }
 
-    await audio.play(audioRequest);
+    await audio.play(transcriptAudioRequest);
   }
 
   function saveResponse() {
@@ -245,6 +248,8 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   const hasResponse = response.trim().length > 0;
   const hasListenedToCurrentDay =
     audio.activeId === audioId && audio.duration > 0;
+  const transcriptAudioError =
+    audio.activeId === audioId ? audio.error?.message : "";
 
   return (
     <div className="space-y-4">
@@ -265,7 +270,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
               active={audio.activeId === audioId}
               state={audio.state}
               onAction={() => {
-                void handleAudioAction();
+                void handleAudioAction(transcriptAudioRequest);
               }}
               idleAriaLabel="Metni dinle"
               labels={{
@@ -317,9 +322,9 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
           </div>
         ) : null}
 
-        {statusError || audio.error ? (
+        {statusError || transcriptAudioError ? (
           <p className="mt-3 rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
-            {audio.error?.message || statusError}
+            {transcriptAudioError || statusError}
           </p>
         ) : null}
 
@@ -368,7 +373,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
               active={audio.activeId === audioId}
               state={audio.state}
               onAction={() => {
-                void handleAudioAction();
+                void handleAudioAction(transcriptAudioRequest);
               }}
               disabled={!canShowAudioControls}
               idleAriaLabel="Metni dinle"
@@ -412,21 +417,61 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         description={`${drill.keyLines.length} hedef cümle. İhtiyaç duyunca açıp tekrar et.`}
       >
         <div className="grid gap-2">
-          {drill.keyLines.map((line, index) => (
-            <div
-              key={line}
-              className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
-            >
-              <div className="flex gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-sage text-sm font-black text-moss">
-                  {index + 1}
-                </span>
-                <p className="pt-0.5 text-sm font-semibold leading-6 text-foreground">
-                  {line}
-                </p>
+          {drill.keyLines.map((line, index) => {
+            const keyLineAudioId = `listen-${drill.day}-key-line-${index}`;
+            const keyLineIsActive = audio.activeId === keyLineAudioId;
+            const keyLineRequest: AudioControllerRequest = {
+              cacheKey: createTtsCacheKey({
+                day: drill.day,
+                includeAlignment: false,
+                modelId: ttsModelId,
+                scope: "learning-content",
+                text: line,
+                voiceId: ttsVoiceId,
+              }),
+              id: keyLineAudioId,
+              includeAlignment: false,
+              text: line,
+            };
+
+            return (
+              <div
+                key={line}
+                className="rounded-[1.15rem] border border-foreground/10 bg-background/85 p-3"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-sage text-sm font-black text-moss">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="pt-0.5 text-sm font-semibold leading-6 text-foreground">
+                      {line}
+                    </p>
+                    <AudioAction
+                      active={keyLineIsActive}
+                      state={audio.state}
+                      disabled={!canShowAudioControls}
+                      onAction={() => {
+                        void handleAudioAction(keyLineRequest);
+                      }}
+                      idleAriaLabel={`Hedef cümle ${index + 1} sesini dinle`}
+                      labels={{ idle: "Dinle", retry: "Tekrar dene" }}
+                      variant="ghost"
+                      className="mt-2 px-3.5 py-2 text-xs"
+                    />
+                    {keyLineIsActive && audio.error ? (
+                      <p
+                        role="alert"
+                        className="mt-2 rounded-[1rem] border border-clay/20 bg-linen/70 p-3 text-sm font-semibold leading-5 text-foreground"
+                      >
+                        {audio.error.message}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </ExpandableCard>
 

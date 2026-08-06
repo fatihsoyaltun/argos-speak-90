@@ -11,6 +11,8 @@
     "lint": "eslint",
     "test:p2": "node --test tests/p2-local-backup.test.mjs",
     "test:p6": "node --experimental-strip-types --test tests/p6-tts-reliability.test.mjs",
+    "test:p7": "node --experimental-strip-types --test tests/p7-tts-coverage.test.mjs",
+    "test:p7:browser": "node tests/p7-browser-qa.mjs",
     "test:p6:live": "node tests/p6-live-tts.mjs"
   },
   "dependencies": {

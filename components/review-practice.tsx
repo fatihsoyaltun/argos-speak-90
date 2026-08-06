@@ -7,6 +7,11 @@ import {
   ProgressStrip,
   StatusPill,
 } from "@/components/ui";
+import {
+  TtsAudioAction,
+  TtsAudioScope,
+  TtsAudioStatus,
+} from "@/components/tts-audio-scope";
 import type { ReviewDrill } from "@/lib/review-content";
 import {
   getDayProgress,
@@ -158,7 +163,8 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
   }
 
   return (
-    <div className="space-y-4">
+    <TtsAudioScope day={drill.day} scope="learning-content">
+      <div className="space-y-4">
       <CompactSection
         eyebrow="Active recall"
         title="Hatırlayıp yaz"
@@ -183,6 +189,7 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
             },
           ]}
         />
+        <TtsAudioStatus />
       </CompactSection>
 
       <ExpandableCard
@@ -227,6 +234,13 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
                     <h3 className="mt-1.5 text-lg font-semibold leading-7">
                       {item.prompt}
                     </h3>
+                    <TtsAudioAction
+                      id={`review-prompt-${drill.day}-${index}`}
+                      text={item.prompt}
+                      idleAriaLabel={`Review görevi ${index + 1} promptunu dinle`}
+                      variant="ghost"
+                      className="mt-2 px-3.5 py-2 text-xs"
+                    />
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
                     <StatusPill status="active">
@@ -276,6 +290,13 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
                   <div className="mt-3 rounded-[1.15rem] border border-clay/25 bg-linen/70 p-3 text-sm leading-6 text-foreground">
                     <p className="font-bold">Tekrar bak:</p>
                     <p className="mt-1 font-semibold">{item.expectedAnswer}</p>
+                    <TtsAudioAction
+                      id={`review-answer-${drill.day}-${index}`}
+                      text={item.expectedAnswer}
+                      idleAriaLabel={`Review görevi ${index + 1} örnek cevabını dinle`}
+                      variant="ghost"
+                      className="mt-2 px-3.5 py-2 text-xs"
+                    />
                   </div>
                 ) : null}
               </article>
@@ -306,6 +327,7 @@ export function ReviewPractice({ drill }: { drill: ReviewDrill }) {
           Yanlış çıkan cümleyi kısa tut ve bir kez daha yüksek sesle söyle.
         </p>
       </section>
-    </div>
+      </div>
+    </TtsAudioScope>
   );
 }

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { ElevenLabsTtsError } from "@/lib/tts/elevenlabs";
 import { getElevenLabsTtsProvider } from "@/lib/tts/provider";
 import { createTtsRequestGuard } from "@/lib/tts/request-guard";
+import { TTS_MAX_TEXT_LENGTH } from "@/lib/tts/text-chunks";
 
-const MAX_TEXT_LENGTH = 2_000;
 const MAX_REQUEST_BYTES = 8_192;
 const requestGuard = createTtsRequestGuard();
 
@@ -163,7 +163,7 @@ export async function POST(request: Request) {
   }
 
   if (
-    text.length > MAX_TEXT_LENGTH ||
+    text.length > TTS_MAX_TEXT_LENGTH ||
     /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(text)
   ) {
     return createErrorResponse({

@@ -28,8 +28,8 @@ Durum sözlüğü: `Tamamlandı`, `Sıradaki`, `Bekliyor`, `Engelli`.
 | P4 | Tasarım sistemi, shell ve navigation temeli | Tamamlandı | P3 |
 | P5 | Device Lab sade hap bilgi deneyimi | Tamamlandı | P4 |
 | P6 | TTS güvenilirlik temeli | Tamamlandı | P4 |
-| P7 | TTS kapsam genişletmesi | Sıradaki | P5, P6 |
-| P8 | Tarayıcı ses kayıt MVP'si | Bekliyor | P4, P6 |
+| P7 | TTS kapsam genişletmesi | Tamamlandı | P5, P6 |
+| P8 | Tarayıcı ses kayıt MVP'si | Sıradaki | P4, P6 |
 | P9 | Words 8 → 10 | Bekliyor | P4, P6 |
 | P10A | Bugün ve Pratik merkezi yeniden tasarımı | Bekliyor | P4, P7 |
 | P10B | Listen ve Words yeniden tasarımı | Bekliyor | P7, P9 |
@@ -292,7 +292,15 @@ Mevcut ElevenLabs akışını genişletmeden önce güvenilir, ölçülebilir ve
 
 ## P7 — TTS kapsam genişletmesi
 
-**Durum: Sıradaki**
+**Durum: Tamamlandı**
+
+**Son doğrulama notu (6 Ağustos 2026):** Listen key lines, Speak, Review ve
+yayımlanmış Device Lab öğrenme nesneleri P6 ortak ses davranışına taşındı;
+Words word/example ile Listen transcript davranışı korundu. Route başına tek
+aktif oynatma, kontrollü 2.000 karakter bölümleme, cache reuse, 13 gerçek TTS
+yanıtı, 320/375 mobil reflow ve 3 px klavye focus göstergesi geçti. Journal'ın
+mevcut promptları Türkçe olduğu için TTS kapsamına alınmadı. Ayrıntı:
+`docs/ARGOS_SPEAK_90_P7_TTS_COVERAGE_SUMMARY.md`.
 
 ### Amaç
 
@@ -327,7 +335,7 @@ Mevcut ElevenLabs akışını genişletmeden önce güvenilir, ölçülebilir ve
 
 ## P8 — Tarayıcı ses kayıt MVP'si
 
-**Durum: Bekliyor**
+**Durum: Sıradaki**
 
 ### Amaç
 

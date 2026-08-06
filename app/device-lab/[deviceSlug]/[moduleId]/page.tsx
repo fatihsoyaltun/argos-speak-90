@@ -7,6 +7,11 @@ import {
   PageHeader,
 } from "@/components/ui";
 import {
+  TtsAudioAction,
+  TtsAudioScope,
+  TtsAudioStatus,
+} from "@/components/tts-audio-scope";
+import {
   getDeviceLabModuleIntro,
   getDeviceLabQuickFacts,
   getLearnerReadyDeviceLabDevice,
@@ -73,7 +78,8 @@ export default async function ModulePage({ params }: ModulePageProps) {
   const keyWords = learningModule.vocabulary.slice(0, 5);
 
   return (
-    <div className="space-y-5">
+    <TtsAudioScope day={0} scope="device-lab-learning">
+      <div className="space-y-5">
       <BackLink href={`/device-lab/${device.slug}`}>{device.productName}</BackLink>
 
       <div
@@ -86,6 +92,13 @@ export default async function ModulePage({ params }: ModulePageProps) {
           title={device.productName}
           description={intro}
         />
+        <TtsAudioAction
+          id={`${hookPrefix}-intro-audio`}
+          text={intro}
+          idleAriaLabel="Cihaz tanıtımını dinle"
+          className="mt-3 px-4 py-2.5 text-sm"
+        />
+        <TtsAudioStatus className="mt-3" />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -133,9 +146,18 @@ export default async function ModulePage({ params }: ModulePageProps) {
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-sm font-black text-moss">
                 {index + 1}
               </span>
-              <p className="text-[1.02rem] font-semibold leading-7 text-foreground">
-                {claim.text}
-              </p>
+              <div className="min-w-0 flex-1">
+                <p className="text-[1.02rem] font-semibold leading-7 text-foreground">
+                  {claim.text}
+                </p>
+                <TtsAudioAction
+                  id={`${hookPrefix}-fact-${claim.id}-audio`}
+                  text={claim.text}
+                  idleAriaLabel={`Hap bilgi ${index + 1} sesini dinle`}
+                  variant="ghost"
+                  className="mt-2 px-3.5 py-2 text-xs"
+                />
+              </div>
             </li>
           ))}
         </ol>
@@ -158,6 +180,13 @@ export default async function ModulePage({ params }: ModulePageProps) {
                 {item.termEn}
               </p>
               <p className="mt-1 text-sm font-bold text-moss">{item.termTr}</p>
+              <TtsAudioAction
+                id={`${hookPrefix}-word-${item.id}-audio`}
+                text={item.termEn}
+                idleAriaLabel={`${item.termEn} kelimesini dinle`}
+                variant="ghost"
+                className="mt-2 px-3.5 py-2 text-xs"
+              />
             </li>
           ))}
         </ul>
@@ -175,6 +204,12 @@ export default async function ModulePage({ params }: ModulePageProps) {
           <p className="rounded-[1.15rem] border border-moss/15 bg-sage p-4 text-[1.05rem] font-medium leading-7 text-foreground">
             {learningModule.listeningTextEn}
           </p>
+          <TtsAudioAction
+            id={`${hookPrefix}-listening-audio`}
+            text={learningModule.listeningTextEn}
+            idleAriaLabel="Cihaz dinleme metnini dinle"
+            className="mt-3 px-4 py-2.5 text-sm"
+          />
         </CompactSection>
       </div>
 
@@ -191,6 +226,12 @@ export default async function ModulePage({ params }: ModulePageProps) {
           <p className="rounded-[1.15rem] bg-sage p-4 text-[1.02rem] font-semibold leading-7 text-foreground">
             {learningModule.speakingPrompt.promptEn}
           </p>
+          <TtsAudioAction
+            id={`${hookPrefix}-say-it-audio`}
+            text={learningModule.speakingPrompt.promptEn ?? ""}
+            idleAriaLabel="Say it konuşma promptunu dinle"
+            className="mt-3 px-4 py-2.5 text-sm"
+          />
         </CompactSection>
       </div>
 
@@ -283,6 +324,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
           </section>
         </div>
       </ExpandableCard>
-    </div>
+      </div>
+    </TtsAudioScope>
   );
 }
