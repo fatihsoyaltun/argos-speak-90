@@ -2,7 +2,7 @@
 
 **Kanonik uygulama sırası**
 
-**Son güncelleme:** 5 Ağustos 2026
+**Son güncelleme:** 6 Ağustos 2026
 
 ## 1. Faz yürütme protokolü
 
@@ -26,8 +26,8 @@ Durum sözlüğü: `Tamamlandı`, `Sıradaki`, `Bekliyor`, `Engelli`.
 | P2 | Tek kullanıcı veri güvenliği ve çıkış envanteri | Tamamlandı | P1 |
 | P3 | Login/Admin/cloud emekliliği | Tamamlandı | P2 |
 | P4 | Tasarım sistemi, shell ve navigation temeli | Tamamlandı | P3 |
-| P5 | Device Lab sade hap bilgi deneyimi | Sıradaki | P4 |
-| P6 | TTS güvenilirlik temeli | Bekliyor | P4 |
+| P5 | Device Lab sade hap bilgi deneyimi | Tamamlandı | P4 |
+| P6 | TTS güvenilirlik temeli | Sıradaki | P4 |
 | P7 | TTS kapsam genişletmesi | Bekliyor | P5, P6 |
 | P8 | Tarayıcı ses kayıt MVP'si | Bekliyor | P4, P6 |
 | P9 | Words 8 → 10 | Bekliyor | P4, P6 |
@@ -212,7 +212,7 @@ Yeni sakin, mobil ve ses-öncelikli ürün için semantic token, temel bileşen 
 
 ## P5 — Device Lab sade hap bilgi deneyimi
 
-**Durum: Sıradaki**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -247,7 +247,7 @@ Device Lab'i kaynak güvenliğini koruyarak kısa İngilizce cihaz tanıtımına
 
 ## P6 — TTS güvenilirlik temeli
 
-**Durum: Bekliyor**
+**Durum: Sıradaki**
 
 ### Amaç
 

@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CompactSection, PageHeader } from "@/components/ui";
-import { deviceLabDevices } from "@/lib/device-lab";
+import {
+  ButtonLink,
+  CompactSection,
+  ExpandableCard,
+  PageHeader,
+} from "@/components/ui";
+import {
+  getDeviceLabModuleIntro,
+  getDeviceLabQuickFacts,
+  getLearnerReadyDeviceLabDevice,
+  learnerReadyDeviceLabDevices,
+} from "@/lib/device-lab";
 import {
   BackLink,
-  BlockedClaimsSection,
   ControlLabel,
   SourceReferenceList,
 } from "../../_components/device-lab-ui";
+import { DeviceLabCompletionStatus } from "../../_components/device-lab-completion-status";
 import { DeviceLabPracticePanel } from "../../_components/device-lab-practice-panel";
 
 type ModulePageProps = {
@@ -17,11 +27,13 @@ type ModulePageProps = {
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return deviceLabDevices.flatMap((device) =>
-    device.modules.map((module) => ({
-      deviceSlug: device.slug,
-      moduleId: module.id,
-    })),
+  return learnerReadyDeviceLabDevices.flatMap((device) =>
+    device.modules
+      .filter((module) => module.releaseStatus === "learner_ready")
+      .map((module) => ({
+        deviceSlug: device.slug,
+        moduleId: module.id,
+      })),
   );
 }
 
@@ -29,8 +41,11 @@ export async function generateMetadata({
   params,
 }: ModulePageProps): Promise<Metadata> {
   const { deviceSlug, moduleId } = await params;
-  const device = deviceLabDevices.find((item) => item.slug === deviceSlug);
-  const learningModule = device?.modules.find((item) => item.id === moduleId);
+  const device = getLearnerReadyDeviceLabDevice(deviceSlug);
+  const learningModule = device?.modules.find(
+    (module) =>
+      module.id === moduleId && module.releaseStatus === "learner_ready",
+  );
 
   return {
     title:
@@ -42,208 +57,232 @@ export async function generateMetadata({
 
 export default async function ModulePage({ params }: ModulePageProps) {
   const { deviceSlug, moduleId } = await params;
-  const device = deviceLabDevices.find((item) => item.slug === deviceSlug);
-  const learningModule = device?.modules.find((item) => item.id === moduleId);
+  const device = getLearnerReadyDeviceLabDevice(deviceSlug);
+  const learningModule = device?.modules.find(
+    (module) =>
+      module.id === moduleId && module.releaseStatus === "learner_ready",
+  );
 
   if (!device || !learningModule) {
     notFound();
   }
 
+  const hookPrefix = `device-lab-${learningModule.id}`;
+  const intro = getDeviceLabModuleIntro(learningModule);
+  const quickFacts = getDeviceLabQuickFacts(learningModule);
+  const keyWords = learningModule.vocabulary.slice(0, 5);
+
   return (
     <div className="space-y-5">
       <BackLink href={`/device-lab/${device.slug}`}>{device.productName}</BackLink>
 
-      <PageHeader
-        eyebrow={`${device.productName} · ${learningModule.kind}`}
-        title={learningModule.titleTr}
-        description={learningModule.titleEn}
-      />
+      <div
+        id={`${hookPrefix}-intro`}
+        data-device-lab-audio-hook="intro"
+        data-device-lab-module-id={learningModule.id}
+      >
+        <PageHeader
+          eyebrow={learningModule.titleEn}
+          title={device.productName}
+          description={intro}
+        />
+      </div>
 
-      <div className="flex flex-wrap gap-2">
-        <ControlLabel value={learningModule.releaseStatus} />
-        <span className="inline-flex items-center rounded-full border border-foreground/10 bg-surface px-2.5 py-1 text-[0.7rem] font-black leading-4 text-muted">
+      <div className="flex flex-wrap items-center gap-2">
+        <DeviceLabCompletionStatus
+          deviceSlug={device.slug}
+          moduleIds={[learningModule.id]}
+        />
+        <span className="inline-flex min-h-8 items-center rounded-full border border-foreground/10 bg-surface px-3 py-1.5 text-xs font-black leading-none text-muted">
           {learningModule.learnerLevel}
-        </span>
-        <span className="inline-flex items-center rounded-full border border-foreground/10 bg-surface px-2.5 py-1 text-[0.7rem] font-black leading-4 text-muted">
-          local_practice
         </span>
       </div>
 
-      <CompactSection
-        eyebrow="Module goal"
-        title="Modül hedefi"
-        description={learningModule.moduleGoalTr}
-      />
+      <nav
+        aria-label="Modül akışı"
+        className="grid grid-cols-2 gap-2 rounded-[1.25rem] border border-foreground/10 bg-surface p-2 shadow-soft"
+      >
+        <ButtonLink
+          href={`#${hookPrefix}-listen`}
+          className="w-full focus-visible:ring-offset-surface"
+        >
+          Listen
+        </ButtonLink>
+        <ButtonLink
+          href={`#${hookPrefix}-say-it`}
+          variant="secondary"
+          className="w-full focus-visible:ring-offset-surface"
+        >
+          Say it
+        </ButtonLink>
+      </nav>
 
       <CompactSection
-        eyebrow="Source-backed claims"
-        title="Kaynak destekli ifadeler"
-        description="Her ifade kendi kanıt ve claim-control etiketiyle gösterilir."
+        eyebrow="Quick facts"
+        title={`${quickFacts.length} kaynak destekli bilgi`}
+        description="Kısa tut; metindeki kapsam ve atfı koru."
       >
-        <div className="grid gap-3">
-          {learningModule.sourceBackedClaims.map((claim) => (
-            <article
+        <ol className="grid gap-3">
+          {quickFacts.map((claim, index) => (
+            <li
               key={claim.id}
-              className="rounded-[1.15rem] border border-foreground/10 bg-background/80 p-4"
+              id={`${hookPrefix}-fact-${claim.id}`}
+              data-device-lab-audio-hook="quick-fact"
+              className="flex gap-3 rounded-[1.15rem] border border-foreground/10 bg-background/80 p-4"
             >
-              <div className="flex flex-wrap gap-2">
-                <ControlLabel value={claim.claimControlLevel} />
-                <ControlLabel value={claim.releaseStatus} />
-                <span className="inline-flex max-w-full items-center rounded-full border border-foreground/10 bg-surface px-2.5 py-1 text-[0.7rem] font-black leading-4 break-words text-muted">
-                  {claim.evidenceLevel}
-                </span>
-              </div>
-              <p className="mt-3 text-sm font-semibold leading-6 text-foreground">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-sm font-black text-moss">
+                {index + 1}
+              </span>
+              <p className="text-[1.02rem] font-semibold leading-7 text-foreground">
                 {claim.text}
               </p>
-              {claim.attributionRequired || claim.demonstrationOnly ? (
-                <p className="mt-2 text-xs font-bold leading-5 text-clay">
-                  {claim.attributionRequired ? "Kaynak/üretici atfı gerekli." : ""}
-                  {claim.attributionRequired && claim.demonstrationOnly ? " " : ""}
-                  {claim.demonstrationOnly
-                    ? "Sunum demonstrasyonu olarak çerçevelenmelidir."
-                    : ""}
-                </p>
-              ) : null}
-            </article>
+            </li>
           ))}
-        </div>
-      </CompactSection>
-
-      <CompactSection
-        eyebrow="Vocabulary"
-        title="Kelime ve ifadeler"
-        description="İngilizce terim, Türkçe karşılık ve basit açıklama."
-      >
-        <div className="grid gap-3 sm:grid-cols-2">
-          {learningModule.vocabulary.map((item) => (
-            <article
-              key={item.id}
-              className="rounded-[1.15rem] border border-foreground/10 bg-background/80 p-4"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="font-semibold leading-5">{item.termEn}</h3>
-                  <p className="mt-1 text-sm font-bold text-moss">{item.termTr}</p>
-                </div>
-                <ControlLabel value={item.claimControlLevel} />
-              </div>
-              <p className="mt-3 text-sm font-medium leading-6 text-foreground">
-                {item.simpleDefinitionEn}
-              </p>
-              <p className="mt-2 text-sm font-medium leading-6 text-muted">
-                {item.simpleDefinitionTr}
-              </p>
-              <p className="mt-2 text-xs font-bold leading-5 text-clay">
-                {item.usageNoteTr}
-              </p>
-            </article>
-          ))}
-        </div>
-      </CompactSection>
-
-      <CompactSection
-        eyebrow="Listen"
-        title="Dinleme metni"
-        description="Bu prototipte ses veya TTS yoktur; metin yalnızca okunur."
-      >
-        <div className="rounded-[1.15rem] border border-moss/15 bg-sage p-4 text-[1.02rem] font-medium leading-7 text-foreground">
-          {learningModule.listeningTextEn}
-        </div>
-        <div className="mt-3 rounded-[1.15rem] bg-background/80 p-4">
-          <h3 className="text-sm font-black text-clay">Dinleme görevi</h3>
-          <p className="mt-2 text-sm font-semibold leading-6 text-muted">
-            {learningModule.listeningTaskTr}
-          </p>
-        </div>
-      </CompactSection>
-
-      <CompactSection
-        eyebrow="Speak"
-        title="Konuşma görevi"
-        description={learningModule.speakingPrompt.promptTr}
-      >
-        {learningModule.speakingPrompt.promptEn ? (
-          <p className="rounded-[1.15rem] bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
-            {learningModule.speakingPrompt.promptEn}
-          </p>
-        ) : null}
-        <p className="mt-3 text-xs font-bold uppercase tracking-[0.12em] text-clay">
-          {learningModule.speakingPrompt.expectedOutputType}
-        </p>
-        <ol className="mt-3 grid gap-3 sm:grid-cols-2">
-          <li className="rounded-[1.15rem] border border-foreground/10 bg-background/80 p-4">
-            <span className="text-xs font-black uppercase tracking-[0.14em] text-moss">
-              First try
-            </span>
-            <p className="mt-2 text-sm font-semibold leading-6 text-muted">
-              {learningModule.firstTryInstructionTr}
-            </p>
-          </li>
-          <li className="rounded-[1.15rem] border border-foreground/10 bg-background/80 p-4">
-            <span className="text-xs font-black uppercase tracking-[0.14em] text-moss">
-              Second try
-            </span>
-            <p className="mt-2 text-sm font-semibold leading-6 text-muted">
-              {learningModule.secondTryInstructionTr}
-            </p>
-          </li>
         </ol>
       </CompactSection>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <CompactSection
+        eyebrow="Key words"
+        title="Kısa kelime listesi"
+        description="İngilizce terimi ve kısa Türkçe karşılığını birlikte gör."
+      >
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {keyWords.map((item) => (
+            <li
+              key={item.id}
+              id={`${hookPrefix}-word-${item.id}`}
+              data-device-lab-audio-hook="key-word"
+              className="rounded-[1.1rem] border border-foreground/10 bg-background/80 p-3.5"
+            >
+              <p className="font-semibold leading-5 text-foreground">
+                {item.termEn}
+              </p>
+              <p className="mt-1 text-sm font-bold text-moss">{item.termTr}</p>
+            </li>
+          ))}
+        </ul>
+      </CompactSection>
+
+      <div
+        id={`${hookPrefix}-listen`}
+        data-device-lab-audio-hook="listening-text"
+      >
         <CompactSection
-          eyebrow="Review"
-          title="Tekrar görevi"
-          description={learningModule.reviewTaskTr}
-        />
-        <CompactSection
-          eyebrow="Journal"
-          title="Journal sorusu"
-          description={learningModule.journalPromptTr}
-        />
+          eyebrow="Listen"
+          title="Kısa tanıtım metni"
+          description="Metni bir kez yavaş, bir kez doğal hızda oku."
+        >
+          <p className="rounded-[1.15rem] border border-moss/15 bg-sage p-4 text-[1.05rem] font-medium leading-7 text-foreground">
+            {learningModule.listeningTextEn}
+          </p>
+        </CompactSection>
       </div>
 
-      <CompactSection
-        eyebrow="Static coaching note"
-        title="Admin coaching signal"
-        description="Bu not yalnızca statik içerik olarak gösterilir; admin sistemine gönderilmez ve takip edilmez."
+      <div
+        id={`${hookPrefix}-say-it`}
+        data-device-lab-audio-hook="say-it-prompt"
+        data-device-lab-recording-hook="say-it-response"
       >
-        <p className="text-sm font-semibold leading-6 text-muted">
-          {learningModule.adminCoachingSignalTr}
-        </p>
-      </CompactSection>
+        <CompactSection
+          eyebrow="Say it"
+          title="Kısa konuşma görevi"
+          description="Tek bir kısa deneme yap; puanlama yok."
+        >
+          <p className="rounded-[1.15rem] bg-sage p-4 text-[1.02rem] font-semibold leading-7 text-foreground">
+            {learningModule.speakingPrompt.promptEn}
+          </p>
+        </CompactSection>
+      </div>
 
-      <CompactSection
-        eyebrow="Claim control"
-        title="Kaynak ve ifade sınırları"
-        description="Bu notlar öğrenen metninin cihaz ve kaynak sınırında kalmasına yardımcı olur."
+      <ExpandableCard
+        eyebrow="Türkçe yardım"
+        title="Görev ipuçları"
+        description="Yalnız gerektiğinde aç."
       >
         <div className="space-y-3 text-sm font-semibold leading-6 text-muted">
-          <p>{learningModule.claimControlNotesTr}</p>
-          <p>{learningModule.speakingPrompt.claimControlNotesTr}</p>
+          <p>{learningModule.listeningTaskTr}</p>
+          <p>{learningModule.speakingPrompt.promptTr}</p>
+          <p>{learningModule.firstTryInstructionTr}</p>
         </div>
-      </CompactSection>
-
-      <BlockedClaimsSection claims={learningModule.blockedClaims} />
-
-      <CompactSection
-        eyebrow="Sources"
-        title="Kaynak referansları"
-        description="Dosya, bölüm ve sunum slaytı/sayfası bilgileri."
-      >
-        <SourceReferenceList references={learningModule.sourceReferences} />
-      </CompactSection>
+      </ExpandableCard>
 
       <DeviceLabPracticePanel
         deviceSlug={device.slug}
         moduleId={learningModule.id}
         moduleTitle={learningModule.titleTr}
-        firstTryInstruction={learningModule.firstTryInstructionTr}
-        secondTryInstruction={learningModule.secondTryInstructionTr}
-        reviewInstruction={learningModule.reviewTaskTr}
-        journalInstruction={learningModule.journalPromptTr}
+        noteInstruction={learningModule.journalPromptTr}
       />
+
+      <ExpandableCard
+        eyebrow="Kaynak notları"
+        title="Kanıt ve ifade sınırları"
+        description="Claim-control, blocked kayıtlar ve kaynak referansları varsayılan olarak kapalıdır."
+      >
+        <div className="space-y-5">
+          <section aria-labelledby={`${hookPrefix}-claim-control-title`}>
+            <h3
+              id={`${hookPrefix}-claim-control-title`}
+              className="font-semibold text-foreground"
+            >
+              Claim-control
+            </h3>
+            <div className="mt-3 grid gap-3">
+              {learningModule.sourceBackedClaims.map((claim) => (
+                <article
+                  key={claim.id}
+                  className="rounded-[1.1rem] border border-foreground/10 bg-background p-3.5"
+                >
+                  <div className="flex flex-wrap gap-2">
+                    <ControlLabel value={claim.claimControlLevel} />
+                    <ControlLabel value={claim.releaseStatus} />
+                  </div>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
+                    {claim.text}
+                  </p>
+                </article>
+              ))}
+            </div>
+            <div className="mt-3 space-y-2 text-sm font-semibold leading-6 text-muted">
+              <p>{learningModule.claimControlNotesTr}</p>
+              <p>{learningModule.speakingPrompt.claimControlNotesTr}</p>
+            </div>
+          </section>
+
+          <section aria-labelledby={`${hookPrefix}-blocked-title`}>
+            <h3 id={`${hookPrefix}-blocked-title`} className="font-semibold text-foreground">
+              Yayımlanmayan iddialar
+            </h3>
+            <p className="mt-1 text-sm font-semibold leading-6 text-muted">
+              Bunlar öğrenme hedefi veya cihaz gerçeği olarak sunulmaz.
+            </p>
+            <div className="mt-3 grid gap-3">
+              {learningModule.blockedClaims.map((claim) => (
+                <article
+                  key={claim.id}
+                  className="rounded-[1.1rem] border border-danger/20 bg-danger-soft p-3.5"
+                >
+                  <ControlLabel value="blocked" />
+                  <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
+                    {claim.text}
+                  </p>
+                  <p className="mt-1 text-sm font-medium leading-6 text-muted">
+                    {claim.reason}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section aria-labelledby={`${hookPrefix}-sources-title`}>
+            <h3 id={`${hookPrefix}-sources-title`} className="font-semibold text-foreground">
+              Kaynak referansları
+            </h3>
+            <div className="mt-3">
+              <SourceReferenceList references={learningModule.sourceReferences} />
+            </div>
+          </section>
+        </div>
+      </ExpandableCard>
     </div>
   );
 }

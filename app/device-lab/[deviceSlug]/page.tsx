@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CompactSection, PageHeader } from "@/components/ui";
-import { deviceLabDevices } from "@/lib/device-lab";
+import { ExpandableCard, PageHeader } from "@/components/ui";
 import {
-  BackLink,
-  BlockedClaimsSection,
-  ControlLabel,
-  ModuleLinkCard,
-} from "../_components/device-lab-ui";
+  getDeviceLabModuleIntro,
+  getLearnerReadyDeviceLabDevice,
+  learnerReadyDeviceLabDevices,
+} from "@/lib/device-lab";
+import { BackLink, ModuleLinkCard } from "../_components/device-lab-ui";
 
 type DevicePageProps = {
   params: Promise<{ deviceSlug: string }>;
@@ -16,14 +15,16 @@ type DevicePageProps = {
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return deviceLabDevices.map((device) => ({ deviceSlug: device.slug }));
+  return learnerReadyDeviceLabDevices.map((device) => ({
+    deviceSlug: device.slug,
+  }));
 }
 
 export async function generateMetadata({
   params,
 }: DevicePageProps): Promise<Metadata> {
   const { deviceSlug } = await params;
-  const device = deviceLabDevices.find((item) => item.slug === deviceSlug);
+  const device = getLearnerReadyDeviceLabDevice(deviceSlug);
 
   return {
     title: device ? `${device.productName} · Device Lab` : "Device Lab",
@@ -32,122 +33,73 @@ export async function generateMetadata({
 
 export default async function DevicePage({ params }: DevicePageProps) {
   const { deviceSlug } = await params;
-  const device = deviceLabDevices.find((item) => item.slug === deviceSlug);
+  const device = getLearnerReadyDeviceLabDevice(deviceSlug);
 
   if (!device) {
     notFound();
   }
+
+  const modules = device.modules.filter(
+    (module) => module.releaseStatus === "learner_ready",
+  );
 
   return (
     <div className="space-y-5">
       <BackLink href="/device-lab">Device Lab</BackLink>
 
       <PageHeader
-        eyebrow="Device Lab cihaz kaydı"
+        eyebrow="Device Lab"
         title={device.productName}
-        description={device.categoryTr}
+        description={getDeviceLabModuleIntro(modules[0])}
       />
 
-      <div className="flex flex-wrap gap-2">
-        <ControlLabel value={device.releaseStatus} />
-        <ControlLabel value={device.sourceStrength} />
-      </div>
+      <section aria-labelledby="ready-modules-title" className="space-y-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-clay">
+            Hazır pratikler
+          </p>
+          <h2
+            id="ready-modules-title"
+            className="mt-1 text-2xl font-semibold leading-tight"
+          >
+            Kısa modüller
+          </h2>
+          <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+            {device.categoryTr}
+          </p>
+        </div>
 
-      <CompactSection
-        eyebrow="Kimlik"
-        title="Ürün sınırı ve adlar"
-        description={device.categoryEn}
-      >
-        <div className="flex flex-wrap gap-2">
-          {device.aliases.map((alias) => (
-            <span
-              key={alias}
-              className="rounded-full border border-foreground/10 bg-background px-3 py-1.5 text-xs font-bold leading-5 text-muted"
-            >
-              {alias}
-            </span>
+        <div className="grid gap-3">
+          {modules.map((module) => (
+            <ModuleLinkCard
+              key={module.id}
+              deviceSlug={device.slug}
+              module={module}
+            />
           ))}
         </div>
-      </CompactSection>
+      </section>
 
-      <CompactSection
-        eyebrow="Safe"
-        title="Güvenli çalışma alanları"
-        description="Yalnız mevcut kaynakların izin verdiği iletişim alanları."
+      <ExpandableCard
+        eyebrow="Kaynak notları"
+        title="Cihaz kapsamı"
+        description="Kaynak gücü ve yayın sınırını aç."
       >
-        <ul className="space-y-2 text-sm font-semibold leading-6 text-muted">
-          {device.safeTrainingAreasTr.map((area) => (
-            <li key={area} className="flex gap-2">
-              <span aria-hidden="true" className="text-moss">•</span>
-              <span>{area}</span>
-            </li>
-          ))}
-        </ul>
-      </CompactSection>
-
-      <CompactSection
-        eyebrow="Cautious"
-        title="Dikkatli ifade gerektiren alanlar"
-        description="Atıf, kapsam veya belge sınırı görünür kalmalıdır."
-        action={<ControlLabel value="cautious" />}
-      >
-        <ul className="space-y-2 text-sm font-semibold leading-6 text-muted">
-          {device.cautiousAreasTr.map((area) => (
-            <li key={area} className="flex gap-2">
-              <span aria-hidden="true" className="text-clay">•</span>
-              <span>{area}</span>
-            </li>
-          ))}
-        </ul>
-      </CompactSection>
-
-      <CompactSection
-        eyebrow="Kaynak boşlukları"
-        title="Eksik belgeler"
-        description="Eksik belge, özelliğin yanlış olduğu anlamına gelmez; mevcut kaynakta belgelenmediğini gösterir."
-      >
-        <ul className="space-y-2 text-sm font-semibold leading-6 text-muted">
-          {device.missingDocumentsTr.map((document) => (
-            <li key={document} className="flex gap-2">
-              <span aria-hidden="true" className="text-clay">•</span>
-              <span>{document}</span>
-            </li>
-          ))}
-        </ul>
-      </CompactSection>
-
-      <CompactSection
-        eyebrow="Read-only modules"
-        title={`Mevcut modüller (${device.modules.length})`}
-        description="Yalnız statik veri kaydında gerçekten bulunan modüller bağlantı olarak gösterilir."
-      >
-        {device.modules.length > 0 ? (
-          <div className="grid gap-3">
-            {device.modules.map((module) => (
-              <ModuleLinkCard
-                key={module.id}
-                deviceSlug={device.slug}
-                module={module}
-              />
-            ))}
+        <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <div className="rounded-[1.1rem] bg-background p-3">
+            <dt className="font-black text-foreground">Kaynak gücü</dt>
+            <dd className="mt-1 font-semibold text-muted">
+              {device.sourceStrength}
+            </dd>
           </div>
-        ) : (
-          <div className="rounded-[1.15rem] border border-foreground/10 bg-linen p-4">
-            <p className="font-semibold leading-6 text-[#2d261d]">
-              Bu kayıt metadata/deferred durumundadır. Öğrenen modülü yoktur;
-              sahte veya taslak modül kartı oluşturulmamıştır.
-            </p>
-            {device.recommendedModules.length > 0 ? (
-              <p className="mt-2 text-sm font-medium leading-6 text-muted">
-                Gelecekte değerlendirilebilecek modül türleri yalnız metadata
-                olarak kayıtlıdır: {device.recommendedModules.join(", ")}.
-              </p>
-            ) : null}
+          <div className="rounded-[1.1rem] bg-background p-3">
+            <dt className="font-black text-foreground">Yayın sınırı</dt>
+            <dd className="mt-1 font-semibold text-muted">
+              Yalnız learner_ready modüller gösterilir.
+            </dd>
           </div>
-        )}
-      </CompactSection>
-
-      <BlockedClaimsSection claims={device.blockedClaims} />
+        </dl>
+      </ExpandableCard>
     </div>
   );
 }

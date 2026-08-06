@@ -11,6 +11,7 @@ export type DeviceLabLocalPractice = {
   secondTryAnswer: string;
   reviewAnswer: string;
   journalNote: string;
+  practiceNote: string;
   completedAt?: string;
   updatedAt: string;
 };
@@ -24,7 +25,8 @@ type PracticeTextField =
   | "firstTryAnswer"
   | "secondTryAnswer"
   | "reviewAnswer"
-  | "journalNote";
+  | "journalNote"
+  | "practiceNote";
 
 export type DeviceLabPracticePatch = Partial<
   Pick<
@@ -91,8 +93,22 @@ export function createEmptyDeviceLabPractice(
     secondTryAnswer: "",
     reviewAnswer: "",
     journalNote: "",
+    practiceNote: "",
     updatedAt: "",
   };
+}
+
+function getLegacyPracticeNote(rawPractice: Record<string, unknown>) {
+  const legacySections = [
+    ["İlk deneme", safeString(rawPractice.firstTryAnswer)],
+    ["İkinci deneme", safeString(rawPractice.secondTryAnswer)],
+    ["Tekrar", safeString(rawPractice.reviewAnswer)],
+    ["Journal", safeString(rawPractice.journalNote)],
+  ].filter(([, value]) => value.trim());
+
+  return legacySections
+    .map(([label, value]) => `${label}:\n${value}`)
+    .join("\n\n");
 }
 
 function sanitizePractice(
@@ -101,6 +117,10 @@ function sanitizePractice(
   moduleId: string,
 ): DeviceLabLocalPractice {
   const rawPractice = isRecord(value) ? value : {};
+  const hasPracticeNote = Object.prototype.hasOwnProperty.call(
+    rawPractice,
+    "practiceNote",
+  );
 
   return {
     deviceSlug,
@@ -110,6 +130,9 @@ function sanitizePractice(
     secondTryAnswer: safeString(rawPractice.secondTryAnswer),
     reviewAnswer: safeString(rawPractice.reviewAnswer),
     journalNote: safeString(rawPractice.journalNote),
+    practiceNote: hasPracticeNote
+      ? safeString(rawPractice.practiceNote)
+      : getLegacyPracticeNote(rawPractice),
     completedAt: safeIsoString(rawPractice.completedAt),
     updatedAt: safeIsoString(rawPractice.updatedAt) ?? "",
   };

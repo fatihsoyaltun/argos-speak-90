@@ -7,6 +7,7 @@ import type {
   SourceReference,
   SourceStrength,
 } from "@/lib/device-lab";
+import { DeviceLabCompletionStatus } from "./device-lab-completion-status";
 
 type ControlValue = ClaimControlLevel | ReleaseStatus | SourceStrength;
 
@@ -65,16 +66,19 @@ export function ModuleLinkCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-clay">
-            {module.kind} · {module.learnerLevel}
+            Kısa cihaz pratiği · {module.learnerLevel}
           </p>
           <h3 className="mt-1 text-lg font-semibold leading-tight">
-            {module.titleTr}
+            {module.titleEn}
           </h3>
           <p className="mt-1 text-sm font-semibold leading-5 text-muted">
-            {module.titleEn}
+            {module.titleTr}
           </p>
         </div>
-        <ControlLabel value={module.releaseStatus} />
+        <DeviceLabCompletionStatus
+          deviceSlug={module.deviceSlug}
+          moduleIds={[module.id]}
+        />
       </div>
       <p className="mt-3 text-sm font-medium leading-6 text-muted">
         {module.moduleGoalTr}

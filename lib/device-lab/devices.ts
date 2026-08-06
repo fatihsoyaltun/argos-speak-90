@@ -17,7 +17,12 @@ import {
   unsupportedSafetyInstructionsBlockedClaim,
   worldFirstBlockedClaim,
 } from "./shared-claim-control";
-import type { DeviceLabDevice, DeviceSlug } from "./types";
+import type {
+  DeviceLabClaim,
+  DeviceLabDevice,
+  DeviceLabModule,
+  DeviceSlug,
+} from "./types";
 import { assertDeviceLabDataValid } from "./validation";
 
 export const deviceLabDevices: readonly DeviceLabDevice[] = [
@@ -284,3 +289,36 @@ export function getLearnerReadyDeviceLabModules(slug: DeviceSlug) {
   );
 }
 
+export const learnerReadyDeviceLabDevices = deviceLabDevices.filter((device) =>
+  device.modules.some((module) => module.releaseStatus === "learner_ready"),
+);
+
+export function getLearnerReadyDeviceLabDevice(slug: string) {
+  return learnerReadyDeviceLabDevices.find((device) => device.slug === slug);
+}
+
+export function getDeviceLabModuleIntro(module: DeviceLabModule) {
+  const text = module.listeningTextEn.trim();
+  const firstSentence = text.match(/^.*?[.!?](?=\s|$)/)?.[0];
+
+  return firstSentence ?? text;
+}
+
+function isLearnerReadyClaim(claim: DeviceLabClaim) {
+  return (
+    claim.releaseStatus === "learner_ready" &&
+    claim.learnerFacingTextAllowed &&
+    claim.claimControlLevel !== "blocked" &&
+    claim.claimControlLevel !== "not_enough_source_data" &&
+    claim.claimControlLevel !== "conflict_follow_up_needed"
+  );
+}
+
+export function getDeviceLabQuickFacts(module: DeviceLabModule) {
+  const learnerClaims = module.sourceBackedClaims.filter(isLearnerReadyClaim);
+  const introClaimId = learnerClaims[0]?.id;
+
+  return learnerClaims
+    .filter((claim) => claim.id !== introClaimId)
+    .slice(0, 3);
+}
