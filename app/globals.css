@@ -90,6 +90,11 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+.voice-recorder-control:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
 ::selection {
   background: var(--accent-soft);
   color: var(--text-primary);

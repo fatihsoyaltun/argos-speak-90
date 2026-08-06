@@ -12,6 +12,7 @@ import {
   TtsAudioScope,
   TtsAudioStatus,
 } from "@/components/tts-audio-scope";
+import { VoiceRecorder } from "@/components/voice-recorder";
 import type { SpeakingPractice } from "@/lib/speaking-content";
 import {
   getDayProgress,
@@ -157,6 +158,7 @@ export function SpeakingPracticeView({
         title="İlk cevabını yakala"
         description="Önce sesli cevap ver. Sonra hatırladığın cevabı buraya kısa not olarak yaz."
       >
+        <VoiceRecorder label="First try ses kaydı" />
         <label
           htmlFor="first-try"
           className="sr-only"
@@ -178,6 +180,7 @@ export function SpeakingPracticeView({
         title="Daha net ikinci deneme"
         description="İkinci deneme ilkinden daha net olmalı."
       >
+        <VoiceRecorder label="Second try ses kaydı" />
         <label
           htmlFor="second-try"
           className="sr-only"

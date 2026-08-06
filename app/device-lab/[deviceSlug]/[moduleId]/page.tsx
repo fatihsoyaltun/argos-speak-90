@@ -11,6 +11,7 @@ import {
   TtsAudioScope,
   TtsAudioStatus,
 } from "@/components/tts-audio-scope";
+import { VoiceRecorder } from "@/components/voice-recorder";
 import {
   getDeviceLabModuleIntro,
   getDeviceLabQuickFacts,
@@ -210,6 +211,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
             idleAriaLabel="Cihaz dinleme metnini dinle"
             className="mt-3 px-4 py-2.5 text-sm"
           />
+          <VoiceRecorder label="Okuma denemesi" />
         </CompactSection>
       </div>
 
@@ -232,6 +234,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
             idleAriaLabel="Say it konuşma promptunu dinle"
             className="mt-3 px-4 py-2.5 text-sm"
           />
+          <VoiceRecorder label="Say it ses kaydı" />
         </CompactSection>
       </div>
 

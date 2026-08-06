@@ -29,8 +29,8 @@ Durum sözlüğü: `Tamamlandı`, `Sıradaki`, `Bekliyor`, `Engelli`.
 | P5 | Device Lab sade hap bilgi deneyimi | Tamamlandı | P4 |
 | P6 | TTS güvenilirlik temeli | Tamamlandı | P4 |
 | P7 | TTS kapsam genişletmesi | Tamamlandı | P5, P6 |
-| P8 | Tarayıcı ses kayıt MVP'si | Sıradaki | P4, P6 |
-| P9 | Words 8 → 10 | Bekliyor | P4, P6 |
+| P8 | Tarayıcı ses kayıt MVP'si | Tamamlandı | P4, P6 |
+| P9 | Words 8 → 10 | Sıradaki | P4, P6 |
 | P10A | Bugün ve Pratik merkezi yeniden tasarımı | Bekliyor | P4, P7 |
 | P10B | Listen ve Words yeniden tasarımı | Bekliyor | P7, P9 |
 | P10C | Speak, Review ve Journal yeniden tasarımı | Bekliyor | P7, P8 |
@@ -335,7 +335,16 @@ mevcut promptları Türkçe olduğu için TTS kapsamına alınmadı. Ayrıntı:
 
 ## P8 — Tarayıcı ses kayıt MVP'si
 
-**Durum: Sıradaki**
+**Durum: Tamamlandı**
+
+**Son doğrulama notu (6 Ağustos 2026):** Ortak session-only VoiceRecorder;
+Speak first/second try ile yayımlanmış Device Lab reading/say-it görevlerine
+eklendi. Chrome 150 gerçek MediaRecorder/fake microphone matrisinde açık kullanıcı
+eylemi, WebM/Opus kayıt ve playback, yeniden kayıt, silme, refresh temizliği,
+pending timeout, stop/unmount track kapanması, object URL iptali, 320/375 reflow
+ve 3 px klavye odağı geçti. Firefox ve Safari/iOS için format/API özellik
+kontrolü ile metin görevi fallback'i belgelendi. Ayrıntı:
+`docs/ARGOS_SPEAK_90_P8_VOICE_RECORDING_SUMMARY.md`.
 
 ### Amaç
 
@@ -371,7 +380,7 @@ Speak ve uygun okuma görevlerinde kullanıcının sesini yerel olarak kaydedip 
 
 ## P9 — Words 8 → 10
 
-**Durum: Bekliyor**
+**Durum: Sıradaki**
 
 ### Amaç
 
