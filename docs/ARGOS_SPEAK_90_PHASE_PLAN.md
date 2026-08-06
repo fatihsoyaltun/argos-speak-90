@@ -249,6 +249,12 @@ Device Lab'i kaynak güvenliğini koruyarak kısa İngilizce cihaz tanıtımına
 
 **Durum: Sıradaki**
 
+**Son doğrulama notu (6 Ağustos 2026):** Uygulama kapsamı hazırlandı; gerçek
+ElevenLabs playback kapısı sunucu yapılandırması olmadığı, mobil tarayıcı QA
+kapısı da bu oturumda bağlanılabilir tarayıcı bulunmadığı için tamamlanmadı.
+P6 durumu ve P7 bekleme durumu değiştirilmedi. Ayrıntı:
+`docs/ARGOS_SPEAK_90_P6_TTS_RELIABILITY_SUMMARY.md`.
+
 ### Amaç
 
 Mevcut ElevenLabs akışını genişletmeden önce güvenilir, ölçülebilir ve ortak bir ses katmanı yapmak.

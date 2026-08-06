@@ -1,7 +1,6 @@
 import "server-only";
 
 import type {
-  TtsFailureCode,
   TtsAudioRequest,
   TtsAudioResponse,
   TtsProvider,
@@ -11,6 +10,7 @@ import type {
 const ELEVENLABS_API_BASE = "https://api.elevenlabs.io/v1";
 const DEFAULT_MODEL_ID = "eleven_flash_v2_5";
 const OUTPUT_FORMAT = "mp3_44100_128";
+const UPSTREAM_TIMEOUT_MS = 15_000;
 
 export type ElevenLabsTtsConfig = {
   apiKey?: string;
@@ -59,10 +59,18 @@ type ElevenLabsErrorDiagnostics = ElevenLabsErrorDetail & {
   voiceId: string;
 };
 
-const userMessages: Record<
-  Exclude<TtsFailureCode, "aborted" | "bad_request" | "not_configured" | "request_failed">,
-  string
-> = {
+type ElevenLabsFailureCode =
+  | "missing_api_key"
+  | "missing_voice_id"
+  | "upstream_account_restricted"
+  | "upstream_failed"
+  | "upstream_model_error"
+  | "upstream_quota_or_rate_limit"
+  | "upstream_timeout"
+  | "upstream_unauthorized"
+  | "upstream_voice_not_found";
+
+const userMessages: Record<ElevenLabsFailureCode, string> = {
   missing_api_key: "ElevenLabs API anahtarı eksik.",
   missing_voice_id: "ElevenLabs ses ID bilgisi eksik.",
   upstream_account_restricted:
@@ -73,6 +81,8 @@ const userMessages: Record<
     "ElevenLabs model ayarı bu ses isteği için uygun değil.",
   upstream_quota_or_rate_limit:
     "ElevenLabs kullanım limiti veya hız sınırı nedeniyle ses oluşturulamadı.",
+  upstream_timeout:
+    "ElevenLabs ses servisi zaman aşımına uğradı. Lütfen tekrar dene.",
   upstream_unauthorized:
     "ElevenLabs API anahtarı bu ses isteği için yetkili değil.",
   upstream_voice_not_found:
@@ -81,7 +91,7 @@ const userMessages: Record<
 
 export class ElevenLabsTtsError extends Error {
   readonly bodyExcerpt?: string;
-  readonly code: Exclude<TtsFailureCode, "aborted" | "bad_request" | "not_configured" | "request_failed">;
+  readonly code: ElevenLabsFailureCode;
   readonly endpoint: string;
   readonly fallbackFrom?: ElevenLabsErrorDiagnostics;
   readonly modelId: string;
@@ -383,7 +393,10 @@ export class ElevenLabsTtsProvider implements TtsProvider {
 
   private createMetadata(hasAlignment: boolean) {
     return {
+      audioBytes: 0,
       modelId: this.modelId,
+      transport: "binary" as const,
+      transportBytes: 0,
       voiceId: this.voiceId ?? "",
       hasAlignment,
     };
@@ -394,8 +407,13 @@ export class ElevenLabsTtsProvider implements TtsProvider {
   }
 
   async generateAudio({
+    includeAlignment = true,
     text,
   }: TtsAudioRequest): Promise<TtsAudioResponse> {
+    if (!includeAlignment) {
+      return this.generatePlainAudio({ includeAlignment: false, text });
+    }
+
     let timestampError: ElevenLabsTtsError | undefined;
 
     try {
@@ -434,6 +452,51 @@ export class ElevenLabsTtsProvider implements TtsProvider {
       }
 
       throw error;
+    }
+  }
+
+  private createNetworkFailure({
+    endpoint,
+    error,
+  }: {
+    endpoint: string;
+    error: unknown;
+  }) {
+    const isTimeout =
+      error instanceof DOMException &&
+      (error.name === "AbortError" || error.name === "TimeoutError");
+
+    return new ElevenLabsTtsError({
+      code: isTimeout ? "upstream_timeout" : "upstream_failed",
+      endpoint,
+      modelId: this.modelId,
+      upstreamMessage: isTimeout ? "Upstream request timed out." : undefined,
+      upstreamStatus: 0,
+      voiceId: this.voiceId ?? "",
+    });
+  }
+
+  private async requestElevenLabs({
+    body,
+    endpoint,
+    url,
+  }: {
+    body: string;
+    endpoint: string;
+    url: string;
+  }) {
+    try {
+      return await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": this.apiKey ?? "",
+        },
+        body,
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+      });
+    } catch (error) {
+      throw this.createNetworkFailure({ endpoint, error });
     }
   }
 
@@ -478,27 +541,21 @@ export class ElevenLabsTtsProvider implements TtsProvider {
     }
 
     const endpoint = "text-to-speech.with-timestamps";
-    const response = await fetch(
-      `${ELEVENLABS_API_BASE}/text-to-speech/${encodeURIComponent(
+    const response = await this.requestElevenLabs({
+      body: JSON.stringify({
+        text,
+        model_id: this.modelId,
+        voice_settings: {
+          stability: 0.55,
+          similarity_boost: 0.75,
+          speed: 0.95,
+        },
+      }),
+      endpoint,
+      url: `${ELEVENLABS_API_BASE}/text-to-speech/${encodeURIComponent(
         this.voiceId ?? "",
       )}/with-timestamps?output_format=${OUTPUT_FORMAT}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "xi-api-key": this.apiKey ?? "",
-        },
-        body: JSON.stringify({
-          text,
-          model_id: this.modelId,
-          voice_settings: {
-            stability: 0.55,
-            similarity_boost: 0.75,
-            speed: 0.95,
-          },
-        }),
-      },
-    );
+    });
 
     if (!response.ok) {
       throw await this.createElevenLabsFailure({ endpoint, response });
@@ -514,11 +571,17 @@ export class ElevenLabsTtsProvider implements TtsProvider {
 
     const alignment = characterAlignmentToWords(data.alignment);
 
+    const audio = bufferToArrayBuffer(audioBuffer);
+
     return {
-      audio: bufferToArrayBuffer(audioBuffer),
+      audio,
       contentType: "audio/mpeg",
       alignment,
-      metadata: this.createMetadata(Boolean(alignment?.length)),
+      metadata: {
+        ...this.createMetadata(Boolean(alignment?.length)),
+        audioBytes: audio.byteLength,
+        transportBytes: audio.byteLength,
+      },
     };
   }
 
@@ -530,36 +593,36 @@ export class ElevenLabsTtsProvider implements TtsProvider {
     }
 
     const endpoint = "text-to-speech";
-    const response = await fetch(
-      `${ELEVENLABS_API_BASE}/text-to-speech/${encodeURIComponent(
+    const response = await this.requestElevenLabs({
+      body: JSON.stringify({
+        text,
+        model_id: this.modelId,
+        voice_settings: {
+          stability: 0.55,
+          similarity_boost: 0.75,
+          speed: 0.95,
+        },
+      }),
+      endpoint,
+      url: `${ELEVENLABS_API_BASE}/text-to-speech/${encodeURIComponent(
         this.voiceId ?? "",
       )}?output_format=${OUTPUT_FORMAT}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "xi-api-key": this.apiKey ?? "",
-        },
-        body: JSON.stringify({
-          text,
-          model_id: this.modelId,
-          voice_settings: {
-            stability: 0.55,
-            similarity_boost: 0.75,
-            speed: 0.95,
-          },
-        }),
-      },
-    );
+    });
 
     if (!response.ok) {
       throw await this.createElevenLabsFailure({ endpoint, response });
     }
 
+    const audio = await response.arrayBuffer();
+
     return {
-      audio: await response.arrayBuffer(),
+      audio,
       contentType: "audio/mpeg",
-      metadata: this.createMetadata(false),
+      metadata: {
+        ...this.createMetadata(false),
+        audioBytes: audio.byteLength,
+        transportBytes: audio.byteLength,
+      },
     };
   }
 }

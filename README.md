@@ -21,8 +21,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 The Listen module uses the internal `/api/tts` route for reliable audio playback.
 Configure these server-side environment variables to enable ElevenLabs:
 
+Copy `.env.example` to `.env.local`, replace the placeholders only in
+`.env.local`, and keep that local file untracked:
+
 ```bash
-ELEVENLABS_API_KEY=your_api_key
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
 ELEVENLABS_VOICE_ID=your_voice_id
 ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 ```

@@ -1,6 +1,7 @@
 export type TtsAudioFormat = "audio/mpeg";
 
 export type TtsAudioRequest = {
+  includeAlignment?: boolean;
   text: string;
 };
 
@@ -19,7 +20,10 @@ export type TtsAudioResponse = {
 };
 
 export type TtsAudioMetadata = {
+  audioBytes: number;
   modelId: string;
+  transport: "base64-json" | "binary";
+  transportBytes: number;
   voiceId: string;
   hasAlignment: boolean;
 };
@@ -30,11 +34,17 @@ export type TtsFailureCode =
   | "missing_api_key"
   | "missing_voice_id"
   | "not_configured"
+  | "offline"
+  | "playback_blocked"
+  | "playback_failed"
+  | "rate_limited"
   | "request_failed"
+  | "timeout"
   | "upstream_account_restricted"
   | "upstream_failed"
   | "upstream_model_error"
   | "upstream_quota_or_rate_limit"
+  | "upstream_timeout"
   | "upstream_unauthorized"
   | "upstream_voice_not_found";
 
@@ -55,6 +65,7 @@ export type TtsClientResult =
   | {
       ok: true;
       audio: Blob;
+      contentType: TtsAudioFormat;
       alignment?: TtsWordTiming[];
       metadata?: TtsAudioMetadata;
     }

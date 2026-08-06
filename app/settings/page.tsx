@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AudioAction } from "@/components/audio-action";
 import { useActiveDay } from "@/components/active-day";
 import {
   CompactSection,
+  Button,
   ExpandableCard,
   PageHeader,
   ProgressStrip,
@@ -16,6 +18,12 @@ import {
 } from "@/lib/local-storage-keys";
 import { getTtsServiceStatus } from "@/lib/tts/client";
 import {
+  clearTtsAudioCache,
+  createTtsCacheKey,
+  getTtsAudioCacheStats,
+} from "@/lib/tts/audio-cache";
+import { useAudioController } from "@/lib/tts/use-audio-controller";
+import {
   clearAllArgosProgress,
   notifyPracticeProgressChanged,
 } from "@/lib/practice-storage";
@@ -25,32 +33,96 @@ type AudioStatus = "checking" | "configured" | "notConfigured";
 export default function SettingsPage() {
   const { activeDay, setActiveDay, clearActiveDayStorage } = useActiveDay();
   const [audioStatus, setAudioStatus] = useState<AudioStatus>("checking");
+  const [audioModelId, setAudioModelId] = useState("");
+  const [audioVoiceId, setAudioVoiceId] = useState("");
+  const [cacheMessage, setCacheMessage] = useState("");
+  const audio = useAudioController();
   const [message, setMessage] = useState("");
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
   const [importMessage, setImportMessage] = useState("");
 
+  const checkAudioStatus = useCallback(async () => {
+    setAudioStatus("checking");
+    const status = await getTtsServiceStatus().catch(() => ({
+      configured: false,
+      modelId: "",
+      voiceId: "",
+    }));
+    setAudioModelId(status.modelId ?? "");
+    setAudioVoiceId(status.voiceId ?? "");
+    setAudioStatus(status.configured ? "configured" : "notConfigured");
+    return status.configured;
+  }, []);
+
   useEffect(() => {
     let isActive = true;
 
-    async function checkAudioStatus() {
-      const status = await getTtsServiceStatus().catch(() => ({
-        configured: false,
-      }));
-
-      if (!isActive) {
-        return;
+    async function loadAudioStatus() {
+      if (isActive) {
+        await checkAudioStatus();
       }
-
-      setAudioStatus(status.configured ? "configured" : "notConfigured");
     }
 
-    checkAudioStatus();
+    void loadAudioStatus();
 
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [checkAudioStatus]);
+
+  const audioHealthText = "Your audio is ready for today's English practice.";
+  const audioHealthId = "settings-audio-health";
+  const audioHealthRequest = useMemo(
+    () => ({
+      cacheKey: createTtsCacheKey({
+        day: activeDay,
+        includeAlignment: false,
+        modelId: audioModelId,
+        scope: "settings-health",
+        text: audioHealthText,
+        voiceId: audioVoiceId,
+      }),
+      id: audioHealthId,
+      includeAlignment: false,
+      text: audioHealthText,
+    }),
+    [activeDay, audioModelId, audioVoiceId],
+  );
+
+  const audioBytes = audio.metadata?.audioBytes ?? 0;
+  const audioTransport =
+    audio.metadata?.transport === "binary" ? "binary" : "JSON";
+  const audioHealthMessage =
+    audio.activeId === audioHealthId && audio.duration > 0
+      ? `Ses testi geçti: ${audio.contentType}, ${audio.duration.toFixed(1)} sn, ${audioBytes} bayt, ${audioTransport} taşıma.`
+      : "";
+
+  async function runAudioHealthTest() {
+    if (audio.activeId === audioHealthId && audio.state === "error") {
+      await audio.retry();
+      return;
+    }
+
+    if (
+      audio.activeId === audioHealthId &&
+      (audio.state === "loading" || audio.state === "playing")
+    ) {
+      audio.cancel();
+      return;
+    }
+
+    await audio.play(audioHealthRequest);
+  }
+
+  function resetAudioCache() {
+    audio.stop();
+    clearTtsAudioCache();
+    const stats = getTtsAudioCacheStats();
+    setCacheMessage(
+      `Ses önbelleği temizlendi: ${stats.entries} kayıt, ${stats.bytes} bayt.`,
+    );
+  }
 
   function resetActiveDay() {
     setActiveDay(1);
@@ -242,6 +314,58 @@ export default function SettingsPage() {
             },
           ]}
         />
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <AudioAction
+            active={audio.activeId === audioHealthId}
+            state={audio.state}
+            onAction={() => {
+              void runAudioHealthTest();
+            }}
+            disabled={audioStatus !== "configured"}
+            idleAriaLabel="Ses katmanını gerçek oynatmayla test et"
+            labels={{ idle: "Sesi test et", retry: "Tekrar dene" }}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              void checkAudioStatus();
+            }}
+            disabled={audioStatus === "checking"}
+          >
+            Durumu yenile
+          </Button>
+          <Button type="button" variant="ghost" onClick={resetAudioCache}>
+            Ses cache’ini temizle
+          </Button>
+        </div>
+        {audioStatus === "notConfigured" ? (
+          <p className="mt-3 rounded-[1.15rem] border border-foreground/10 bg-linen/70 p-3 text-sm font-semibold leading-6 text-foreground">
+            Ses servisi yapılandırılmadı. Sunucudaki ElevenLabs anahtarı ve ses
+            ayarları eklendiğinde gerçek oynatma testi kullanılabilir.
+          </p>
+        ) : null}
+        {audio.error ? (
+          <p
+            role="alert"
+            className="mt-3 rounded-[1.15rem] border border-clay/30 bg-linen p-3 text-sm font-semibold leading-6 text-foreground"
+          >
+            {audio.error.message}
+          </p>
+        ) : null}
+        {audioHealthMessage ? (
+          <p
+            role="status"
+            className="mt-3 rounded-[1.15rem] border border-moss/20 bg-sage p-3 text-sm font-semibold leading-6 text-foreground"
+          >
+            {audioHealthMessage}
+          </p>
+        ) : null}
+        {cacheMessage ? (
+          <p className="mt-3 text-sm font-semibold leading-6 text-muted">
+            {cacheMessage}
+          </p>
+        ) : null}
         <p className="mt-3 rounded-[1.25rem] bg-linen p-3 text-sm font-semibold leading-6 text-[#2d261d]">
           Bu sürüm ilerlemeyi bu cihazdaki tarayıcıda saklar. Cihaz değişirse
           veya tarayıcı verisi silinirse ilerleme kaybolabilir.

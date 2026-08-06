@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { AudioAction } from "@/components/audio-action";
 import {
   CompactSection,
   ExpandableCard,
@@ -9,19 +10,14 @@ import {
 } from "@/components/ui";
 import type { ListeningDrill } from "@/lib/listening-content";
 import { getTtsServiceStatus } from "@/lib/tts/client";
-import {
-  createTtsCacheKey,
-  getOrRequestTtsAudio,
-  type CachedTtsAudio,
-} from "@/lib/tts/audio-cache";
-import type { TtsWordTiming } from "@/lib/tts/types";
+import { createTtsCacheKey } from "@/lib/tts/audio-cache";
+import { useAudioController } from "@/lib/tts/use-audio-controller";
 import {
   getDayProgress,
   markDayTaskCompleted,
   saveDayProgress,
 } from "@/lib/practice-storage";
 
-type AudioState = "idle" | "loading" | "playing" | "paused" | "ended" | "error";
 type TtsConfigState = "checking" | "configured" | "notConfigured";
 type TtsStatusReason =
   | "configured"
@@ -64,32 +60,23 @@ const transcriptTokenClass =
   "rounded-md px-1 py-0.5 font-normal leading-[inherit] transition-colors duration-150";
 const activeTranscriptTokenClass = "bg-[#f29f05] text-[#201609]";
 const inactiveTranscriptTokenClass = "bg-transparent text-foreground";
-const PRELOAD_DELAY_MS = 1_200;
-
 export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   const [response, setResponse] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
-  const [audioState, setAudioState] = useState<AudioState>("idle");
+  const audio = useAudioController();
+  const stopAudio = audio.stop;
   const [ttsConfigState, setTtsConfigState] =
     useState<TtsConfigState>("checking");
-  const [audioError, setAudioError] = useState("");
-  const [currentTime, setCurrentTime] = useState(0);
-  const [wordTimings, setWordTimings] = useState<TtsWordTiming[]>([]);
-  const [hasLoadedAudio, setHasLoadedAudio] = useState(false);
-  const [audioDay, setAudioDay] = useState<number | null>(null);
+  const [statusError, setStatusError] = useState("");
   const [ttsModelId, setTtsModelId] = useState("");
   const [ttsVoiceId, setTtsVoiceId] = useState("");
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioUrlRef = useRef<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const activeCacheKeyRef = useRef("");
-  const playbackRunRef = useRef(0);
-  const intentionalStopRef = useRef(false);
   const canShowAudioControls = ttsConfigState === "configured";
+  const audioId = `listen-${drill.day}`;
   const ttsCacheKey = useMemo(
     () =>
       createTtsCacheKey({
         day: drill.day,
+        includeAlignment: true,
         modelId: ttsModelId,
         text: drill.transcriptExcerpt,
         voiceId: ttsVoiceId,
@@ -102,36 +89,21 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   );
   const currentWordIndex = useMemo(() => {
     if (
-      wordTimings.length === 0 ||
-      audioDay !== drill.day ||
-      (audioState !== "playing" && audioState !== "paused")
+      audio.alignment.length === 0 ||
+      audio.activeId !== audioId ||
+      (audio.state !== "playing" && audio.state !== "paused")
     ) {
       return -1;
     }
 
-    return wordTimings.findIndex((word, index) => {
-      const nextStart = wordTimings[index + 1]?.start;
+    return audio.alignment.findIndex((word, index) => {
+      const nextStart = audio.alignment[index + 1]?.start;
       const wordEnd =
         typeof nextStart === "number" ? Math.max(word.end, nextStart) : word.end;
 
-      return currentTime >= word.start && currentTime < wordEnd;
+      return audio.currentTime >= word.start && audio.currentTime < wordEnd;
     });
-  }, [audioDay, audioState, currentTime, drill.day, wordTimings]);
-  const compactAudioLabel =
-    audioState === "loading"
-      ? "Yükleniyor"
-      : audioState === "playing"
-        ? "Durdur"
-        : audioState === "paused"
-          ? "Devam et"
-          : "Dinle";
-  const compactAudioAriaLabel =
-    audioState === "playing"
-      ? "Duraklat"
-      : audioState === "paused"
-        ? "Devam et"
-        : "Metni dinle";
-  const compactAudioDisabled = !canShowAudioControls;
+  }, [audio.activeId, audio.alignment, audio.currentTime, audio.state, audioId]);
 
   useEffect(() => {
     const loadTimer = window.setTimeout(() => {
@@ -154,23 +126,6 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
     return nextReason;
   }
 
-  const releaseAudio = useCallback(() => {
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-
-    if (audioRef.current) {
-      const audio = audioRef.current;
-      audio.onended = null;
-      audio.onerror = null;
-      audio.ontimeupdate = null;
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-      audioRef.current = null;
-    }
-    audioUrlRef.current = null;
-  }, []);
-
   useEffect(() => {
     let isActive = true;
     let fallbackTimer: number | undefined;
@@ -182,14 +137,14 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         }
 
         resolveTtsStatus(false, "loading_timeout");
-        setAudioError(
+        setStatusError(
           "Ses servisi kontrolü zaman aşımına uğradı. Lütfen bağlantını kontrol edip tekrar dene.",
         );
       }, 7_000);
     } catch {
       fallbackTimer = window.setTimeout(() => {
         resolveTtsStatus(false, "server_route_error");
-        setAudioError("Ses servisi kontrol edilemedi. Lütfen sayfayı yenile.");
+        setStatusError("Ses servisi kontrol edilemedi. Lütfen sayfayı yenile.");
       }, 0);
     }
 
@@ -218,7 +173,7 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
       setTtsVoiceId(status.voiceId ?? "");
 
       if (!status.configured) {
-        setAudioError(
+        setStatusError(
           nextReason === "loading_timeout"
             ? "Ses servisi kontrolü zaman aşımına uğradı. Lütfen bağlantını kontrol edip tekrar dene."
             : nextReason === "request_failed" ||
@@ -241,236 +196,44 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   }, []);
 
   useEffect(() => {
-    if (!canShowAudioControls) {
-      return;
-    }
-
-    const abortController = new AbortController();
-    const preloadTimer = window.setTimeout(() => {
-      void getOrRequestTtsAudio({
-        cacheKey: ttsCacheKey,
-        signal: abortController.signal,
-        text: drill.transcriptExcerpt,
-      });
-    }, PRELOAD_DELAY_MS);
-
     return () => {
-      window.clearTimeout(preloadTimer);
-      abortController.abort();
+      stopAudio();
     };
-  }, [canShowAudioControls, drill.transcriptExcerpt, ttsCacheKey]);
+  }, [drill.day, stopAudio]);
 
-  useEffect(() => {
-    intentionalStopRef.current = true;
-    playbackRunRef.current += 1;
-    releaseAudio();
-    const resetTimer = window.setTimeout(() => {
-      setAudioError("");
-      setAudioState("idle");
-      setCurrentTime(0);
-      setWordTimings([]);
-      setHasLoadedAudio(false);
-      setAudioDay(null);
-    }, 0);
-
-    return () => {
-      if (resetTimer) {
-        window.clearTimeout(resetTimer);
-      }
-
-      intentionalStopRef.current = true;
-      playbackRunRef.current += 1;
-      releaseAudio();
-    };
-  }, [drill.day, releaseAudio]);
-
-  async function startGeneratedAudio() {
-    if (!canShowAudioControls) {
-      return;
-    }
-
-    playbackRunRef.current += 1;
-    const runId = playbackRunRef.current;
-    intentionalStopRef.current = false;
-    releaseAudio();
-    setAudioError("");
-    setCurrentTime(0);
-    setWordTimings([]);
-    setHasLoadedAudio(false);
-    setAudioDay(null);
-    setAudioState("loading");
-
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    const result = await getOrRequestTtsAudio({
+  const audioRequest = useMemo(
+    () => ({
       cacheKey: ttsCacheKey,
-      signal: abortController.signal,
+      id: audioId,
+      includeAlignment: true,
       text: drill.transcriptExcerpt,
-    });
+    }),
+    [audioId, drill.transcriptExcerpt, ttsCacheKey],
+  );
 
-    if (
-      abortController.signal.aborted ||
-      intentionalStopRef.current ||
-      playbackRunRef.current !== runId
-    ) {
+  async function handleAudioAction() {
+    const isActive = audio.activeId === audioId;
+
+    if (isActive && (audio.state === "loading" || audio.state === "playing")) {
+      audio.cancel();
       return;
     }
 
-    abortControllerRef.current = null;
-
-    if ("ok" in result && !result.ok) {
-      if (result.code === "aborted") {
-        setAudioState("idle");
-        setAudioError("");
-        return;
-      }
-
-      setAudioState("error");
-      setAudioError(result.message);
-
-      if (result.code === "not_configured") {
-        resolveTtsStatus(false, result.reason ?? "server_route_error");
-      }
-
+    if (isActive && audio.state === "error") {
+      await audio.retry();
       return;
     }
 
-    try {
-      const cachedResult = result as CachedTtsAudio;
-      const audio = new Audio(cachedResult.objectUrl);
-
-      activeCacheKeyRef.current = cachedResult.cacheKey;
-      audioUrlRef.current = cachedResult.objectUrl;
-      audioRef.current = audio;
-      setHasLoadedAudio(true);
-      setAudioDay(drill.day);
-      setWordTimings(cachedResult.alignment ?? []);
-      audio.onended = () => {
-        if (playbackRunRef.current === runId && !intentionalStopRef.current) {
-          setCurrentTime(0);
-          setAudioState("ended");
-        }
-      };
-      audio.onerror = () => {
-        if (playbackRunRef.current === runId && !intentionalStopRef.current) {
-          setAudioState("error");
-          setAudioError("Ses oynatılamadı. Lütfen tekrar dene.");
-        }
-      };
-      audio.ontimeupdate = () => {
-        if (playbackRunRef.current === runId) {
-          setCurrentTime(audio.currentTime);
-        }
-      };
-
-      await audio.play();
-
-      if (intentionalStopRef.current || playbackRunRef.current !== runId) {
-        releaseAudio();
-        return;
-      }
-
-      setAudioState("playing");
-    } catch (error) {
-      const wasStopped =
-        intentionalStopRef.current ||
-        playbackRunRef.current !== runId ||
-        abortController.signal.aborted ||
-        (error instanceof DOMException && error.name === "AbortError");
-
-      releaseAudio();
-      setHasLoadedAudio(false);
-      setAudioDay(null);
-
-      if (wasStopped) {
-        setAudioError("");
-        return;
-      }
-
-      setAudioState("error");
-      setAudioError("Ses oynatılamadı. Lütfen tekrar dene.");
-    }
+    await audio.play(audioRequest);
   }
 
-  async function playExistingAudio(fromStart: boolean) {
-    const audio = audioRef.current;
-
-    if (!audio) {
-      await startGeneratedAudio();
+  async function replayAudio() {
+    if (audio.activeId === audioId && audio.duration > 0) {
+      await audio.playExisting(true);
       return;
     }
 
-    try {
-      intentionalStopRef.current = false;
-      setAudioError("");
-
-      if (fromStart) {
-        audio.currentTime = 0;
-        setCurrentTime(0);
-      }
-
-      await audio.play();
-      setAudioState("playing");
-    } catch {
-      if (intentionalStopRef.current) {
-        setAudioError("");
-        return;
-      }
-
-      setAudioState("error");
-      setAudioError("Ses oynatılamadı. Lütfen tekrar dene.");
-    }
-  }
-
-  async function handlePrimaryAudioAction() {
-    if (audioState === "paused") {
-      await playExistingAudio(false);
-      return;
-    }
-
-    if (audioState === "ended" && audioRef.current) {
-      await playExistingAudio(true);
-      return;
-    }
-
-    await startGeneratedAudio();
-  }
-
-  async function handleCompactAudioAction() {
-    if (audioState === "playing" || audioState === "loading") {
-      pauseOrCancelPlayback();
-      return;
-    }
-
-    await handlePrimaryAudioAction();
-  }
-
-  function pauseOrCancelPlayback() {
-    setAudioError("");
-
-    if (audioState === "loading") {
-      intentionalStopRef.current = true;
-      playbackRunRef.current += 1;
-      releaseAudio();
-      setHasLoadedAudio(false);
-      setAudioDay(null);
-      setCurrentTime(0);
-      setAudioState("idle");
-      return;
-    }
-
-    const audio = audioRef.current;
-
-    if (!audio) {
-      setAudioState("idle");
-      return;
-    }
-
-    intentionalStopRef.current = true;
-    audio.pause();
-    setCurrentTime(audio.currentTime);
-    setAudioState("paused");
+    await audio.play(audioRequest);
   }
 
   function saveResponse() {
@@ -480,7 +243,8 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   }
 
   const hasResponse = response.trim().length > 0;
-  const hasListenedToCurrentDay = hasLoadedAudio && audioDay === drill.day;
+  const hasListenedToCurrentDay =
+    audio.activeId === audioId && audio.duration > 0;
 
   return (
     <div className="space-y-4">
@@ -497,39 +261,37 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
 
         {canShowAudioControls ? (
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            <AudioAction
+              active={audio.activeId === audioId}
+              state={audio.state}
+              onAction={() => {
+                void handleAudioAction();
+              }}
+              idleAriaLabel="Metni dinle"
+              labels={{
+                idle: audio.hasEnded ? "Tekrar oynat" : "Metni dinle",
+                loading: "Hazırlanıyor…",
+                retry: "Tekrar dene",
+              }}
+              variant="secondary"
+              className="min-h-12 focus-visible:ring-offset-moss"
+            />
             <button
               type="button"
-              onClick={handlePrimaryAudioAction}
-              disabled={audioState === "loading" || audioState === "playing"}
-              className="min-h-12 rounded-full bg-white px-4 py-3 text-sm font-bold text-[#17201a] shadow-sm outline-none transition hover:bg-[#efe5d6] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-moss"
-            >
-              {audioState === "loading"
-                ? "Ses hazırlanıyor"
-                : audioState === "playing"
-                  ? "Oynatılıyor"
-                  : audioState === "paused"
-                    ? "Devam et"
-                    : audioState === "ended" || audioState === "error"
-                  ? "Tekrar oynat"
-                  : "Metni dinle"}
-            </button>
-            <button
-              type="button"
-              onClick={pauseOrCancelPlayback}
-              disabled={audioState !== "loading" && audioState !== "playing"}
+              onClick={audio.cancel}
+              disabled={
+                audio.activeId !== audioId ||
+                (audio.state !== "loading" && audio.state !== "playing")
+              }
               className="min-h-12 rounded-full border border-surface/35 px-4 py-3 text-sm font-bold text-white outline-none transition hover:bg-surface/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:border-surface/15 disabled:text-white/45 focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-moss"
             >
               Durdur
             </button>
-            {hasLoadedAudio &&
-            audioDay === drill.day &&
-            (audioState === "playing" ||
-              audioState === "paused" ||
-              audioState === "ended") ? (
+            {audio.activeId === audioId && audio.duration > 0 ? (
               <button
                 type="button"
                 onClick={() => {
-                  void playExistingAudio(true);
+                  void replayAudio();
                 }}
                 className="min-h-11 rounded-full border border-surface/25 px-4 py-2.5 text-sm font-bold text-sage outline-none transition hover:bg-surface/10 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-moss sm:col-span-2"
               >
@@ -555,9 +317,9 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
           </div>
         ) : null}
 
-        {audioError ? (
+        {statusError || audio.error ? (
           <p className="mt-3 rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
-            {audioError}
+            {audio.error?.message || statusError}
           </p>
         ) : null}
 
@@ -602,17 +364,17 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
             </h3>
           </div>
           <div className="flex shrink-0 flex-wrap justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                void handleCompactAudioAction();
+            <AudioAction
+              active={audio.activeId === audioId}
+              state={audio.state}
+              onAction={() => {
+                void handleAudioAction();
               }}
-              disabled={compactAudioDisabled}
-              aria-label={compactAudioAriaLabel}
-              className="min-h-11 rounded-full bg-[#17201a] px-3.5 py-2 text-xs font-black text-white shadow-sm outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-            >
-              {compactAudioLabel}
-            </button>
+              disabled={!canShowAudioControls}
+              idleAriaLabel="Metni dinle"
+              labels={{ idle: "Dinle", playing: "Durdur" }}
+              className="px-3.5 py-2 text-xs"
+            />
             <StatusPill status="active">
               Day {drill.day}
             </StatusPill>

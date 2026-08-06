@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { AudioAction } from "@/components/audio-action";
 import { ExpandableCard, ProgressStrip } from "@/components/ui";
 import type { WordItem } from "@/lib/words-content";
 import {
@@ -10,13 +11,14 @@ import {
 } from "@/lib/practice-storage";
 import {
   createTtsCacheKey,
-  getOrRequestTtsAudio,
-  type CachedTtsAudio,
 } from "@/lib/tts/audio-cache";
 import { getTtsServiceStatus } from "@/lib/tts/client";
+import {
+  type AudioControllerRequest,
+  useAudioController,
+} from "@/lib/tts/use-audio-controller";
 
 type WordAudioKind = "word" | "example";
-type WordAudioState = "idle" | "loading" | "playing" | "error";
 type TtsConfigState = "checking" | "configured" | "notConfigured";
 
 function getAudioId(kind: WordAudioKind, index: number) {
@@ -36,34 +38,9 @@ export function WordsPractice({
     useState<TtsConfigState>("checking");
   const [ttsModelId, setTtsModelId] = useState("");
   const [ttsVoiceId, setTtsVoiceId] = useState("");
-  const [audioState, setAudioState] = useState<WordAudioState>("idle");
-  const [activeAudioId, setActiveAudioId] = useState("");
-  const [audioErrors, setAudioErrors] = useState<Record<string, string>>({});
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const playbackRunRef = useRef(0);
+  const audio = useAudioController();
+  const stopAudio = audio.stop;
   const canShowAudioControls = ttsConfigState === "configured";
-
-  const stopCurrentAudio = useCallback((updateState = true) => {
-    playbackRunRef.current += 1;
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-
-    if (audioRef.current) {
-      const audio = audioRef.current;
-      audio.onended = null;
-      audio.onerror = null;
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-      audioRef.current = null;
-    }
-
-    if (updateState) {
-      setAudioState("idle");
-      setActiveAudioId("");
-    }
-  }, []);
 
   useEffect(() => {
     const loadTimer = window.setTimeout(() => {
@@ -105,9 +82,9 @@ export function WordsPractice({
 
   useEffect(() => {
     return () => {
-      stopCurrentAudio(false);
+      stopAudio();
     };
-  }, [day, stopCurrentAudio]);
+  }, [day, stopAudio]);
 
   function saveSentence() {
     saveDayProgress(day, { wordsOutput: sentence });
@@ -115,7 +92,7 @@ export function WordsPractice({
     setSaveState("saved");
   }
 
-  async function playWordAudio({
+  function createWordAudioRequest({
     id,
     kind,
     text,
@@ -123,144 +100,38 @@ export function WordsPractice({
     id: string;
     kind: WordAudioKind;
     text: string;
-  }) {
-    if (!canShowAudioControls) {
-      return;
-    }
-
-    if (
-      activeAudioId === id &&
-      (audioState === "loading" || audioState === "playing")
-    ) {
-      stopCurrentAudio();
-      return;
-    }
-
-    stopCurrentAudio(false);
-    playbackRunRef.current += 1;
-    const runId = playbackRunRef.current;
-    const abortController = new AbortController();
+  }): AudioControllerRequest {
     const cacheKey = createTtsCacheKey({
       day,
+      includeAlignment: false,
       modelId: ttsModelId,
       scope: `words:${kind}`,
       text,
       voiceId: ttsVoiceId,
     });
 
-    abortControllerRef.current = abortController;
-    setActiveAudioId(id);
-    setAudioState("loading");
-    setAudioErrors((current) => {
-      const next = { ...current };
-      delete next[id];
-      return next;
-    });
-
-    const result = await getOrRequestTtsAudio({
+    return {
       cacheKey,
-      signal: abortController.signal,
+      id,
+      includeAlignment: false,
       text,
-    });
+    };
+  }
 
-    if (abortController.signal.aborted || playbackRunRef.current !== runId) {
+  async function handleWordAudio(request: AudioControllerRequest) {
+    const isActive = audio.activeId === request.id;
+
+    if (isActive && (audio.state === "loading" || audio.state === "playing")) {
+      audio.cancel();
       return;
     }
 
-    abortControllerRef.current = null;
-
-    if ("ok" in result && !result.ok) {
-      if (result.code === "aborted") {
-        setAudioState("idle");
-        setActiveAudioId("");
-        return;
-      }
-
-      if (result.code === "not_configured") {
-        setTtsConfigState("notConfigured");
-      }
-
-      setAudioState("error");
-      setAudioErrors((current) => ({
-        ...current,
-        [id]: result.message || "Ses oluşturulamadı. Lütfen tekrar dene.",
-      }));
+    if (isActive && audio.state === "error") {
+      await audio.retry();
       return;
     }
 
-    try {
-      const cachedResult = result as CachedTtsAudio;
-      const audio = new Audio(cachedResult.objectUrl);
-      audioRef.current = audio;
-
-      audio.onended = () => {
-        if (playbackRunRef.current === runId) {
-          setAudioState("idle");
-          setActiveAudioId("");
-        }
-      };
-      audio.onerror = () => {
-        if (playbackRunRef.current === runId) {
-          setAudioState("error");
-          setAudioErrors((current) => ({
-            ...current,
-            [id]: "Ses oynatılamadı. Lütfen tekrar dene.",
-          }));
-        }
-      };
-
-      await audio.play();
-
-      if (playbackRunRef.current !== runId) {
-        return;
-      }
-
-      setAudioState("playing");
-    } catch (error) {
-      const wasStopped =
-        playbackRunRef.current !== runId ||
-        abortController.signal.aborted ||
-        (error instanceof DOMException && error.name === "AbortError");
-
-      if (wasStopped) {
-        setAudioState("idle");
-        setActiveAudioId("");
-        return;
-      }
-
-      setAudioState("error");
-      setAudioErrors((current) => ({
-        ...current,
-        [id]: "Ses oynatılamadı. Lütfen tekrar dene.",
-      }));
-    }
-  }
-
-  function getAudioButtonLabel(id: string) {
-    if (activeAudioId !== id) {
-      return "Dinle";
-    }
-
-    if (audioState === "loading") {
-      return "Yükleniyor";
-    }
-
-    if (audioState === "playing") {
-      return "Durdur";
-    }
-
-    return "Dinle";
-  }
-
-  function getAudioButtonAriaLabel(kind: WordAudioKind, id: string) {
-    if (
-      activeAudioId === id &&
-      (audioState === "loading" || audioState === "playing")
-    ) {
-      return "Seslendirmeyi durdur";
-    }
-
-    return kind === "word" ? "Kelimeyi dinle" : "Örnek cümleyi dinle";
+    await audio.play(request);
   }
 
   return (
@@ -326,8 +197,8 @@ export function WordsPractice({
           {words.map((item, index) => {
             const wordAudioId = getAudioId("word", index);
             const exampleAudioId = getAudioId("example", index);
-            const wordIsActive = activeAudioId === wordAudioId;
-            const exampleIsActive = activeAudioId === exampleAudioId;
+            const wordIsActive = audio.activeId === wordAudioId;
+            const exampleIsActive = audio.activeId === exampleAudioId;
 
             return (
               <article
@@ -349,33 +220,27 @@ export function WordsPractice({
                     </div>
                   </div>
                   {canShowAudioControls ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void playWordAudio({
-                          id: wordAudioId,
-                          kind: "word",
-                          text: item.word,
-                        });
+                    <AudioAction
+                      active={wordIsActive}
+                      state={audio.state}
+                      onAction={() => {
+                        void handleWordAudio(
+                          createWordAudioRequest({
+                            id: wordAudioId,
+                            kind: "word",
+                            text: item.word,
+                          }),
+                        );
                       }}
-                      aria-label={getAudioButtonAriaLabel(
-                        "word",
-                        wordAudioId,
-                      )}
-                      className={`min-h-11 min-w-[5.75rem] shrink-0 rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
-                        wordIsActive && audioState === "playing"
-                          ? "bg-moss text-white"
-                          : "bg-[#17201a] text-white hover:bg-[#33493a]"
-                      }`}
-                    >
-                      {getAudioButtonLabel(wordAudioId)}
-                    </button>
+                      idleAriaLabel="Kelimeyi dinle"
+                      className="min-w-[5.75rem] shrink-0 px-3.5 py-2 text-xs"
+                    />
                   ) : null}
                 </div>
 
-                {audioErrors[wordAudioId] ? (
+                {wordIsActive && audio.error ? (
                   <p className="mt-3 rounded-[1rem] border border-clay/20 bg-linen/70 p-3 text-sm font-semibold leading-5 text-foreground">
-                    {audioErrors[wordAudioId]}
+                    {audio.error.message}
                   </p>
                 ) : null}
 
@@ -411,32 +276,26 @@ export function WordsPractice({
                         {item.exampleSentence}
                       </p>
                       {canShowAudioControls ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            void playWordAudio({
-                              id: exampleAudioId,
-                              kind: "example",
-                              text: item.exampleSentence,
-                            });
+                        <AudioAction
+                          active={exampleIsActive}
+                          state={audio.state}
+                          onAction={() => {
+                            void handleWordAudio(
+                              createWordAudioRequest({
+                                id: exampleAudioId,
+                                kind: "example",
+                                text: item.exampleSentence,
+                              }),
+                            );
                           }}
-                          aria-label={getAudioButtonAriaLabel(
-                            "example",
-                            exampleAudioId,
-                          )}
-                          className={`min-h-11 min-w-[5.75rem] shrink-0 rounded-full px-3.5 py-2 text-xs font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-linen ${
-                            exampleIsActive && audioState === "playing"
-                              ? "bg-moss text-white"
-                              : "bg-[#17201a] text-white hover:bg-[#33493a]"
-                          }`}
-                        >
-                          {getAudioButtonLabel(exampleAudioId)}
-                        </button>
+                          idleAriaLabel="Örnek cümleyi dinle"
+                          className="min-w-[5.75rem] shrink-0 px-3.5 py-2 text-xs"
+                        />
                       ) : null}
                     </div>
-                    {audioErrors[exampleAudioId] ? (
+                    {exampleIsActive && audio.error ? (
                       <p className="mt-3 rounded-[1rem] border border-clay/20 bg-surface/70 p-3 text-sm font-semibold leading-5 text-foreground">
-                        {audioErrors[exampleAudioId]}
+                        {audio.error.message}
                       </p>
                     ) : null}
                   </div>
