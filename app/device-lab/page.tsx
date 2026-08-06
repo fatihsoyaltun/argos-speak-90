@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ButtonLink, CompactSection, PageHeader } from "@/components/ui";
 import {
   assertDeviceLabDataValid,
@@ -9,6 +10,10 @@ import {
 } from "./_components/device-lab-ui";
 
 const validationResult = assertDeviceLabDataValid(deviceLabDevices);
+
+export const metadata: Metadata = {
+  title: "Device Lab",
+};
 
 export default function DeviceLabPage() {
   return (

@@ -45,11 +45,37 @@ export const dailyFlow: FlowStep[] = [
 ];
 
 export const navigationItems = [
-  { label: "Today", href: "/today" },
-  { label: "Listen", href: "/listen" },
-  { label: "Words", href: "/words" },
-  { label: "Speak", href: "/speak" },
-  { label: "Review", href: "/review" },
+  { label: "Bugün", href: "/today" },
+  { label: "Pratik", href: "/practice" },
+  { label: "Device Lab", href: "/device-lab" },
   { label: "İlerleme", href: "/stats" },
-  { label: "Settings", href: "/settings" },
+  { label: "Ayarlar", href: "/settings" },
 ];
+
+export const practiceAreas = [
+  {
+    label: "Listen",
+    href: "/listen",
+    description: "Günün İngilizce metnini dinle ve kısa cevabını yaz.",
+  },
+  {
+    label: "Words",
+    href: "/words",
+    description: "Günün kelimelerini örnekleriyle çalış.",
+  },
+  {
+    label: "Speak",
+    href: "/speak",
+    description: "Hedef soruya iki kısa denemeyle cevap ver.",
+  },
+  {
+    label: "Review",
+    href: "/review",
+    description: "Kısa kontrollerle günün içeriğini tekrar et.",
+  },
+  {
+    label: "Journal",
+    href: "/journal",
+    description: "Kaydettiğin cevapları ve günlük notlarını gör.",
+  },
+] as const;

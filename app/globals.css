@@ -1,13 +1,39 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f2ea;
-  --foreground: #17201a;
-  --surface: #fffdf8;
-  --muted: #3f493f;
+  --bg-canvas: #f7f2ea;
+  --bg-surface: #fffdf8;
+  --text-primary: #17201a;
+  --text-secondary: #3f493f;
+  --action-primary: #17201a;
+  --action-primary-hover: #33493a;
+  --action-primary-active: #26372c;
+  --action-primary-text: #ffffff;
+  --accent-soft: #dce8d8;
+  --border-subtle: #d9d1c5;
+  --danger: #7a271a;
+  --danger-hover: #5f1d13;
+  --danger-soft: #f6ded8;
+  --focus-ring: #8f4f38;
+  --control-disabled: #d7d0c6;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --content-measure: 44rem;
+  --control-min-size: 2.75rem;
+
+  /* Compatibility aliases for the existing interface. */
+  --background: var(--bg-canvas);
+  --foreground: var(--text-primary);
+  --surface: var(--bg-surface);
+  --muted: var(--text-secondary);
   --moss: #33493a;
-  --sage: #dce8d8;
-  --clay: #8f4f38;
+  --sage: var(--accent-soft);
+  --clay: var(--focus-ring);
   --linen: #efe5d6;
 }
 
@@ -20,6 +46,20 @@
   --color-sage: var(--sage);
   --color-clay: var(--clay);
   --color-linen: var(--linen);
+  --color-canvas: var(--bg-canvas);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-action-primary: var(--action-primary);
+  --color-action-primary-hover: var(--action-primary-hover);
+  --color-action-primary-active: var(--action-primary-active);
+  --color-action-primary-text: var(--action-primary-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-border-subtle: var(--border-subtle);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-soft: var(--danger-soft);
+  --color-focus-ring: var(--focus-ring);
+  --color-control-disabled: var(--control-disabled);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --shadow-soft: 0 18px 48px rgb(23 32 26 / 0.1);
@@ -30,8 +70,10 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.6;
   min-width: 320px;
   overflow-x: hidden;
 }
@@ -49,6 +91,36 @@ a {
 }
 
 ::selection {
-  background: var(--sage);
-  color: var(--foreground);
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+.app-header {
+  padding-top: env(safe-area-inset-top);
+}
+
+.app-main {
+  max-width: var(--content-measure);
+  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
+}
+
+.bottom-navigation {
+  padding-right: calc(var(--space-3) + env(safe-area-inset-right));
+  padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+  padding-left: calc(var(--space-3) + env(safe-area-inset-left));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -6,11 +6,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <ActiveDayProvider>
       <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
-        <header className="sticky top-0 z-20 border-b border-foreground/10 bg-background/95 backdrop-blur-xl">
-          <div className="mx-auto flex w-full max-w-3xl items-center px-4 py-3.5 sm:px-6">
+        <header className="app-header sticky top-0 z-20 border-b border-border-subtle bg-background/95 backdrop-blur-xl">
+          <div className="mx-auto flex w-full max-w-[var(--content-measure)] items-center px-4 py-3.5 sm:px-6">
             <Link
               href="/"
-              className="min-w-0 rounded-2xl leading-none outline-none focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+              className="min-w-0 rounded-2xl leading-none outline-none focus-visible:ring-[3px] focus-visible:ring-clay focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <p className="truncate text-xs font-bold uppercase tracking-[0.16em] text-moss">
                 Argos
@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-3xl px-4 pb-44 pt-7 sm:px-6 sm:pb-36 sm:pt-8">
+        <main className="app-main mx-auto w-full px-4 pt-7 sm:px-6 sm:pt-8">
           {children}
         </main>
 

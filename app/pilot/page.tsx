@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Card, PageHeader } from "@/components/ui";
+
+export const metadata: Metadata = {
+  title: "Yerel kullanım rehberi",
+};
 
 const dailySteps = [
   "Today ekranında aktif günü kontrol et.",

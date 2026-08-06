@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CompactSection, PageHeader } from "@/components/ui";
 import { deviceLabDevices } from "@/lib/device-lab";
@@ -16,6 +17,17 @@ export const dynamicParams = false;
 
 export function generateStaticParams() {
   return deviceLabDevices.map((device) => ({ deviceSlug: device.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: DevicePageProps): Promise<Metadata> {
+  const { deviceSlug } = await params;
+  const device = deviceLabDevices.find((item) => item.slug === deviceSlug);
+
+  return {
+    title: device ? `${device.productName} · Device Lab` : "Device Lab",
+  };
 }
 
 export default async function DevicePage({ params }: DevicePageProps) {

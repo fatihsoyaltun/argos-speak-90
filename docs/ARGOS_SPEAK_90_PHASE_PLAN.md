@@ -25,8 +25,8 @@ Durum sözlüğü: `Tamamlandı`, `Sıradaki`, `Bekliyor`, `Engelli`.
 | P1 | Buton kontrastı ve etkileşim acil kapısı | Tamamlandı | PLAN-0 |
 | P2 | Tek kullanıcı veri güvenliği ve çıkış envanteri | Tamamlandı | P1 |
 | P3 | Login/Admin/cloud emekliliği | Tamamlandı | P2 |
-| P4 | Tasarım sistemi, shell ve navigation temeli | Sıradaki | P3 |
-| P5 | Device Lab sade hap bilgi deneyimi | Bekliyor | P4 |
+| P4 | Tasarım sistemi, shell ve navigation temeli | Tamamlandı | P3 |
+| P5 | Device Lab sade hap bilgi deneyimi | Sıradaki | P4 |
 | P6 | TTS güvenilirlik temeli | Bekliyor | P4 |
 | P7 | TTS kapsam genişletmesi | Bekliyor | P5, P6 |
 | P8 | Tarayıcı ses kayıt MVP'si | Bekliyor | P4, P6 |
@@ -179,7 +179,7 @@ Uygulamayı tek kullanıcı, yerel ilerleme modeline geçirmek; basit `/stats` i
 
 ## P4 — Tasarım sistemi, shell ve navigation temeli
 
-**Durum: Sıradaki**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -212,7 +212,7 @@ Yeni sakin, mobil ve ses-öncelikli ürün için semantic token, temel bileşen 
 
 ## P5 — Device Lab sade hap bilgi deneyimi
 
-**Durum: Bekliyor**
+**Durum: Sıradaki**
 
 ### Amaç
 

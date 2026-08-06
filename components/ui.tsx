@@ -2,16 +2,46 @@ import Link from "next/link";
 import type { ButtonHTMLAttributes, ComponentProps } from "react";
 import type { FlowStep } from "@/lib/phase-one-content";
 
-type ButtonVariant = "primary" | "secondary";
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "soft"
+  | "ghost"
+  | "danger"
+  | "icon";
+type NonIconButtonVariant = Exclude<ButtonVariant, "icon">;
+type SharedButtonProps = {
+  isLoading?: boolean;
+  loadingLabel?: string;
+};
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  SharedButtonProps &
+  (
+    | { variant: "icon"; "aria-label": string }
+    | { variant?: NonIconButtonVariant }
+  );
+type ButtonLinkProps = ComponentProps<typeof Link> &
+  (
+    | { variant: "icon"; "aria-label": string }
+    | { variant?: NonIconButtonVariant }
+  );
 
 const buttonBaseStyles =
-  "inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-3 text-center text-sm font-black outline-none transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 disabled:cursor-not-allowed disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100";
+  "inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-3 text-center text-sm font-black outline-none transition active:scale-[0.98] focus-visible:ring-[3px] focus-visible:ring-clay focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-control-disabled disabled:bg-control-disabled disabled:text-text-secondary disabled:shadow-none disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100 [&_svg]:fill-current [&_svg]:stroke-current";
 
 const buttonVariantStyles: Record<ButtonVariant, string> = {
   primary:
-    "border-[#17201a] bg-[#17201a] text-white shadow-soft visited:text-white hover:border-[#33493a] hover:bg-[#33493a] hover:text-white active:border-[#26372c] active:bg-[#26372c] active:text-white focus-visible:text-white disabled:border-[#d7d0c6] disabled:bg-[#d7d0c6] disabled:text-[#3f493f]",
+    "border-action-primary bg-action-primary text-action-primary-text shadow-soft visited:text-action-primary-text hover:border-action-primary-hover hover:bg-action-primary-hover hover:text-action-primary-text active:border-action-primary-active active:bg-action-primary-active active:text-action-primary-text focus-visible:text-action-primary-text",
   secondary:
-    "border-foreground/20 bg-surface text-[#17201a] visited:text-[#17201a] hover:bg-linen hover:text-[#17201a] active:bg-[#e6dac8] active:text-[#17201a] focus-visible:text-[#17201a] disabled:border-[#d7d0c6] disabled:bg-[#d7d0c6] disabled:text-[#3f493f]",
+    "border-moss bg-surface text-text-primary visited:text-text-primary hover:border-moss hover:bg-linen hover:text-text-primary active:bg-[#e6dac8] active:text-text-primary focus-visible:text-text-primary",
+  soft:
+    "border-moss bg-accent-soft text-text-primary visited:text-text-primary hover:border-moss hover:bg-[#cbdcc6] hover:text-text-primary active:bg-[#bdd2b7] active:text-text-primary focus-visible:text-text-primary",
+  ghost:
+    "border-transparent bg-transparent text-text-primary visited:text-text-primary hover:border-border-subtle hover:bg-linen hover:text-text-primary active:bg-[#e6dac8] active:text-text-primary focus-visible:text-text-primary",
+  danger:
+    "border-danger bg-danger text-white shadow-soft visited:text-white hover:border-danger-hover hover:bg-danger-hover hover:text-white active:border-[#4d160f] active:bg-[#4d160f] active:text-white focus-visible:text-white",
+  icon:
+    "size-11 shrink-0 border-moss bg-surface p-0 text-text-primary visited:text-text-primary hover:border-moss hover:bg-linen hover:text-text-primary active:bg-[#e6dac8] active:text-text-primary focus-visible:text-text-primary",
 };
 
 export function Button({
@@ -23,11 +53,7 @@ export function Button({
   type = "button",
   variant = "primary",
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & {
-  isLoading?: boolean;
-  loadingLabel?: string;
-  variant?: ButtonVariant;
-}) {
+}: ButtonProps) {
   return (
     <button
       {...props}
@@ -46,9 +72,7 @@ export function ButtonLink({
   className = "",
   variant = "primary",
   ...props
-}: ComponentProps<typeof Link> & {
-  variant?: ButtonVariant;
-}) {
+}: ButtonLinkProps) {
   return (
     <Link
       {...props}
@@ -154,24 +178,75 @@ export function CompactSection({
     <section
       className={`rounded-[1.45rem] border border-foreground/10 bg-surface p-4 shadow-soft sm:rounded-[1.75rem] sm:p-5 ${className}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-clay">
-            {eyebrow}
-          </p>
-          <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
-            {title}
-          </h2>
-          {description ? (
-            <p className="mt-2 text-sm font-semibold leading-6 text-muted">
-              {description}
-            </p>
-          ) : null}
-        </div>
-        {action ? <div className="shrink-0">{action}</div> : null}
-      </div>
+      <SectionHeader
+        eyebrow={eyebrow}
+        title={title}
+        description={description}
+        action={action}
+      />
       {children ? <div className="mt-4">{children}</div> : null}
     </section>
+  );
+}
+
+export function SectionHeader({
+  action,
+  className = "",
+  description,
+  eyebrow,
+  title,
+}: {
+  action?: React.ReactNode;
+  className?: string;
+  description?: string;
+  eyebrow: string;
+  title: string;
+}) {
+  return (
+    <div className={`flex items-start justify-between gap-3 ${className}`}>
+      <div className="min-w-0">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-clay">
+          {eyebrow}
+        </p>
+        <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+          {title}
+        </h2>
+        {description ? (
+          <p className="mt-2 text-sm font-semibold leading-6 text-muted">
+            {description}
+          </p>
+        ) : null}
+      </div>
+      {action ? <div className="shrink-0">{action}</div> : null}
+    </div>
+  );
+}
+
+type FeedbackTone = "info" | "success" | "warning" | "error";
+
+const feedbackStyles: Record<FeedbackTone, string> = {
+  info: "border-border-subtle bg-surface text-text-primary",
+  success: "border-moss/30 bg-accent-soft text-text-primary",
+  warning: "border-clay/35 bg-linen text-[#2d261d]",
+  error: "border-danger/30 bg-danger-soft text-danger",
+};
+
+export function Feedback({
+  children,
+  className = "",
+  tone = "info",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  tone?: FeedbackTone;
+}) {
+  return (
+    <div
+      role={tone === "error" ? "alert" : "status"}
+      className={`rounded-[1.25rem] border p-4 text-sm font-semibold leading-6 ${feedbackStyles[tone]} ${className}`}
+    >
+      {children}
+    </div>
   );
 }
 

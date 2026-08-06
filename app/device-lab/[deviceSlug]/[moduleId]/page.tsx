@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CompactSection, PageHeader } from "@/components/ui";
 import { deviceLabDevices } from "@/lib/device-lab";
@@ -22,6 +23,21 @@ export function generateStaticParams() {
       moduleId: module.id,
     })),
   );
+}
+
+export async function generateMetadata({
+  params,
+}: ModulePageProps): Promise<Metadata> {
+  const { deviceSlug, moduleId } = await params;
+  const device = deviceLabDevices.find((item) => item.slug === deviceSlug);
+  const learningModule = device?.modules.find((item) => item.id === moduleId);
+
+  return {
+    title:
+      device && learningModule
+        ? `${learningModule.titleEn} · ${device.productName}`
+        : "Device Lab modülü",
+  };
 }
 
 export default async function ModulePage({ params }: ModulePageProps) {

@@ -14,7 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Argos Speak 90",
+  title: {
+    default: "Argos Speak 90",
+    template: "%s · Argos Speak 90",
+  },
   description: "A focused 90-day English speaking practice app.",
 };
 
