@@ -27,8 +27,8 @@ Durum sözlüğü: `Tamamlandı`, `Sıradaki`, `Bekliyor`, `Engelli`.
 | P3 | Login/Admin/cloud emekliliği | Tamamlandı | P2 |
 | P4 | Tasarım sistemi, shell ve navigation temeli | Tamamlandı | P3 |
 | P5 | Device Lab sade hap bilgi deneyimi | Tamamlandı | P4 |
-| P6 | TTS güvenilirlik temeli | Sıradaki | P4 |
-| P7 | TTS kapsam genişletmesi | Bekliyor | P5, P6 |
+| P6 | TTS güvenilirlik temeli | Tamamlandı | P4 |
+| P7 | TTS kapsam genişletmesi | Sıradaki | P5, P6 |
 | P8 | Tarayıcı ses kayıt MVP'si | Bekliyor | P4, P6 |
 | P9 | Words 8 → 10 | Bekliyor | P4, P6 |
 | P10A | Bugün ve Pratik merkezi yeniden tasarımı | Bekliyor | P4, P7 |
@@ -247,12 +247,15 @@ Device Lab'i kaynak güvenliğini koruyarak kısa İngilizce cihaz tanıtımına
 
 ## P6 — TTS güvenilirlik temeli
 
-**Durum: Sıradaki**
+**Durum: Tamamlandı**
 
-**Son doğrulama notu (6 Ağustos 2026):** Uygulama kapsamı hazırlandı; gerçek
-ElevenLabs playback kapısı sunucu yapılandırması olmadığı, mobil tarayıcı QA
-kapısı da bu oturumda bağlanılabilir tarayıcı bulunmadığı için tamamlanmadı.
-P6 durumu ve P7 bekleme durumu değiştirilmedi. Ayrıntı:
+**Son doğrulama notu (6 Ağustos 2026):** Ele geçirilmiş ElevenLabs anahtarı
+iptal/rotate edildi; yeni anahtar yalnız ignored `.env.local` içinde tutuluyor.
+İzlenen dosya, istemci bundle ve log taramaları temizdir. Gerçek ElevenLabs binary
+ve timed istekleri doğru MIME, sıfırdan büyük ses baytı ve dört kelimelik alignment
+ile geçti. Settings, Listen ve Words için play/pause/resume/replay, cache,
+overlap, highlighting, word/example audio, klavye focus ve 320×812 ile 375×812
+manuel tarayıcı QA geçti. P6 tamamlandı; yalnız P7 `Sıradaki` yapıldı. Ayrıntı:
 `docs/ARGOS_SPEAK_90_P6_TTS_RELIABILITY_SUMMARY.md`.
 
 ### Amaç
@@ -289,7 +292,7 @@ Mevcut ElevenLabs akışını genişletmeden önce güvenilir, ölçülebilir ve
 
 ## P7 — TTS kapsam genişletmesi
 
-**Durum: Bekliyor**
+**Durum: Sıradaki**
 
 ### Amaç
 

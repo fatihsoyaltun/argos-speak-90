@@ -4,12 +4,12 @@
 
 **Faz:** P6 — TTS güvenilirlik temeli
 
-**Sonuç:** P6 uygulama kapsamı hazırlandı; ancak faz tamamlanma kapısı açık
-değildir. Gerçek ElevenLabs isteği ve gerçek mobil/desktop tarayıcı playback QA
-zorunludur. Güvenlik devamında mevcut `.env.local` içeriği bilerek okunmadı;
-yenilenmiş anahtarın kurulduğu doğrulanmadı ve canlı test çalıştırılmadı.
-Bağlanılabilir Browser/Chrome örneği de yoktur. Bu nedenle P6 `Sıradaki`, P7
-`Bekliyor` bırakıldı.
+**Sonuç:** P6 tamamlandı. Ele geçirilmiş ElevenLabs anahtarı iptal/rotate edildi;
+yeni anahtar yalnız ignored `.env.local` içinde tutuluyor. Gerçek binary ve timed
+isteklerde doğru MIME, sıfırdan büyük ses baytı, geçerli kelime alignment verisi
+ve güvenli response sınırı doğrulandı. Settings, Listen ve Words için gerçek
+playback, cache, overlap, highlight, mobil reflow ve klavye/focus matrisi manuel
+tarayıcı QA ile geçti. P7 yalnız `Sıradaki` olarak işaretlendi ve başlatılmadı.
 
 ## 1. Uygulanan güvenilirlik temeli
 
@@ -69,8 +69,7 @@ Bağlanılabilir Browser/Chrome örneği de yoktur. Bu nedenle P6 `Sıradaki`, P
 ## 5. Otomatik doğrulamalar
 
 - `npm run lint` — geçti.
-- `npm run build` — geçti; ilk sandbox denemeleri Google Fonts ağ erişiminde
-  durdu, ağ izinli tekrar derleme, TypeScript ve 18 statik sayfayı tamamladı.
+- `npm run build` — geçti; TypeScript ve 18 sayfa üretimi tamamlandı.
 - `npm run test:p2` — 3/3 yerel backup/import regresyon testi geçti.
 - `npm run test:p6` — 4/4 cache TTL/LRU/entry-byte sınırı, request/character
   bütçesi ve base64 yük testi geçti.
@@ -79,28 +78,26 @@ Bağlanılabilir Browser/Chrome örneği de yoktur. Bu nedenle P6 `Sıradaki`, P
 - İstemci bundle/scope taraması — TTS anahtarı veya provider header'ı yok.
 - Kapsam taraması — MediaRecorder, getUserMedia, autoplay, transcription,
   scoring veya AI evaluation eklenmedi.
-- Önceki `npm run test:p6:live` denemesi `missing_api_key` ile tamamlanamamıştı.
-  README sızıntısı tespit edildikten sonra bu test bilerek yeniden
-  çalıştırılmadı; önce anahtar rotasyonu ve yeni `.env.local` kurulumu gerekir.
-- In-app Browser keşfi — kullanılabilir browser listesi boş; mobil reflow,
-  computed state, klavye/focus ve gerçek playback matrisi çalıştırılamadı.
+- `npm run test:p6:live` — geçti. Binary yanıt `audio/mpeg` ve 30.973 bayt;
+  timed yanıt `application/json`, 30.973 ses baytı, 41.739 transport baytı,
+  `%34,8` base64/JSON overhead ve dört geçerli kelime timing kaydı verdi.
+- Güçlendirilmiş canlı test, alignment dizisinin boş olmamasını; her timing için
+  dolu metin, sonlu ve sıralı başlangıç/bitiş değerlerini; yanıt header/body içinde
+  API key veya authorization işaretlerinin bulunmamasını doğruladı.
+- Kullanıcının yerel manuel tarayıcı QA sonucu: Settings audio health;
+  play/pause/resume/replay; cache reuse/reset; ses değişiminde overlap engeli;
+  Listen highlighting/alignment; Words word ve example audio; klavye focus;
+  320×812 ve 375×812 layout kontrollerinin tamamı geçti.
 
-## 6. Tamamlanma için açık kapılar
+## 6. Tamamlanma kapıları
 
-P6 ancak aşağıdakiler aynı çalışma durumunda kanıtlandıktan sonra
-`Tamamlandı` yapılabilir:
-
-1. Ele geçirilmiş anahtar ElevenLabs tarafında iptal edilmeli; yeni API key ve
-   voice ID yalnız yerel `.env.local` içinde sunucu değişkenleri olarak tanımlanarak
-   `npm run test:p6:live` çalıştırılmalı; binary ve timed response doğru MIME,
-   sıfırdan büyük byte, alignment korunumu ve gerçek transport ölçümü vermeli.
-2. Settings health kontrolü gerçek kullanıcı tıklamasıyla sıfırdan büyük sonlu
-   duration ve oynatma üretmeli; pause/resume/retry gözlenmeli.
-3. Listen transcript highlight ve Words word/example playback regresyonu gerçek
-   desktop ile en az 375×812 ve 320 CSS px mobil tarayıcıda doğrulanmalı.
-4. Default, hover, focus-visible, active, disabled ve loading hesaplanmış stilleri,
-   44×44 hedefler, yatay reflow, klavye sırası ve hata/retry görünürlüğü
-   raporlanmalı.
+- Ele geçirilmiş anahtar iptal/rotate edildi; yeni anahtar yalnız ignored
+  `.env.local` içinde tutuluyor.
+- Binary/timed canlı provider testi doğru MIME, ses baytı, alignment ve güvenli
+  response kontrolleriyle geçti.
+- Settings, Listen ve Words gerçek playback/cache/overlap/highlight matrisi geçti.
+- Klavye focus ile 320×812 ve 375×812 mobil layout kontrolleri geçti.
+- P6 için açık kabul kapısı kalmadı.
 
 ## 7. Bilerek değiştirilmemiş alanlar
 
@@ -114,20 +111,24 @@ P6 ancak aşağıdakiler aynı çalışma durumunda kanıtlandıktan sonra
 
 ## 8. Faz durumu
 
-P6 kabul ölçütlerinin gerçek provider ve browser bölümü eksik olduğu için
-`Sıradaki` kalır. P7 `Bekliyor` olarak kalır ve bu görevde başlatılmamıştır.
+P6 bütün kabul ölçütleri geçtiği için `Tamamlandı` olarak işaretlendi. Tam olarak
+P7 `Sıradaki` yapıldı; P7 bu görevde başlatılmadı.
 Commit veya push yapılmamıştır.
 
 ## 9. Gizli bilgi olayı ve yerel ortam güvenliği
 
 - `README.md` içinde yanlışlıkla gerçek bir ElevenLabs API anahtarı yayımlandığı
-  tespit edildi. Anahtar ele geçirilmiş kabul edilmiştir ve kullanılmadan önce
-  ElevenLabs tarafında iptal edilip yenisiyle değiştirilmelidir.
+  tespit edildi. Anahtar ele geçirilmiş kabul edildi; ElevenLabs tarafında iptal
+  edilip yenisiyle değiştirildi.
 - İzlenen kaynak, belge, test ve örnek dosyaları gerçek ElevenLabs anahtar
   değerlerinden arındırıldı; belgelerde yalnız yer tutucu değerler bırakıldı.
-- `.env.example` yalnız yer tutucu değerler içerir. ElevenLabs API anahtarı
+- Bu oturumun başlangıcında `.env.example` içinde gerçek görünümlü API key ve
+  yer tutucu olmayan voice değeri bulundu. Değerler yazdırılmadan dosya yeniden
+  yalnız yer tutucularla düzenlendi; son izlenen dosya taraması temizdir.
+- `.env.example` artık yalnız yer tutucu değerler içerir. ElevenLabs API anahtarı
   yalnız sunucu ortamından okunmaya devam eder.
 - `.env.local` bilerek Git dışında tutulur ve `.gitignore` tarafından yok
   sayılır. Bu kontrolde dosyanın içeriği okunmamış veya yazdırılmamıştır.
-- Yeni anahtar yerel olarak kurulup canlı provider ve gerçek tarayıcı testleri
-  geçene kadar P6 `Sıradaki`, P7 `Bekliyor` kalır.
+- Ele geçirilmiş anahtarın iptal/rotate edildiği ve yeni anahtarın yalnız ignored
+  `.env.local` içinde tutulduğu kullanıcı tarafından doğrulandı. Yeni anahtarla
+  canlı provider testi geçti; P6 güvenlik kapısı kapandı.
