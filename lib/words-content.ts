@@ -6,7 +6,10 @@ export type WordItem = {
   pronunciation: string;
   shortMeaningTr: string;
   exampleSentence: string;
+  role?: WordRole;
 };
+
+export type WordRole = "active" | "support-review";
 
 export type DayWords = {
   day: number;
@@ -14,7 +17,8 @@ export type DayWords = {
   words: WordItem[];
 };
 
-const TARGET_DAILY_WORD_COUNT = 8;
+export const ACTIVE_DAILY_WORD_COUNT = 5;
+export const TARGET_DAILY_WORD_COUNT = 10;
 
 const foundationBoosters: WordItem[] = [
   {
@@ -1169,43 +1173,79 @@ function getSpeakingBoosters(day: number): WordItem[] {
   return foundationBoosters;
 }
 
-function expandDailyWords(dayContent: DayWords): DayWords {
-  if (dayContent.words.length >= TARGET_DAILY_WORD_COUNT) {
-    return dayContent;
-  }
+function normalizeWordKey(word: string) {
+  return word.trim().toLowerCase();
+}
 
-  const selectedBoosters: WordItem[] = [];
-  const existingWords = new Set(
-    dayContent.words.map((item) => item.word.toLowerCase()),
+function withDailyRoles(words: WordItem[]): WordItem[] {
+  return words.slice(0, TARGET_DAILY_WORD_COUNT).map((item, index) => ({
+    ...item,
+    role: index < ACTIVE_DAILY_WORD_COUNT ? "active" : "support-review",
+  }));
+}
+
+function getFallbackBoosters(day: number) {
+  return getRotatedItems(
+    [
+      ...foundationBoosters,
+      ...a2Boosters,
+      ...earlyB1Boosters,
+      ...confidentSpeakingBoosters,
+    ],
+    day * 7,
+    foundationBoosters.length +
+      a2Boosters.length +
+      earlyB1Boosters.length +
+      confidentSpeakingBoosters.length,
   );
+}
+
+function expandDailyWords(dayContent: DayWords): DayWords {
+  const existingWords = new Set(
+    dayContent.words.map((item) => normalizeWordKey(item.word)),
+  );
+  const speakingBoosterPool = getSpeakingBoosters(dayContent.day);
   const speakingBoosters = getRotatedItems(
-    getSpeakingBoosters(dayContent.day),
+    speakingBoosterPool,
     dayContent.day * 5,
-    getSpeakingBoosters(dayContent.day).length,
+    speakingBoosterPool.length,
   );
   const prioritizedBoosters = [
     ...getThemeBoosters(dayContent),
     ...speakingBoosters,
+    ...getFallbackBoosters(dayContent.day),
   ];
-  let index = 0;
+  const selectedBoosters: WordItem[] = [];
 
-  while (
-    dayContent.words.length + selectedBoosters.length < TARGET_DAILY_WORD_COUNT
-  ) {
-    const booster = prioritizedBoosters[index % prioritizedBoosters.length];
-    index += 1;
+  for (const booster of prioritizedBoosters) {
+    if (
+      dayContent.words.length + selectedBoosters.length >=
+      TARGET_DAILY_WORD_COUNT
+    ) {
+      break;
+    }
 
-    if (existingWords.has(booster.word.toLowerCase())) {
+    const wordKey = normalizeWordKey(booster.word);
+
+    if (existingWords.has(wordKey)) {
       continue;
     }
 
     selectedBoosters.push(booster);
-    existingWords.add(booster.word.toLowerCase());
+    existingWords.add(wordKey);
+  }
+
+  const words = [...dayContent.words, ...selectedBoosters];
+
+  if (words.length < TARGET_DAILY_WORD_COUNT) {
+    throw new Error(
+      `Day ${dayContent.day} has ${words.length}/${TARGET_DAILY_WORD_COUNT} unique Words items.`,
+    );
   }
 
   return {
     ...dayContent,
-    words: [...dayContent.words, ...selectedBoosters],
+    words: withDailyRoles(words),
   };
 }
 

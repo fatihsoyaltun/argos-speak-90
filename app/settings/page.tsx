@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AudioAction } from "@/components/audio-action";
-import { useActiveDay } from "@/components/active-day";
+import { DayNavigator, useActiveDay } from "@/components/active-day";
 import {
-  CompactSection,
   Button,
+  CompactSection,
   ExpandableCard,
+  Feedback,
   PageHeader,
   ProgressStrip,
   StatusPill,
@@ -15,6 +15,7 @@ import {
 import {
   exportLocalBackupAsJson,
   importLocalBackupFromJson,
+  LOCAL_USER_DATA_STORAGE_KEYS,
 } from "@/lib/local-storage-keys";
 import { getTtsServiceStatus } from "@/lib/tts/client";
 import {
@@ -27,8 +28,11 @@ import {
   clearAllArgosProgress,
   notifyPracticeProgressChanged,
 } from "@/lib/practice-storage";
+import { isVoiceRecordingSupported } from "@/lib/voice-recording";
 
 type AudioStatus = "checking" | "configured" | "notConfigured";
+
+const RESET_CONFIRM_PHRASE = "SİL";
 
 export default function SettingsPage() {
   const { activeDay, setActiveDay, clearActiveDayStorage } = useActiveDay();
@@ -41,6 +45,9 @@ export default function SettingsPage() {
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
   const [importMessage, setImportMessage] = useState("");
+  const [resetArmed, setResetArmed] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState("");
+  const [recordingSupported, setRecordingSupported] = useState(false);
 
   const checkAudioStatus = useCallback(async () => {
     setAudioStatus("checking");
@@ -70,6 +77,16 @@ export default function SettingsPage() {
       isActive = false;
     };
   }, [checkAudioStatus]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setRecordingSupported(isVoiceRecordingSupported());
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   const audioHealthText = "Your audio is ready for today's English practice.";
   const audioHealthId = "settings-audio-health";
@@ -124,17 +141,31 @@ export default function SettingsPage() {
     );
   }
 
-  function resetActiveDay() {
+  function setProgramDayOne() {
     setActiveDay(1);
-    setMessage("Aktif gün 1. güne alındı.");
+    setMessage("Aktif gün 1. güne alındı. Görev verileri silinmedi.");
   }
 
-  function clearLocalProgress() {
+  function cancelReset() {
+    setResetArmed(false);
+    setResetConfirmText("");
+  }
+
+  function confirmClearLocalProgress() {
+    if (resetConfirmText.trim() !== RESET_CONFIRM_PHRASE) {
+      setMessage(`Onay için "${RESET_CONFIRM_PHRASE}" yazman gerekir.`);
+      return;
+    }
+
     clearAllArgosProgress();
     clearActiveDayStorage();
-    setMessage("Bu tarayıcıdaki Argos ilerleme verileri temizlendi.");
+    setMessage(
+      `Yerel kullanıcı verisi silindi: aktif gün, pratik ilerlemesi, Device Lab kayıtları. Hedef anahtarlar: ${LOCAL_USER_DATA_STORAGE_KEYS.join(", ")}.`,
+    );
     setExportText("");
     setImportMessage("");
+    setImportText("");
+    cancelReset();
   }
 
   async function copyExportJson() {
@@ -231,76 +262,218 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-settings-page="p10d">
       <PageHeader
-        eyebrow="Settings"
-        title="Local practice settings"
-        description="Bu sayfa cihazındaki yerel ilerlemeyi ve ses durumunu kontrol etmek için var."
+        eyebrow="Ayarlar"
+        title="Yerel program ayarları"
+        description="Program, veri yedeği, ses sağlık testi ve mikrofon gizliliği. Hesap, ekip veya bulut senkronu yok."
       />
 
-      <CompactSection
-        eyebrow="Professional English"
-        title="Professional English / Device Lab"
-        description="Kaynak kontrollü cihaz iletişimi pratiği."
-        action={<StatusPill status="pending">Read-only</StatusPill>}
-      >
-        <Link
-          href="/device-lab"
-          className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black text-[#17201a] outline-none transition visited:text-[#17201a] hover:bg-sage hover:text-[#17201a] active:scale-[0.98] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:text-[#17201a]"
-        >
-          Device Lab’i aç
-        </Link>
-      </CompactSection>
-
-      <CompactSection
-        eyebrow="Local device"
-        title={`Day ${activeDay} / 90`}
-        description="Aktif günü ve bu cihazdaki yerel ilerlemeyi yönet."
-        action={<StatusPill status="active">Local-first</StatusPill>}
-      >
-        <div className="grid gap-2 sm:grid-cols-3">
-          <button
-            type="button"
-            onClick={resetActiveDay}
-            className="min-h-11 rounded-full bg-[#17201a] px-4 py-3 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-          >
-            Reset Day 1
-          </button>
-          <button
-            type="button"
-            onClick={clearLocalProgress}
-            className="min-h-11 rounded-full border border-foreground/20 bg-surface px-4 py-3 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-          >
-            Clear local progress
-          </button>
-          <Link
-            href="/journal"
-            className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black text-[#17201a] outline-none transition hover:bg-sage active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-          >
-            Journal aç
-          </Link>
+      {message && !resetArmed ? (
+        <div data-settings-status>
+          <Feedback tone="success">{message}</Feedback>
         </div>
-        {message ? (
-          <p className="mt-3 rounded-[1.25rem] border border-moss/20 bg-sage p-3 text-sm font-semibold leading-6 text-foreground">
-            {message}
-          </p>
-        ) : null}
-      </CompactSection>
+      ) : null}
 
+      <div data-settings-section="program">
       <CompactSection
-        eyebrow="System status"
-        title="Ses ve program"
-        description="Kısa durum özeti. Teknik kontroller aynı şekilde çalışmaya devam eder."
+        eyebrow="Program"
+        title={`Gün ${activeDay} / 90`}
+        description="Aktif çalışma gününü bu cihazda seç."
+        action={<StatusPill status="active">Yerel</StatusPill>}
+      >
+        <div className="space-y-3">
+          <DayNavigator />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button type="button" variant="secondary" onClick={setProgramDayOne}>
+              Aktif günü 1 yap
+            </Button>
+          </div>
+        </div>
+      </CompactSection>
+      </div>
+
+      <div data-settings-section="backup">
+      <CompactSection
+        eyebrow="Veriler"
+        title="Yedek ve sıfırlama"
+        description="Aktif gün, pratik ilerlemesi ve Device Lab kayıtlarını JSON olarak taşı veya sil."
+      >
+        <div className="space-y-4">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => {
+                void copyExportJson();
+              }}
+              data-settings-export-copy
+            >
+              Yedeği kopyala
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={downloadExportJson}
+              data-settings-export-download
+            >
+              JSON indir
+            </Button>
+          </div>
+
+
+          {exportText ? (
+            <textarea
+              readOnly
+              value={exportText}
+              rows={5}
+              aria-label="Dışa aktarılan ilerleme JSON"
+              className="w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 font-mono text-xs leading-5 text-foreground outline-none"
+            />
+          ) : null}
+
+          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
+            <label
+              htmlFor="import-progress-json"
+              className="text-xs font-bold uppercase tracking-[0.16em] text-clay"
+            >
+              Yedeği içe aktar
+            </label>
+            <p className="mt-2 text-sm font-medium leading-6 text-muted">
+              Argos ilerleme JSON metnini yapıştır veya dosya seç. Eski
+              yalnız-pratik yedekleri de desteklenir. Hatalı JSON mevcut veriyi
+              değiştirmez.
+            </p>
+            <textarea
+              id="import-progress-json"
+              value={importText}
+              onChange={(event) => {
+                setImportText(event.target.value);
+                setImportMessage("");
+              }}
+              rows={6}
+              placeholder='{"version":2,"product":"argos-speak-90",...}'
+              className="mt-4 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-surface p-4 font-mono text-xs leading-5 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
+            />
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => {
+                void loadImportFile(event.target.files?.[0]);
+              }}
+              className="mt-3 block w-full text-sm font-semibold text-muted file:mr-3 file:min-h-11 file:rounded-full file:border-0 file:bg-linen file:px-4 file:text-sm file:font-black file:text-[#17201a]"
+            />
+            <Button
+              type="button"
+              variant="primary"
+              className="mt-4 w-full sm:w-auto"
+              onClick={importProgress}
+              disabled={importText.trim().length === 0}
+              data-settings-import
+            >
+              Yerel yedeği içe aktar
+            </Button>
+            {importMessage ? (
+              <Feedback className="mt-4" tone="success">
+                {importMessage}
+              </Feedback>
+            ) : null}
+          </div>
+
+          <div
+            className="rounded-[1.4rem] border border-danger/30 bg-danger-soft/40 p-4"
+            data-settings-reset
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay">
+              Tehlikeli işlem
+            </p>
+            <h2 className="mt-2 text-lg font-semibold leading-tight">
+              Yerel ilerlemeyi sil
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-muted">
+              Yalnız şu anahtarlar silinir:{" "}
+              <span className="font-mono text-xs text-foreground">
+                {LOCAL_USER_DATA_STORAGE_KEYS.join(", ")}
+              </span>
+              . Diğer tarayıcı verilerine dokunulmaz. Ses kaydı zaten oturum
+              belleğindedir ve buradan silinmez.
+            </p>
+
+            {!resetArmed ? (
+              <Button
+                type="button"
+                variant="danger"
+                className="mt-4"
+                onClick={() => {
+                  setResetArmed(true);
+                  setResetConfirmText("");
+                  setMessage("");
+                }}
+                data-settings-reset-arm
+              >
+                Silme adımını aç
+              </Button>
+            ) : (
+              <div className="mt-4 space-y-3">
+                <Feedback tone="warning">
+                  Bu işlem geri alınamaz. Onaylamak için aşağıya{" "}
+                  <strong>{RESET_CONFIRM_PHRASE}</strong> yaz.
+                </Feedback>
+                <label
+                  htmlFor="reset-confirm-phrase"
+                  className="block text-sm font-semibold text-foreground"
+                >
+                  Onay metni
+                </label>
+                <input
+                  id="reset-confirm-phrase"
+                  value={resetConfirmText}
+                  onChange={(event) => setResetConfirmText(event.target.value)}
+                  autoComplete="off"
+                  className="min-h-11 w-full rounded-full border border-foreground/15 bg-surface px-4 text-sm font-semibold outline-none focus:border-clay focus:ring-2 focus:ring-clay/30"
+                  data-settings-reset-confirm-input
+                />
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Button
+                    type="button"
+                    variant="danger"
+                    onClick={confirmClearLocalProgress}
+                    disabled={resetConfirmText.trim() !== RESET_CONFIRM_PHRASE}
+                    data-settings-reset-confirm
+                  >
+                    Evet, yerel veriyi sil
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={cancelReset}>
+                    Vazgeç
+                  </Button>
+                </div>
+              </div>
+            )}
+            {message && resetArmed ? (
+              <Feedback className="mt-3" tone="info">
+                {message}
+              </Feedback>
+            ) : null}
+          </div>
+        </div>
+      </CompactSection>
+      </div>
+
+      <div data-settings-section="audio">
+      <CompactSection
+        eyebrow="Ses"
+        title="Ses sağlık testi"
+        description="Kısa bir İngilizce cümleyle gerçek oynatma durumunu kontrol et."
       >
         <ProgressStrip
           items={[
             {
               label:
                 audioStatus === "checking"
-                  ? "Audio checking"
+                  ? "Ses kontrol ediliyor"
                   : audioStatus === "configured"
-                    ? "Audio ready"
-                    : "Audio not ready",
+                    ? "Ses hazır"
+                    : "Ses hazır değil",
               status:
                 audioStatus === "configured"
                   ? "synced"
@@ -309,7 +482,7 @@ export default function SettingsPage() {
                     : "warning",
             },
             {
-              label: "90 days",
+              label: "90 gün program",
               status: "active",
             },
           ]}
@@ -336,147 +509,80 @@ export default function SettingsPage() {
             Durumu yenile
           </Button>
           <Button type="button" variant="ghost" onClick={resetAudioCache}>
-            Ses cache’ini temizle
+            Ses önbelleğini temizle
           </Button>
         </div>
         {audioStatus === "notConfigured" ? (
-          <p className="mt-3 rounded-[1.15rem] border border-foreground/10 bg-linen/70 p-3 text-sm font-semibold leading-6 text-foreground">
-            Ses servisi yapılandırılmadı. Sunucudaki ElevenLabs anahtarı ve ses
-            ayarları eklendiğinde gerçek oynatma testi kullanılabilir.
-          </p>
+          <Feedback className="mt-3" tone="warning">
+            Ses servisi yapılandırılmadı. Sunucudaki ses sağlayıcı ayarları
+            eklendiğinde gerçek oynatma testi kullanılabilir.
+          </Feedback>
         ) : null}
         {audio.error ? (
-          <p
-            role="alert"
-            className="mt-3 rounded-[1.15rem] border border-clay/30 bg-linen p-3 text-sm font-semibold leading-6 text-foreground"
-          >
+          <Feedback className="mt-3" tone="error">
             {audio.error.message}
-          </p>
+          </Feedback>
         ) : null}
         {audioHealthMessage ? (
-          <p
-            role="status"
-            className="mt-3 rounded-[1.15rem] border border-moss/20 bg-sage p-3 text-sm font-semibold leading-6 text-foreground"
-          >
+          <Feedback className="mt-3" tone="success">
             {audioHealthMessage}
-          </p>
+          </Feedback>
         ) : null}
         {cacheMessage ? (
           <p className="mt-3 text-sm font-semibold leading-6 text-muted">
             {cacheMessage}
           </p>
         ) : null}
-        <p className="mt-3 rounded-[1.25rem] bg-linen p-3 text-sm font-semibold leading-6 text-[#2d261d]">
-          Bu sürüm ilerlemeyi bu cihazdaki tarayıcıda saklar. Cihaz değişirse
-          veya tarayıcı verisi silinirse ilerleme kaybolabilir.
-        </p>
       </CompactSection>
+      </div>
 
+      <div data-settings-section="microphone">
       <CompactSection
-        eyebrow="Guide"
-        title="Yerel kullanım rehberi"
-        description="Günlük çalışma ve bu cihazdaki ilerlemeyi koruma adımları."
+        eyebrow="Gizlilik"
+        title="Mikrofon ve kayıt"
+        description="Mikrofon izni otomatik istenmez. Kayıt oturum belleğindedir."
+        action={
+          <StatusPill status={recordingSupported ? "synced" : "warning"}>
+            {recordingSupported ? "Destekleniyor" : "Destek yok"}
+          </StatusPill>
+        }
       >
-        <Link
-          href="/pilot"
-          className="flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-linen px-4 py-3 text-center text-sm font-black text-[#17201a] outline-none transition visited:text-[#17201a] hover:bg-sage hover:text-[#17201a] active:scale-[0.98] active:text-[#17201a] focus-visible:text-[#17201a] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface [&_*]:text-[#17201a]"
+        <ul className="space-y-2 text-sm font-medium leading-6 text-muted">
+          <li>
+            Destek:{" "}
+            <strong className="text-foreground">
+              {recordingSupported
+                ? "Bu tarayıcıda kayıt kullanılabilir"
+                : "Bu tarayıcıda kayıt yok; metin akışı yeterli"}
+            </strong>
+          </li>
+          <li>
+            İzin: Mikrofon yalnızca sen kayıt başlattığında istenir; Ayarlar
+            sayfası izin istemez.
+          </li>
+          <li>
+            Saklama: Ses kaydı buluta yüklenmez, puanlanmaz, yazıya dökülmez;
+            varsayılan olarak yalnız oturum belleğinde tutulur.
+          </li>
+          <li>
+            Blob: Ses Blob&apos;ları localStorage içine yazılmaz.
+          </li>
+        </ul>
+        <ExpandableCard
+          className="mt-4"
+          eyebrow="Ayrıntı"
+          title="Kayıt gizliliği notu"
+          description="Kısa hatırlatma; ana akışı kaplamaz."
         >
-          Yerel kullanım rehberi
-        </Link>
+          <p className="text-sm font-medium leading-6 text-muted">
+            Speak ve Device Lab içindeki kayıt denetimleri progressive
+            enhancement&apos;tır. Desteklenmeyen ortamda görev metin tabanlı
+            tamamlanabilir kalır. Kalıcı kayıt istenirse ayrı bir fazda
+            IndexedDB, süre ve silme politikası tasarlanır.
+          </p>
+        </ExpandableCard>
       </CompactSection>
-
-      <ExpandableCard
-        eyebrow="Advanced"
-        title="Advanced local data"
-        description="Aktif gün, pratik ilerlemesi ve Device Lab kayıtlarını tek JSON yedeğinde taşı."
-      >
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-xl font-semibold leading-tight">
-              Yerel ilerlemeyi taşı
-            </h2>
-            <p className="mt-2 text-sm font-medium leading-6 text-muted">
-              Dışa aktarma aktif günü, yerel pratik cevaplarını ve Device Lab
-              kayıtlarını içerir. API anahtarı veya gizli ses ayarı içermez.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => {
-                void copyExportJson();
-              }}
-              className="min-h-12 rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-            >
-              Export JSON kopyala
-            </button>
-            <button
-              type="button"
-              onClick={downloadExportJson}
-              className="min-h-12 rounded-full border border-foreground/20 bg-surface px-5 py-4 text-sm font-black text-[#17201a] outline-none transition hover:bg-linen active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-            >
-              JSON indir
-            </button>
-          </div>
-
-          {exportText ? (
-            <textarea
-              readOnly
-              value={exportText}
-              rows={5}
-              aria-label="Exported progress JSON"
-              className="w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-background/85 p-4 font-mono text-xs leading-5 text-foreground outline-none"
-            />
-          ) : null}
-
-          <div className="rounded-[1.4rem] border border-foreground/10 bg-background/85 p-4">
-            <label
-              htmlFor="import-progress-json"
-              className="text-xs font-bold uppercase tracking-[0.16em] text-clay"
-            >
-              Import JSON
-            </label>
-            <p className="mt-2 text-sm font-medium leading-6 text-muted">
-              Daha önce aldığın Argos ilerleme JSON metnini yapıştır veya dosya
-              seç. Eski yalnız-pratik yedekleri de desteklenir. Hatalı JSON
-              uygulamayı bozmaz; hiçbir yerel anahtar değiştirilmez.
-            </p>
-            <textarea
-              id="import-progress-json"
-              value={importText}
-              onChange={(event) => {
-                setImportText(event.target.value);
-                setImportMessage("");
-              }}
-              rows={6}
-              placeholder='{"version":2,"product":"argos-speak-90",...}'
-              className="mt-4 w-full resize-none rounded-[1.25rem] border border-foreground/15 bg-surface p-4 font-mono text-xs leading-5 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
-            />
-            <input
-              type="file"
-              accept="application/json,.json"
-              onChange={(event) => {
-                void loadImportFile(event.target.files?.[0]);
-              }}
-              className="mt-3 block w-full text-sm font-semibold text-muted file:mr-3 file:min-h-11 file:rounded-full file:border-0 file:bg-linen file:px-4 file:text-sm file:font-black file:text-[#17201a]"
-            />
-            <button
-              type="button"
-              onClick={importProgress}
-              disabled={importText.trim().length === 0}
-              className="mt-4 min-h-12 w-full rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto"
-            >
-              Yerel yedeği içe aktar
-            </button>
-            {importMessage ? (
-              <p className="mt-4 rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
-                {importMessage}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      </ExpandableCard>
+      </div>
     </div>
   );
 }

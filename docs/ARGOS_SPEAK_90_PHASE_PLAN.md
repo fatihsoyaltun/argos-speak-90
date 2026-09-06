@@ -2,7 +2,7 @@
 
 **Kanonik uygulama sırası**
 
-**Son güncelleme:** 6 Ağustos 2026
+**Son güncelleme:** 6 Eylül 2026
 
 ## 1. Faz yürütme protokolü
 
@@ -30,12 +30,12 @@ Durum sözlüğü: `Tamamlandı`, `Sıradaki`, `Bekliyor`, `Engelli`.
 | P6 | TTS güvenilirlik temeli | Tamamlandı | P4 |
 | P7 | TTS kapsam genişletmesi | Tamamlandı | P5, P6 |
 | P8 | Tarayıcı ses kayıt MVP'si | Tamamlandı | P4, P6 |
-| P9 | Words 8 → 10 | Sıradaki | P4, P6 |
-| P10A | Bugün ve Pratik merkezi yeniden tasarımı | Bekliyor | P4, P7 |
-| P10B | Listen ve Words yeniden tasarımı | Bekliyor | P7, P9 |
-| P10C | Speak, Review ve Journal yeniden tasarımı | Bekliyor | P7, P8 |
-| P10D | İlerleme ve Ayarlar yeniden tasarımı | Bekliyor | P3, P6 |
-| P11 | Uçtan uca regresyon ve belge kapanışı | Bekliyor | P10A–P10D |
+| P9 | Words 8 → 10 | Tamamlandı | P4, P6 |
+| P10A | Bugün ve Pratik merkezi yeniden tasarımı | Tamamlandı | P4, P7 |
+| P10B | Listen ve Words yeniden tasarımı | Tamamlandı | P7, P9 |
+| P10C | Speak, Review ve Journal yeniden tasarımı | Tamamlandı | P7, P8 |
+| P10D | İlerleme ve Ayarlar yeniden tasarımı | Tamamlandı | P3, P6 |
+| P11 | Uçtan uca regresyon ve belge kapanışı | Tamamlandı | P10A–P10D |
 
 P5 ve P6, P4 tamamlandıktan sonra teknik olarak paralel olabilir; ancak tek-faz kuralı nedeniyle tabloda P5 önce yürütülür. P7 ikisini de bekler.
 
@@ -380,7 +380,7 @@ Speak ve uygun okuma görevlerinde kullanıcının sesini yerel olarak kaydedip 
 
 ## P9 — Words 8 → 10
 
-**Durum: Sıradaki**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -415,7 +415,7 @@ Speak ve uygun okuma görevlerinde kullanıcının sesini yerel olarak kaydedip 
 
 ## P10A — Bugün ve Pratik merkezi yeniden tasarımı
 
-**Durum: Bekliyor**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -436,7 +436,7 @@ Diğer route gruplarını aynı fazda yeniden tasarlamak.
 
 ## P10B — Listen ve Words yeniden tasarımı
 
-**Durum: Bekliyor**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -449,11 +449,13 @@ Ses öncelikli Listen ve 5+5 Words deneyimini son tasarım sözleşmesine taşı
 - TTS/highlight/completion regresyonu yok.
 - Mobil yoğunluk, focus, kontrast ve gerçek playback kapıları geçiyor.
 
+**Son doğrulama notu (6 Eylül 2026):** Listen tek Metni dinle birincil kontrolü + okunur transcript/highlight; Words 5+5 progressive reveal ve N/10 gerçek sayaç. lint, build, test:p9, test:p10b, git diff --check geçti. Production next start üzerinde 375px DOM ve /api/tts gerçek ses baytı doğrulandı.
+
 ---
 
 ## P10C — Speak, Review ve Journal yeniden tasarımı
 
-**Durum: Bekliyor**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -467,11 +469,13 @@ Uzun form yığınını prompt → dinle → cevap/kayıt → review → tamamla
 - AI score/model answer yok.
 - Mobil, klavye, gerçek playback/kayıt ve build kapıları geçiyor.
 
+**Son doğrulama notu (6 Eylül 2026):** Speak/Review tek birincil alanlı adım akışı (prompt → dinle → cevap/kayıt → gözden geçir → tamamla); Journal tek not + autosave, ek alanlar/eski cevaplar ExpandableCard. lint, build, test:p9/p10a/p10b/p10c, git diff --check geçti. Production next start + Chrome CDP: 320/375 reflow, focus, Speak gerçek /api/tts playback, kayıt UI yalnız cevap adımında.
+
 ---
 
 ## P10D — İlerleme ve Ayarlar yeniden tasarımı
 
-**Durum: Bekliyor**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -485,11 +489,13 @@ Tek kullanıcı yerel modeli açıkça anlatan sade İlerleme ve Ayarlar yüzeyi
 - Login/admin/cloud dili geri dönmüyor.
 - Reset tehlikeli eylemi açık onaylı ve yalnız hedef veriyi siliyor.
 
+**Son doğrulama notu (6 Eylül 2026):** İlerleme aktif gün / görev özeti / son 7 gün / Device Lab sayısı / “bu cihazda saklanıyor” + dışa aktar. Ayarlar yalnız Program, Veriler, Ses health, Mikrofon gizliliği. Reset `SİL` onaylı ve `clearLocalUserData` yalnız hedef anahtarları siliyor. lint (0 uyarı), build, test:p10d (+ p2/p9/p10a–c), git diff --check geçti. P11 başlatılmadı.
+
 ---
 
 ## P11 — Uçtan uca regresyon ve belge kapanışı
 
-**Durum: Bekliyor**
+**Durum: Tamamlandı**
 
 ### Amaç
 
@@ -507,6 +513,8 @@ Yeni tek kullanıcı ürününün veri, route, erişilebilirlik, mobil, TTS, kay
 - Device Lab yalnız source-backed yayımlanmış facts.
 - `npm run lint`, `npm run build`, `git diff --check` geçiyor.
 - Mimari, kullanım ve privacy belgeleri güncel.
+
+**Son doğrulama notu (6 Eylül 2026):** P11 kapanış regresyonu tamamlandı. `test:p11` ve `test:p11:browser` kabul kapıları geçti; lint/build/diff-check geçti. Yeni özellik eklenmedi. Sonraki faz yok; tabloda Sıradaki bırakılmadı.
 
 ### Yapılmayacaklar
 

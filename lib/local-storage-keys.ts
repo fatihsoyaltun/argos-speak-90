@@ -42,10 +42,42 @@ export const APP_LOCAL_STORAGE_KEYS = [
   PRACTICE_PROGRESS_STORAGE_KEY,
 ] as const;
 
+/** Argos-owned local user data cleared by Settings reset (scoped). */
+export const LOCAL_USER_DATA_STORAGE_KEYS = [
+  ACTIVE_DAY_STORAGE_KEY,
+  PRACTICE_PROGRESS_STORAGE_KEY,
+  DEVICE_LAB_PRACTICE_STORAGE_KEY,
+  CLOUD_SYNC_LAST_SYNC_STORAGE_KEY,
+] as const;
+
 export function clearAppLocalStorage(storage: Storage) {
   APP_LOCAL_STORAGE_KEYS.forEach((key) => {
     storage.removeItem(key);
   });
+}
+
+/**
+ * Clears only intended local user data keys.
+ * Leaves unrelated browser keys (auth tokens, third-party data) untouched.
+ */
+export function clearLocalUserData(storage: Storage) {
+  const clearedKeys: string[] = [];
+
+  LOCAL_USER_DATA_STORAGE_KEYS.forEach((key) => {
+    try {
+      if (storage.getItem(key) !== null) {
+        clearedKeys.push(key);
+      }
+      storage.removeItem(key);
+    } catch {
+      // Best-effort; caller still receives the intended key list.
+    }
+  });
+
+  return {
+    clearedKeys,
+    targetedKeys: [...LOCAL_USER_DATA_STORAGE_KEYS],
+  };
 }
 
 function isRecord(value: unknown): value is StoredRecord {

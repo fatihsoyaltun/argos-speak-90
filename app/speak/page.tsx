@@ -14,7 +14,7 @@ export default function SpeakPage() {
       <PageHeader
         eyebrow={`Speak · Day ${activeDay}`}
         title={practice.title}
-        description="Önce sesli cevap ver. Sonra aynı cevabı ikinci denemede daha düzenli ve daha net kur."
+        description="Prompt → dinle → cevap/kayıt → gözden geçir → tamamla. Bir anda tek ana görev alanı."
       />
       <DayNavigator />
       <SpeakingPracticeView key={activeDay} practice={practice} />

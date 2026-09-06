@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { AudioAction } from "@/components/audio-action";
 import {
-  CompactSection,
+  Button,
+  Card,
   ExpandableCard,
+  Feedback,
   StatusPill,
-  TaskStepper,
 } from "@/components/ui";
 import type { ListeningDrill } from "@/lib/listening-content";
 import { getTtsServiceStatus } from "@/lib/tts/client";
@@ -60,9 +61,10 @@ function createTranscriptSegments(text: string): TranscriptSegment[] {
 }
 
 const transcriptTokenClass =
-  "rounded-md px-1 py-0.5 font-normal leading-[inherit] transition-colors duration-150";
+  "rounded-md px-1 py-0.5 font-normal leading-[inherit] transition-colors duration-150 motion-reduce:transition-none";
 const activeTranscriptTokenClass = "bg-[#f29f05] text-[#201609]";
 const inactiveTranscriptTokenClass = "bg-transparent text-foreground";
+
 export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
   const [response, setResponse] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
@@ -245,75 +247,77 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
     setSaveState("saved");
   }
 
-  const hasResponse = response.trim().length > 0;
   const hasListenedToCurrentDay =
     audio.activeId === audioId && audio.duration > 0;
-  const transcriptAudioError =
-    audio.activeId === audioId ? audio.error?.message : "";
+  const transcriptIsActive = audio.activeId === audioId;
+  const transcriptAudioError = transcriptIsActive ? audio.error?.message : "";
+  const isPlayingTranscript =
+    transcriptIsActive &&
+    (audio.state === "playing" || audio.state === "paused");
 
   return (
     <div className="space-y-4">
-      <section className="rounded-[1.55rem] border border-moss/15 bg-moss p-5 text-white shadow-soft sm:rounded-[1.75rem] sm:p-6">
-        <div className="space-y-3">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-sage sm:text-sm">
-            Bugünkü çalışma
-          </p>
-          <h2 className="text-2xl font-semibold leading-tight text-balance">
-            {drill.title}
-          </h2>
-          <p className="text-sm leading-6 text-sage/95">{drill.focus}</p>
+      <Card className="space-y-4 border-moss/25 !bg-moss !text-white">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-2">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-sage sm:text-sm">
+              Listen · Day {drill.day}
+            </p>
+            <h2 className="text-2xl font-semibold leading-tight text-balance text-white">
+              {drill.title}
+            </h2>
+            <p className="text-sm leading-6 text-sage/95">{drill.focus}</p>
+          </div>
+          <StatusPill
+            status={hasListenedToCurrentDay ? "done" : "active"}
+            className="shrink-0 border-surface/30 bg-surface/15 text-white"
+          >
+            {hasListenedToCurrentDay ? "Dinlendi" : "Hazır"}
+          </StatusPill>
         </div>
 
         {canShowAudioControls ? (
-          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          <div className="space-y-2">
             <AudioAction
-              active={audio.activeId === audioId}
+              active={transcriptIsActive}
               state={audio.state}
               onAction={() => {
                 void handleAudioAction(transcriptAudioRequest);
               }}
               idleAriaLabel="Metni dinle"
               labels={{
-                idle: audio.hasEnded ? "Tekrar oynat" : "Metni dinle",
+                idle: audio.hasEnded && transcriptIsActive ? "Tekrar oynat" : "Dinle",
                 loading: "Hazırlanıyor…",
+                playing: "Duraklat",
+                paused: "Devam et",
                 retry: "Tekrar dene",
               }}
               variant="secondary"
-              className="min-h-12 focus-visible:ring-offset-moss"
+              className="min-h-12 w-full text-base focus-visible:ring-offset-moss sm:w-auto sm:min-w-[12rem]"
             />
-            <button
-              type="button"
-              onClick={audio.cancel}
-              disabled={
-                audio.activeId !== audioId ||
-                (audio.state !== "loading" && audio.state !== "playing")
-              }
-              className="min-h-12 rounded-full border border-surface/35 px-4 py-3 text-sm font-bold text-white outline-none transition hover:bg-surface/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:border-surface/15 disabled:text-white/45 focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-moss"
-            >
-              Durdur
-            </button>
-            {audio.activeId === audioId && audio.duration > 0 ? (
-              <button
+            {hasListenedToCurrentDay && !isPlayingTranscript ? (
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => {
                   void replayAudio();
                 }}
-                className="min-h-11 rounded-full border border-surface/25 px-4 py-2.5 text-sm font-bold text-sage outline-none transition hover:bg-surface/10 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-moss sm:col-span-2"
+                className="min-h-11 w-full border-surface/25 text-sage hover:bg-surface/10 hover:text-white focus-visible:ring-offset-moss sm:w-auto"
               >
                 Baştan oynat
-              </button>
+              </Button>
             ) : null}
           </div>
         ) : null}
 
         {ttsConfigState === "checking" ? (
-          <div className="mt-4 rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
+          <p className="rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
             Ses servisi kontrol ediliyor.
-          </div>
+          </p>
         ) : null}
 
         {ttsConfigState === "notConfigured" ? (
-          <div className="mt-4 rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
+          <div className="rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
             <p>Ses servisi henüz yapılandırılmadı.</p>
             <p className="mt-2 text-sage/85">
               ElevenLabs API anahtarı ve ses ayarları eklendiğinde bu bölüm
@@ -323,28 +327,14 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         ) : null}
 
         {statusError || transcriptAudioError ? (
-          <p className="mt-3 rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage">
+          <p
+            role="alert"
+            className="rounded-[1.15rem] border border-surface/25 bg-surface/10 p-3 text-sm font-semibold leading-6 text-sage"
+          >
             {transcriptAudioError || statusError}
           </p>
         ) : null}
-
-      </section>
-
-      <TaskStepper
-        steps={[
-          {
-            label: "Listen",
-            status: hasListenedToCurrentDay
-              ? "done"
-              : canShowAudioControls
-                ? "active"
-                : "pending",
-          },
-          { label: "Read", status: hasResponse ? "done" : "active" },
-          { label: "Catch lines", status: hasResponse ? "done" : "active" },
-          { label: "Write", status: hasResponse ? "done" : "active" },
-        ]}
-      />
+      </Card>
 
       <ExpandableCard
         eyebrow="Ne yapacaksın?"
@@ -358,7 +348,10 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         </p>
       </ExpandableCard>
 
-      <section className="rounded-[1.45rem] border border-foreground/10 bg-surface p-4 shadow-soft sm:rounded-[1.75rem] sm:p-5">
+      <section
+        aria-label="Transcript"
+        className="rounded-[1.45rem] border border-foreground/10 bg-surface p-4 shadow-soft sm:rounded-[1.75rem] sm:p-5"
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
@@ -368,24 +361,11 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
               Listen, then read
             </h3>
           </div>
-          <div className="flex shrink-0 flex-wrap justify-end gap-2">
-            <AudioAction
-              active={audio.activeId === audioId}
-              state={audio.state}
-              onAction={() => {
-                void handleAudioAction(transcriptAudioRequest);
-              }}
-              disabled={!canShowAudioControls}
-              idleAriaLabel="Metni dinle"
-              labels={{ idle: "Dinle", playing: "Durdur" }}
-              className="px-3.5 py-2 text-xs"
-            />
-            <StatusPill status="active">
-              Day {drill.day}
-            </StatusPill>
-          </div>
+          <StatusPill status={isPlayingTranscript ? "active" : "pending"}>
+            Day {drill.day}
+          </StatusPill>
         </div>
-        <p className="mt-4 rounded-[1.25rem] bg-background/85 p-4 text-[1.03rem] leading-8 text-foreground">
+        <p className="mt-4 rounded-[1.25rem] bg-background/85 p-4 text-[1.125rem] leading-8 text-foreground sm:text-[1.2rem] sm:leading-9">
           {transcriptSegments.map((segment) => {
             const isCurrentWord =
               typeof segment.wordIndex === "number" &&
@@ -475,18 +455,20 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
         </div>
       </ExpandableCard>
 
-      <CompactSection
-        eyebrow="Mini task"
-        title="Kısa cevabın"
-        description={drill.miniTaskTr}
-      >
-        <label
-          htmlFor="listen-response"
-          className="sr-only"
-        >
+      <section className="rounded-[1.45rem] border border-foreground/10 bg-surface p-4 shadow-soft sm:rounded-[1.75rem] sm:p-5">
+        <div className="space-y-1">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-clay sm:text-sm">
+            Mini task
+          </p>
+          <h3 className="text-xl font-semibold leading-tight">Kısa cevabın</h3>
+          <p className="text-sm font-semibold leading-6 text-muted">
+            {drill.miniTaskTr}
+          </p>
+        </div>
+        <label htmlFor="listen-response" className="sr-only">
           Kısa cevabın
         </label>
-        <p className="rounded-[1.15rem] bg-linen px-3 py-2 text-sm font-semibold leading-6 text-[#2d261d]">
+        <p className="mt-4 rounded-[1.15rem] bg-linen px-3 py-2 text-sm font-semibold leading-6 text-[#2d261d]">
           {drill.outputPrompt}
         </p>
         <textarea
@@ -500,20 +482,20 @@ export function ListeningDrillView({ drill }: { drill: ListeningDrill }) {
           placeholder="Example: I have a slow morning. First, I need coffee."
           className="mt-3 w-full resize-none rounded-[1.4rem] border border-foreground/15 bg-background/85 p-4 text-base leading-7 text-foreground outline-none transition placeholder:text-muted/70 focus:border-clay focus:ring-2 focus:ring-clay/30"
         />
-        <button
+        <Button
           type="button"
           onClick={saveResponse}
           disabled={response.trim().length === 0}
-          className="mt-4 min-h-12 w-full rounded-full bg-[#17201a] px-5 py-4 text-sm font-black text-white shadow-soft outline-none transition hover:bg-[#33493a] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#d7d0c6] disabled:text-[#3f493f] focus-visible:ring-2 focus-visible:ring-clay focus-visible:ring-offset-4 focus-visible:ring-offset-surface sm:w-auto"
+          className="mt-4 w-full sm:w-auto"
         >
           Cevabımı kaydet
-        </button>
+        </Button>
         {saveState === "saved" ? (
-          <p className="mt-4 rounded-[1.25rem] border border-moss/20 bg-sage p-4 text-sm font-semibold leading-6 text-foreground">
+          <Feedback tone="success" className="mt-4">
             Cevabın bu cihazda kaydedildi.
-          </p>
+          </Feedback>
         ) : null}
-      </CompactSection>
+      </section>
     </div>
   );
 }

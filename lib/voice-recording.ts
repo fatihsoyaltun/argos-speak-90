@@ -60,3 +60,19 @@ export function getVoiceRecordingErrorMessage(error: unknown) {
       return "Ses kaydı başlatılamadı. Metin görevine devam edebilir veya yeniden deneyebilirsin.";
   }
 }
+
+/** Feature detection only — does not request microphone permission. */
+export function isVoiceRecordingSupported(
+  globalObject: Pick<typeof globalThis, "navigator" | "MediaRecorder"> | typeof globalThis = globalThis,
+) {
+  try {
+    const mediaDevices = globalObject.navigator?.mediaDevices;
+    return Boolean(
+      mediaDevices &&
+        typeof mediaDevices.getUserMedia === "function" &&
+        typeof globalObject.MediaRecorder !== "undefined",
+    );
+  } catch {
+    return false;
+  }
+}

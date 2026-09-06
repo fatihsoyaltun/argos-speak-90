@@ -10,11 +10,11 @@ export default function WordsPage() {
   const dayContent = dayWords[activeDay - 1] ?? dayWords[0];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-6">
       <PageHeader
         eyebrow={`Words · Day ${activeDay}`}
         title={dayContent.title}
-        description="Kelimeleri oku, sesli tekrar et, örnek cümleyi incele ve kendi kısa cümleni yaz."
+        description="10 kelimeyi 5+5 kademeli sun; dinle, anlamı kontrol et ve kendi cümleni yaz."
       />
       <DayNavigator />
       <WordsPractice key={activeDay} day={activeDay} words={dayContent.words} />

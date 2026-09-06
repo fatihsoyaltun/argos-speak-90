@@ -15,7 +15,18 @@
     "test:p7:browser": "node tests/p7-browser-qa.mjs",
     "test:p8": "node --experimental-strip-types --test tests/p8-voice-recording.test.mjs",
     "test:p8:browser": "node tests/p8-browser-qa.mjs",
-    "test:p6:live": "node tests/p6-live-tts.mjs"
+    "test:p9": "node --experimental-strip-types --test tests/p9-words-runtime.test.mjs",
+    "test:p9:browser": "node tests/p9-browser-qa.mjs",
+    "test:p10a": "node --experimental-strip-types --test tests/p10a-daily-tasks.test.mjs",
+    "test:p6:live": "node tests/p6-live-tts.mjs",
+    "test:p10b": "node --test tests/p10b-listen-words.test.mjs",
+    "test:p10b:browser": "node tests/p10b-browser-qa.mjs",
+    "test:p10c": "node --test tests/p10c-speak-review-journal.test.mjs",
+    "test:p10c:browser": "node tests/p10c-browser-qa.mjs",
+    "test:p10d": "node --experimental-strip-types --test tests/p10d-progress-settings.test.mjs",
+    "test:p11": "node --experimental-strip-types --test tests/p11-regression.test.mjs",
+    "test:p11:browser": "node tests/p11-browser-qa.mjs",
+    "test:p11:live": "node tests/p6-live-tts.mjs"
   },
   "dependencies": {
     "next": "16.2.4",
