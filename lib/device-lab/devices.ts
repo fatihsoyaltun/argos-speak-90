@@ -17,6 +17,20 @@ import {
   unsupportedSafetyInstructionsBlockedClaim,
   worldFirstBlockedClaim,
 } from "./shared-claim-control";
+import {
+  superspectralAmbiguousApplicationSlidesBlockedClaim,
+  superspectralBatteryRuntimeBlockedClaim,
+  superspectralCoreLensCompatibilityBlockedClaim,
+  superspectralForceCoreModules,
+  superspectralUndocumentedSoftwareBlockedClaim,
+} from "./superspectral-force-core";
+import {
+  tzoomApplicationDemoBlockedClaim,
+  tzoomBareSlideAttributionBlockedClaim,
+  tzoomContactlessCompanyLevelBlockedClaim,
+  tzoomPlusDnaModules,
+  tzoomUnclearFunctionsBlockedClaim,
+} from "./tzoom-plus-dna";
 import type {
   DeviceLabClaim,
   DeviceLabDevice,
@@ -33,7 +47,7 @@ export const deviceLabDevices: readonly DeviceLabDevice[] = [
     categoryTr: "Gizli parmak izi tespit ve görüntüleme sistemi",
     categoryEn: "Latent fingerprint detection and imaging system",
     sourceStrength: "strong",
-    releaseStatus: "draft_controlled",
+    releaseStatus: "learner_ready",
     safeTrainingAreasTr: [
       "Kontrollü ürün tanıtımı",
       "45.9MP kamera ve UV/VIS/IR vocabulary",
@@ -79,7 +93,7 @@ export const deviceLabDevices: readonly DeviceLabDevice[] = [
     categoryEn:
       "Non-contact fingerprint and evidence imaging device for reflective surfaces",
     sourceStrength: "moderate",
-    releaseStatus: "draft_controlled",
+    releaseStatus: "learner_ready",
     safeTrainingAreasTr: [
       "Kontrollü ürün tanıtımı",
       "32.5MP CMOS ve RAW vocabulary",
@@ -123,7 +137,7 @@ export const deviceLabDevices: readonly DeviceLabDevice[] = [
     categoryEn:
       "Multispectral forensic imaging system positioned for trace visualization",
     sourceStrength: "moderate",
-    releaseStatus: "deferred",
+    releaseStatus: "draft_controlled",
     safeTrainingAreasTr: [
       "Kontrollü ürün tanıtımı",
       "Component, lens, ring-light ve filter vocabulary",
@@ -142,6 +156,10 @@ export const deviceLabDevices: readonly DeviceLabDevice[] = [
       unsupportedSafetyInstructionsBlockedClaim,
       directAfisIntegrationBlockedClaim,
       catalogToDeviceTransferBlockedClaim,
+      tzoomBareSlideAttributionBlockedClaim,
+      tzoomUnclearFunctionsBlockedClaim,
+      tzoomContactlessCompanyLevelBlockedClaim,
+      tzoomApplicationDemoBlockedClaim,
     ],
     missingDocumentsTr: [
       "User/operator manual",
@@ -152,7 +170,7 @@ export const deviceLabDevices: readonly DeviceLabDevice[] = [
       "SOP ve performance verisi",
     ],
     recommendedModules: ["intro", "light_filter", "customer_demo"],
-    modules: [],
+    modules: tzoomPlusDnaModules,
   },
   {
     slug: "superspectral-force-core",
@@ -168,7 +186,7 @@ export const deviceLabDevices: readonly DeviceLabDevice[] = [
     categoryEn:
       "Mobile forensic imaging system family with separate Force and Core SKUs",
     sourceStrength: "moderate",
-    releaseStatus: "deferred",
+    releaseStatus: "draft_controlled",
     safeTrainingAreasTr: [
       "Force/Core kimlik ve printed-spec comparison",
       "Sensor, storage, display, light-system ve filter vocabulary",
@@ -186,6 +204,10 @@ export const deviceLabDevices: readonly DeviceLabDevice[] = [
       unsupportedSafetyInstructionsBlockedClaim,
       directAfisIntegrationBlockedClaim,
       catalogToDeviceTransferBlockedClaim,
+      superspectralAmbiguousApplicationSlidesBlockedClaim,
+      superspectralCoreLensCompatibilityBlockedClaim,
+      superspectralUndocumentedSoftwareBlockedClaim,
+      superspectralBatteryRuntimeBlockedClaim,
     ],
     missingDocumentsTr: [
       "Force ve Core operator manuals",
@@ -196,7 +218,7 @@ export const deviceLabDevices: readonly DeviceLabDevice[] = [
       "Validation/performance verisi",
     ],
     recommendedModules: ["intro", "comparison", "light_filter"],
-    modules: [],
+    modules: superspectralForceCoreModules,
   },
   {
     slug: "contactless-lab-ultra",

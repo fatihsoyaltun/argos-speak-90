@@ -36,6 +36,7 @@ Durum sözlüğü: `Tamamlandı`, `Sıradaki`, `Bekliyor`, `Engelli`.
 | P10C | Speak, Review ve Journal yeniden tasarımı | Tamamlandı | P7, P8 |
 | P10D | İlerleme ve Ayarlar yeniden tasarımı | Tamamlandı | P3, P6 |
 | P11 | Uçtan uca regresyon ve belge kapanışı | Tamamlandı | P10A–P10D |
+| P12 | Device Lab 8K sonrası genişletme (kaynak destekli) | Tamamlandı | P5, P6, P11 |
 
 P5 ve P6, P4 tamamlandıktan sonra teknik olarak paralel olabilir; ancak tek-faz kuralı nedeniyle tabloda P5 önce yürütülür. P7 ikisini de bekler.
 
@@ -520,6 +521,49 @@ Yeni tek kullanıcı ürününün veri, route, erişilebilirlik, mobil, TTS, kay
 
 - Bu kapanış fazında yeni özellik eklemek.
 - Test başarısızlığını belgeyle geçiştirmek.
+
+## P12 — Device Lab 8K sonrası genişletme (kaynak destekli)
+
+**Durum: Tamamlandı**
+
+### Amaç
+
+P5/Device-6/Device-7'de yayımlanmamış (`draft_controlled`) durumda bekleyen kaynak destekli Device Lab modüllerini insan/agent claim-control incelemesinden geçirip yayımlamak; `docs/DEVICE_SOURCE_INDEX.md` ve `docs/DEVICE_LAB_ARCHITECTURE_PLAN.md`'nin zaten "ready with controls" olarak işaretlediği ama Device-6'da veri modeline alınmamış t-ZOOM Plus DNA Intro ve SuperSpectral Force/Core Comparison modüllerini, yalnız mevcut `docs/sources/forenscope/*` çıkarımlarına dayanarak eklemek. Device Lab'i 8K'nin ötesine, kaynak kanıtının izin verdiği kadar büyütmek.
+
+### Önkoşullar
+
+- P5 (sade hap bilgi deneyimi), P6 (TTS güvenilirlik temeli) ve P11 (regresyon kapanışı) tamamlanmış.
+- Başlangıç `git status` temiz.
+- Faz planında başka bir `Sıradaki` faz yoktu; bu faz doğrudan kullanıcı talebiyle açılıp aynı görevde tamamlandı.
+
+### İzin verilen iş
+
+- `lib/device-lab/8k.ts` ve `lib/device-lab/contactless-lite.ts` içindeki mevcut kaynak destekli `draft_controlled` claim/modülleri (8K Customer Demo, 8K UVC Source Warning, Contactless LITE Intro, Contactless LITE Reflective Surfaces Demo) claim-control incelemesinden geçirip `learner_ready` yapmak.
+- Yalnız `docs/sources/forenscope/TZOOM_PLUS_DNA_PRESENTATION_EXTRACTION.md` ve `docs/sources/forenscope/SUPERSPECTRAL_FORCE_AND_CORE_PRESENTATION_EXTRACTION.md` çıkarımlarına dayanan yeni `lib/device-lab/tzoom-plus-dna.ts` (Intro) ve `lib/device-lab/superspectral-force-core.ts` (Force/Core Comparison) dosyalarını eklemek.
+- `lib/device-lab/devices.ts` ve `lib/device-lab/validation.ts`'i bu iki cihazın gerçek modül almasına izin verecek şekilde güncellemek (Device-6'nın "yalnız 8K ve Contactless LITE" kapısını genişletmek).
+- `lib/device-lab/index.ts` re-export güncellemesi.
+- `docs/DEVICE_LAB_EXPANDED_RELEASE_SUMMARY.md` özet belgesini eklemek.
+
+### Yapılmayacaklar
+
+- `docs/sources/forenscope/*` çıkarım dosyalarını veya `docs/DEVICE_SOURCE_INDEX.md`/`docs/DEVICE_LAB_ARCHITECTURE_PLAN.md`'yi düzenlemek.
+- Contactless LAB ULTRA veya High-Tech catalog overview için öğrenci modülü eklemek (kaynak kanıtı hâlâ yetersiz/internal-only).
+- t-ZOOM Plus DNA uygulama-demo (GSR/semen/blood/dead-skin) modülü eklemek (bare-"t-ZOOM" atıf çelişkisi ve tekil-örnek sınırı nedeniyle deferred).
+- AFIS, DNA extraction/analysis, performans/sertifika iddiası, yeni güvenlik talimatı eklemek.
+- Ana 90 günlük müfredatı, gün kimliklerini, Auth/Admin/cloud kodunu değiştirmek.
+
+### Kabul ölçütleri
+
+- 8K'nin ötesinde en az bir yeni cihaz öğrenci arayüzünde görünür ve kaynak destekli.
+- Her yeni/yayımlanan claim'in tam `sourceReferences`'ı ve claim-control seviyesi var; forbidden-phrase taraması temiz.
+- `assertDeviceLabDataValid` importta 0 hata ile geçiyor.
+- Mevcut 8K akışı (üç modül) ve Contactless LITE akışı regresyonsuz çalışıyor.
+- `npm run lint`, `npm run build`, `git diff --check` geçiyor.
+- 320/375 px mobil görünüm, klavye/focus ve TTS auto-play olmaması manuel/agent tarayıcı kontrolünden geçti.
+
+**Son doğrulama notu (6 Eylül 2026):** 8K Customer Demo, 8K UVC Source Warning, Contactless LITE Intro ve Contactless LITE Reflective Surfaces Demo `learner_ready` yapıldı (Contactless LITE artık ikinci yayımlanmış cihaz). t-ZOOM Plus DNA Intro ve SuperSpectral Force/Core Comparison yeni `learner_ready` modülleri eklendi (üçüncü ve dördüncü cihaz). Contactless LAB ULTRA ve High-Tech catalog `deferred`/`blocked` kaldı, öğrenci modülü yok. `assertDeviceLabDataValid` 0 hatayla geçti; `npx tsc --noEmit`, `npm run lint`, `npm run build` geçti; `next start` üzerinde 320/375 px agent tarayıcı QA'sı tüm yeni/mevcut route'larda overflow'suz, TTS auto-play'siz ve blocked-claim bölümleri varsayılan kapalı olarak geçti. Ayrıntı: `docs/DEVICE_LAB_EXPANDED_RELEASE_SUMMARY.md`. Sonraki faz yok; tabloda `Sıradaki` bırakılmadı.
+
+---
 
 ## 3. Genel “yapılmayacaklar”
 

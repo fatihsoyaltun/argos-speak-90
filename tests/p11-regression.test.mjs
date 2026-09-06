@@ -75,6 +75,8 @@ async function importDeviceLab() {
     "lib/device-lab/validation.ts",
     "lib/device-lab/8k.ts",
     "lib/device-lab/contactless-lite.ts",
+    "lib/device-lab/tzoom-plus-dna.ts",
+    "lib/device-lab/superspectral-force-core.ts",
     "lib/device-lab/devices.ts",
     "lib/device-lab/index.ts",
   ];
@@ -86,6 +88,11 @@ async function importDeviceLab() {
       .replaceAll('"./validation"', '"./validation.ts"')
       .replaceAll('"./8k"', '"./8k.ts"')
       .replaceAll('"./contactless-lite"', '"./contactless-lite.ts"')
+      .replaceAll('"./tzoom-plus-dna"', '"./tzoom-plus-dna.ts"')
+      .replaceAll(
+        '"./superspectral-force-core"',
+        '"./superspectral-force-core.ts"',
+      )
       .replaceAll('"./devices"', '"./devices.ts"')
       .replaceAll('"./local-practice"', '"./local-practice.ts"');
     await writeFile(join(directory, file.split("/").at(-1)), source);
@@ -290,41 +297,64 @@ test("P11 acceptance: Device Lab publishes only source-backed learner-ready fact
     JSON.stringify(validation.issues, null, 2),
   );
 
+  const publishedDeviceSlugs = [
+    "8k",
+    "contactless-lite",
+    "tzoom-plus-dna",
+    "superspectral-force-core",
+  ];
+
   assert.deepEqual(
     learnerReadyDeviceLabDevices.map((device) => device.slug),
-    ["8k"],
+    publishedDeviceSlugs,
   );
 
-  const readyModules = getLearnerReadyDeviceLabModules("8k");
-  assert.deepEqual(
-    readyModules.map((labModule) => labModule.id),
-    ["8k-intro"],
-  );
+  const expectedReadyModuleIds = {
+    "8k": ["8k-intro", "8k-customer-demo", "8k-uvc-source-warning"],
+    "contactless-lite": [
+      "contactless-lite-intro",
+      "contactless-lite-reflective-surfaces-demo",
+    ],
+    "tzoom-plus-dna": ["tzoom-plus-dna-intro"],
+    "superspectral-force-core": ["superspectral-force-core-comparison"],
+  };
 
-  for (const labModule of readyModules) {
-    assert.equal(labModule.releaseStatus, "learner_ready");
-    assert.ok(labModule.sourceBackedClaims.length > 0);
-    const facts = getDeviceLabQuickFacts(labModule);
-    assert.ok(facts.length > 0);
-    assert.ok(facts.length <= 3);
-    for (const claim of facts) {
-      assert.equal(claim.releaseStatus, "learner_ready");
-      assert.equal(claim.learnerFacingTextAllowed, true);
-      assert.notEqual(claim.claimControlLevel, "blocked");
-      assert.notEqual(claim.claimControlLevel, "not_enough_source_data");
-      assert.notEqual(claim.claimControlLevel, "conflict_follow_up_needed");
-      assert.ok(claim.sourceReferences.length > 0);
-      for (const reference of claim.sourceReferences) {
-        assert.ok(reference.sourceFile.trim());
-        assert.ok(reference.section.trim());
-        assert.ok(reference.slideOrPage.trim());
-        assert.ok(reference.note.trim());
+  for (const slug of publishedDeviceSlugs) {
+    const readyModules = getLearnerReadyDeviceLabModules(slug);
+    assert.deepEqual(
+      readyModules.map((labModule) => labModule.id),
+      expectedReadyModuleIds[slug],
+    );
+
+    for (const labModule of readyModules) {
+      assert.equal(labModule.releaseStatus, "learner_ready");
+      assert.ok(labModule.sourceBackedClaims.length > 0);
+      assert.ok(
+        labModule.sourceBackedClaims.every(
+          (claim) => claim.releaseStatus === "learner_ready",
+        ),
+      );
+      const facts = getDeviceLabQuickFacts(labModule);
+      assert.ok(facts.length <= 3);
+      for (const claim of facts) {
+        assert.equal(claim.releaseStatus, "learner_ready");
+        assert.equal(claim.learnerFacingTextAllowed, true);
+        assert.notEqual(claim.claimControlLevel, "blocked");
+        assert.notEqual(claim.claimControlLevel, "not_enough_source_data");
+        assert.notEqual(claim.claimControlLevel, "conflict_follow_up_needed");
+        assert.ok(claim.sourceReferences.length > 0);
+        for (const reference of claim.sourceReferences) {
+          assert.ok(reference.sourceFile.trim());
+          assert.ok(reference.section.trim());
+          assert.ok(reference.slideOrPage.trim());
+          assert.ok(reference.note.trim());
+        }
       }
     }
   }
 
   for (const device of deviceLabDevices) {
-    if (device.slug === "8k") continue;
+    if (publishedDeviceSlugs.includes(device.slug)) continue;
     const published = getLearnerReadyDeviceLabModules(device.slug);
     assert.equal(
       published.length,
