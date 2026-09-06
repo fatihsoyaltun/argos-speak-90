@@ -31,6 +31,13 @@ const expectedDeviceSlugs: readonly DeviceSlug[] = [
   "high-tech-catalog",
 ];
 
+const devicesAllowedLearnerModules = new Set<DeviceSlug>([
+  "8k",
+  "contactless-lite",
+  "tzoom-plus-dna",
+  "superspectral-force-core",
+]);
+
 function isCompleteSourceReference(reference: SourceReference) {
   return Boolean(
     reference.sourceFile.trim() &&
@@ -255,14 +262,13 @@ export function validateDeviceLabDevices(
     deviceSlugs.add(device.slug);
 
     if (
-      device.slug !== "8k" &&
-      device.slug !== "contactless-lite" &&
+      !devicesAllowedLearnerModules.has(device.slug) &&
       device.modules.length > 0
     ) {
       issues.push({
         path: `${device.slug}.modules`,
         message:
-          "Device-6 allows learner modules only for 8K and Contactless LITE.",
+          "Learner modules are currently allowed only for 8K, Contactless LITE, t-ZOOM Plus DNA, and SuperSpectral Force/Core.",
       });
     }
 
