@@ -1,5 +1,5 @@
 import {
-  APP_LOCAL_STORAGE_KEYS,
+  clearLocalUserData,
   PRACTICE_PROGRESS_STORAGE_KEY,
 } from "@/lib/local-storage-keys";
 
@@ -340,9 +340,7 @@ export function clearAllArgosProgress() {
   }
 
   try {
-    APP_LOCAL_STORAGE_KEYS.forEach((key) => {
-      storage.removeItem(key);
-    });
+    clearLocalUserData(storage);
     notifyPracticeProgressChanged();
     return true;
   } catch {

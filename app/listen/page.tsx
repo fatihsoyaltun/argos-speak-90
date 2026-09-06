@@ -10,11 +10,11 @@ export default function ListenPage() {
   const drill = listeningDrills[activeDay - 1] ?? listeningDrills[0];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-6">
       <PageHeader
         eyebrow={`Listen · Day ${activeDay}`}
         title={drill.title}
-        description="Dinle, transcripti takip et, önemli cümleleri yakala ve kısa bir cevap yaz."
+        description="Tek ana Dinle kontrolüyle dinle, transcripti takip et ve kısa cevabını kaydet."
       />
       <DayNavigator />
       <ListeningDrillView key={activeDay} drill={drill} />

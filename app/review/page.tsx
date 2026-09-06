@@ -14,7 +14,7 @@ export default function ReviewPage() {
       <PageHeader
         eyebrow={`Review · Day ${activeDay}`}
         title={drill.title}
-        description="Kısa cevaplar yaz, kontrol et ve eksik kalan cümleyi tekrar et."
+        description="Her seferinde tek görev: prompt → dinle → cevap → kontrol → tamamla. AI skor yok."
       />
       <DayNavigator />
       <ReviewPractice key={activeDay} drill={drill} />

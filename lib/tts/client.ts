@@ -256,17 +256,25 @@ export async function requestTtsAudio(
 }
 
 export async function getTtsServiceStatus(): Promise<TtsServiceStatus> {
-  const abortController = new AbortController();
-  const timeout = window.setTimeout(() => {
-    abortController.abort();
-  }, STATUS_TIMEOUT_MS);
-
   try {
-    const response = await fetch(`/api/tts?ts=${Date.now()}`, {
-      method: "GET",
-      cache: "no-store",
-      signal: abortController.signal,
-      headers: { Accept: "application/json" },
+    const response = await new Promise<Response>((resolve, reject) => {
+      const timer = window.setTimeout(() => {
+        reject(new Error("TTS status timed out"));
+      }, STATUS_TIMEOUT_MS);
+
+      window.fetch(`/api/tts?ts=${Date.now()}`, {
+        method: "GET",
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      })
+        .then((value) => {
+          window.clearTimeout(timer);
+          resolve(value);
+        })
+        .catch((error) => {
+          window.clearTimeout(timer);
+          reject(error);
+        });
     });
 
     if (!response.ok) {
@@ -281,13 +289,7 @@ export async function getTtsServiceStatus(): Promise<TtsServiceStatus> {
       reason: status.reason,
       voiceId: typeof status.voiceId === "string" ? status.voiceId : undefined,
     };
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      return { configured: false, reason: "loading_timeout" };
-    }
-
+  } catch {
     return { configured: false, reason: "request_failed" };
-  } finally {
-    window.clearTimeout(timeout);
   }
 }
